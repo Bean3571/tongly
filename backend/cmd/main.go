@@ -6,9 +6,9 @@ import (
 	"tongly/backend/internal/config"
 	"tongly/backend/internal/interfaces"
 	"tongly/backend/internal/repositories"
+	"tongly/backend/internal/router"
 	"tongly/backend/internal/usecases"
 
-	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 )
 
@@ -24,21 +24,26 @@ func main() {
 	defer db.Close()
 
 	// Initialize repositories
-	userRepo := repositories.UserRepository{DB: db}
+	userRepo := &repositories.UserRepositoryImpl{DB: db}           // Use a pointer
+	tutorRepo := &repositories.TutorRepositoryImpl{DB: db}         // Use a pointer
+	challengeRepo := &repositories.ChallengeRepositoryImpl{DB: db} // Use a pointer
 
 	// Initialize use cases
 	authUseCase := usecases.AuthUseCase{UserRepo: userRepo}
+	tutorUseCase := usecases.TutorUseCase{TutorRepo: tutorRepo}
+	gamificationUseCase := usecases.GamificationUseCase{ChallengeRepo: challengeRepo}
 
 	// Initialize handlers
 	authHandler := interfaces.AuthHandler{AuthUseCase: authUseCase}
+	tutorHandler := interfaces.TutorHandler{TutorUseCase: tutorUseCase}
+	gamificationHandler := interfaces.GamificationHandler{GamificationUseCase: gamificationUseCase}
 
 	// Setup router
-	router := gin.Default()
-	router.POST("/api/auth/register", authHandler.Register)
+	r := router.SetupRouter(&authHandler, &tutorHandler, &gamificationHandler)
 
 	// Start server
 	log.Printf("Server started on port %s", cfg.ServerPort)
-	if err := router.Run(":" + cfg.ServerPort); err != nil {
+	if err := r.Run(":" + cfg.ServerPort); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
 }
