@@ -3,14 +3,20 @@ package config
 import (
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	DatabaseURL string
-	JWTSecret   string
-	ServerPort  string
+	DBHost     string
+	DBPort     int
+	DBUser     string
+	DBPassword string
+	DBName     string
+	DBSSLMode  string
+	JWTSecret  string
+	ServerPort string
 }
 
 func LoadConfig() *Config {
@@ -19,10 +25,17 @@ func LoadConfig() *Config {
 		log.Println("No .env file found, using environment variables")
 	}
 
+	dbPort, _ := strconv.Atoi(getEnv("DB_PORT", "5432"))
+
 	return &Config{
-		DatabaseURL: getEnv("DATABASE_URL", "postgres://user:password@localhost:5432/tongly?sslmode=disable"),
-		JWTSecret:   getEnv("JWT_SECRET", "supersecretkey"),
-		ServerPort:  getEnv("SERVER_PORT", "8080"),
+		DBHost:     getEnv("DB_HOST", "localhost"),
+		DBPort:     dbPort,
+		DBUser:     getEnv("DB_USER", "user"),
+		DBPassword: getEnv("DB_PASSWORD", "password"),
+		DBName:     getEnv("DB_NAME", "tongly"),
+		DBSSLMode:  getEnv("DB_SSLMODE", "disable"),
+		JWTSecret:  getEnv("JWT_SECRET", "supersecretkey"),
+		ServerPort: getEnv("SERVER_PORT", "8080"),
 	}
 }
 

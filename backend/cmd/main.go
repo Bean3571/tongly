@@ -1,8 +1,8 @@
 package main
 
 import (
-	"database/sql"
 	"tongly/backend/internal/config"
+	"tongly/backend/internal/database"
 	"tongly/backend/internal/interfaces"
 	"tongly/backend/internal/logger"
 	"tongly/backend/internal/repositories"
@@ -22,13 +22,28 @@ func main() {
 	// Load config
 	cfg := config.LoadConfig()
 
-	// Connect to database
-	db, err := sql.Open("postgres", cfg.DatabaseURL)
+	// Initialize database connection
+	dbConfig := &database.Config{
+		Host:     cfg.DBHost,
+		Port:     cfg.DBPort,
+		User:     cfg.DBUser,
+		Password: cfg.DBPassword,
+		DBName:   cfg.DBName,
+		SSLMode:  cfg.DBSSLMode,
+	}
+
+	db, err := database.NewConnection(dbConfig)
 	if err != nil {
 		logger.Error("Failed to connect to database", "error", err)
 		return
 	}
 	defer db.Close()
+
+	// Run migrations
+	if err := database.RunMigrations(db, "../../migrations"); err != nil {
+		logger.Error("Failed to run migrations", "error", err)
+		return
+	}
 
 	// Initialize repositories
 	userRepo := &repositories.UserRepositoryImpl{DB: db}
