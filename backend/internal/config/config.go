@@ -20,7 +20,7 @@ func LoadConfig() *Config {
 	}
 
 	return &Config{
-		DatabaseURL: getEnv("DATABASE_URL", "postgres://user:password@localhost:5432/tongly"),
+		DatabaseURL: getEnv("DATABASE_URL", "postgres://user:password@localhost:5432/tongly?sslmode=disable"),
 		JWTSecret:   getEnv("JWT_SECRET", "supersecretkey"),
 		ServerPort:  getEnv("SERVER_PORT", "8080"),
 	}

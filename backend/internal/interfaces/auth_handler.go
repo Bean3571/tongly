@@ -3,6 +3,7 @@ package interfaces
 import (
 	"net/http"
 	"tongly/backend/internal/entities"
+	"tongly/backend/internal/logger"
 	"tongly/backend/internal/usecases"
 	"tongly/backend/pkg/utils"
 
@@ -13,45 +14,51 @@ type AuthHandler struct {
 	AuthUseCase usecases.AuthUseCase
 }
 
-// Register handles user registration
 func (h *AuthHandler) Register(c *gin.Context) {
+	logger.Info("Register endpoint called")
 	var user entities.User
 	if err := c.ShouldBindJSON(&user); err != nil {
+		logger.Error("Invalid request", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
 
 	if err := h.AuthUseCase.Register(user); err != nil {
+		logger.Error("Failed to register user", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register user"})
 		return
 	}
 
+	logger.Info("User registered successfully", "username", user.Username)
 	c.JSON(http.StatusOK, gin.H{"message": "User registered successfully"})
 }
 
-// Login handles user login
 func (h *AuthHandler) Login(c *gin.Context) {
+	logger.Info("Login endpoint called")
 	var loginRequest struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
 	}
 	if err := c.ShouldBindJSON(&loginRequest); err != nil {
+		logger.Error("Invalid request", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
 
 	user, err := h.AuthUseCase.Authenticate(loginRequest.Username, loginRequest.Password)
 	if err != nil {
+		logger.Error("Authentication failed", "error", err)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
 
-	// Generate JWT token (you can use the JWT utility from earlier)
 	token, err := utils.GenerateJWT(user.ID, user.Role)
 	if err != nil {
+		logger.Error("Failed to generate JWT", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
 
+	logger.Info("User logged in successfully", "username", user.Username)
 	c.JSON(http.StatusOK, gin.H{"token": token})
 }

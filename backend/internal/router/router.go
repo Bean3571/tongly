@@ -6,20 +6,21 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(authHandler *interfaces.AuthHandler, tutorHandler *interfaces.TutorHandler, gamificationHandler *interfaces.GamificationHandler) *gin.Engine {
-	router := gin.Default()
+func SetupRouter(r *gin.Engine, authHandler *interfaces.AuthHandler, tutorHandler *interfaces.TutorHandler, gamificationHandler *interfaces.GamificationHandler) {
+	// Handle OPTIONS requests
+	r.OPTIONS("/*any", func(c *gin.Context) {
+		c.Status(200)
+	})
 
 	// Auth routes
-	router.POST("/api/auth/register", authHandler.Register)
-	router.POST("/api/auth/login", authHandler.Login)
+	r.POST("/api/auth/register", authHandler.Register)
+	r.POST("/api/auth/login", authHandler.Login)
 
 	// Tutor routes
-	router.POST("/api/tutors", tutorHandler.RegisterTutor)
-	router.GET("/api/tutors", tutorHandler.ListTutors)
+	r.POST("/api/tutors", tutorHandler.RegisterTutor)
+	r.GET("/api/tutors", tutorHandler.ListTutors)
 
 	// Gamification routes
-	router.POST("/api/challenges/submit", gamificationHandler.SubmitChallenge)
-	router.GET("/api/leaderboards", gamificationHandler.GetLeaderboard)
-
-	return router
+	r.POST("/api/challenges/submit", gamificationHandler.SubmitChallenge)
+	r.GET("/api/leaderboards", gamificationHandler.GetLeaderboard)
 }

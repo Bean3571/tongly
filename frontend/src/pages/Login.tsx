@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { Link, useNavigate } from 'react-router-dom'; // Add Link import
+import api from '../services/api';
 
 const Login = () => {
     const [username, setUsername] = useState('');
@@ -9,40 +9,45 @@ const Login = () => {
 
     const handleLogin = async () => {
         try {
-            const response = await axios.post('/api/auth/login', { username, password });
+            console.log("Attempting to log in...");
+            const response = await api.post('/api/auth/login', { username, password });
             localStorage.setItem('token', response.data.token);
+            console.log("Login successful", response.data);
             navigate('/dashboard');
         } catch (error) {
-            console.error('Login failed', error);
+            console.error("Login failed", error);
         }
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
-            <h1 className="text-2xl font-bold text-gray-800 mb-4">Login</h1>
-            <div className="bg-white p-8 rounded-lg shadow-md w-96">
+        <div className="min-h-screen bg-light dark:bg-dark flex flex-col items-center justify-center p-4">
+            <div className="bg-white dark:bg-dark shadow-lg rounded-lg p-8 w-full max-w-md">
+                <h1 className="text-2xl font-bold text-dark dark:text-light mb-6">Login</h1>
                 <input
                     type="text"
                     placeholder="Username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="w-full p-2 mb-4 border border-gray-300 rounded-lg"
+                    className="w-full p-3 mb-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-transparent text-dark dark:text-light"
                 />
                 <input
                     type="password"
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full p-2 mb-4 border border-gray-300 rounded-lg"
+                    className="w-full p-3 mb-6 border border-gray-300 dark:border-gray-600 rounded-lg bg-transparent text-dark dark:text-light"
                 />
                 <button
                     onClick={handleLogin}
-                    className="w-full bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600"
+                    className="w-full bg-primary text-white p-3 rounded-lg hover:bg-primary/90 transition duration-300"
                 >
                     Login
                 </button>
-                <p className="text-center mt-4">
-                    Don't have an account? <a href="/register" className="text-blue-500 hover:underline">Register</a>
+                <p className="text-center mt-6 text-dark dark:text-light">
+                    Don't have an account?{' '}
+                    <Link to="/register" className="text-secondary dark:text-accent hover:underline">
+                        Register
+                    </Link>
                 </p>
             </div>
         </div>
