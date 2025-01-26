@@ -1,6 +1,7 @@
 package main
 
 import (
+	"path/filepath"
 	"tongly/backend/internal/config"
 	"tongly/backend/internal/database"
 	"tongly/backend/internal/interfaces"
@@ -40,7 +41,8 @@ func main() {
 	defer db.Close()
 
 	// Run migrations
-	if err := database.RunMigrations(db, "../../migrations"); err != nil {
+	migrationsPath := filepath.Join("migrations")
+	if err := database.RunMigrations(db, migrationsPath); err != nil {
 		logger.Error("Failed to run migrations", "error", err)
 		return
 	}
