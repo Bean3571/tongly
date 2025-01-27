@@ -3,12 +3,15 @@ package entities
 import "golang.org/x/crypto/bcrypt"
 
 type User struct {
-	ID             int    `json:"id"`
-	Username       string `json:"username"`
-	PasswordHash   string `json:"-"`
-	Role           string `json:"role"`
-	Email          string `json:"email"`
-	ProfilePicture string `json:"profile_picture"`
+	ID             int     `json:"id"`
+	Username       string  `json:"username"`
+	Password       string  `json:"password" db:"-"` // Added for registration/login
+	PasswordHash   string  `json:"-"`
+	Role           string  `json:"role"`
+	Email          string  `json:"email"`
+	FirstName      *string `json:"first_name,omitempty"`
+	LastName       *string `json:"last_name,omitempty"`
+	ProfilePicture *string `json:"profile_picture,omitempty"`
 }
 
 // HashPassword hashes the user's password using bcrypt

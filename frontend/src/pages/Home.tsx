@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const Home = () => {
+export const Home = () => {
     return (
         <div className="min-h-screen bg-light dark:bg-dark flex flex-col items-center justify-center p-4">
             <h1 className="text-4xl font-bold text-dark dark:text-light mb-4">Welcome to Tongly</h1>

@@ -56,12 +56,13 @@ func main() {
 	authUseCase := usecases.AuthUseCase{UserRepo: userRepo}
 	tutorUseCase := usecases.TutorUseCase{TutorRepo: tutorRepo}
 	gamificationUseCase := usecases.GamificationUseCase{ChallengeRepo: challengeRepo}
+	userUseCase := usecases.UserUseCase{UserRepo: userRepo}
 
 	// Initialize handlers
 	authHandler := interfaces.AuthHandler{AuthUseCase: authUseCase}
 	tutorHandler := interfaces.TutorHandler{TutorUseCase: tutorUseCase}
 	gamificationHandler := interfaces.GamificationHandler{GamificationUseCase: gamificationUseCase}
-
+	userHandler := interfaces.UserHandler{UserUseCase: userUseCase}
 	// Create a new Gin router
 	r := gin.Default()
 
@@ -75,7 +76,7 @@ func main() {
 	}))
 
 	// Register routes using the SetupRouter function
-	router.SetupRouter(r, &authHandler, &tutorHandler, &gamificationHandler)
+	router.SetupRouter(r, &authHandler, &tutorHandler, &gamificationHandler, &userHandler)
 
 	// Start server
 	logger.Info("Server started", "port", cfg.ServerPort)

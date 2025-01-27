@@ -1,10 +1,12 @@
 -- Users table (already exists, shown for reference)
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
-    role VARCHAR(10) NOT NULL CHECK (role IN ('student', 'tutor')),
-    email VARCHAR(100) UNIQUE NOT NULL,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
     profile_picture TEXT
 );
 

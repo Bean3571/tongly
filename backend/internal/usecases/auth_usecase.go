@@ -13,7 +13,7 @@ type AuthUseCase struct {
 // Register handles user registration
 func (uc *AuthUseCase) Register(user entities.User) error {
 	// Hash the password before saving
-	if err := user.HashPassword(user.PasswordHash); err != nil {
+	if err := user.HashPassword(user.Password); err != nil {
 		return err
 	}
 

@@ -41,3 +41,56 @@ func (r *UserRepositoryImpl) GetUserByUsername(username string) (*entities.User,
 	logger.Info("User fetched successfully", "username", username)
 	return &user, nil
 }
+
+func (r *UserRepositoryImpl) GetUserByID(id int) (*entities.User, error) {
+	query := `
+        SELECT id, username, password_hash, role, email, first_name, last_name, profile_picture 
+        FROM users WHERE id = $1`
+	row := r.DB.QueryRow(query, id)
+
+	var user entities.User
+	err := row.Scan(
+		&user.ID,
+		&user.Username,
+		&user.PasswordHash,
+		&user.Role,
+		&user.Email,
+		&user.FirstName,
+		&user.LastName,
+		&user.ProfilePicture)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (r *UserRepositoryImpl) UpdateUser(user entities.User) error {
+	query := `
+        UPDATE users 
+        SET email = $1, 
+            profile_picture = COALESCE($2, profile_picture), 
+            first_name = COALESCE($3, first_name),
+            last_name = COALESCE($4, last_name),
+            password_hash = COALESCE($5, password_hash)
+        WHERE id = $6
+        RETURNING id`
+
+	var id int
+	err := r.DB.QueryRow(query,
+		user.Email,
+		user.ProfilePicture,
+		user.FirstName,
+		user.LastName,
+		user.PasswordHash,
+		user.ID).Scan(&id)
+
+	if err != nil {
+		logger.Error("Failed to update user", "error", err, "user_id", user.ID)
+		return err
+	}
+	return nil
+}
