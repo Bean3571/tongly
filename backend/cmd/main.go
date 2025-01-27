@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"path/filepath"
 	"tongly/backend/internal/config"
 	"tongly/backend/internal/database"
@@ -23,6 +24,23 @@ func main() {
 	// Load config
 	cfg := config.LoadConfig()
 
+	// Create database URL
+	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s",
+		cfg.DBUser,
+		cfg.DBPassword,
+		cfg.DBHost,
+		cfg.DBPort,
+		cfg.DBName,
+		cfg.DBSSLMode,
+	)
+
+	// Run migrations before connecting to the database
+	migrationsPath := filepath.Join("migrations")
+	if err := database.RunMigrations(dbURL, migrationsPath); err != nil {
+		logger.Error("Failed to run migrations", "error", err)
+		return
+	}
+
 	// Initialize database connection
 	dbConfig := &database.Config{
 		Host:     cfg.DBHost,
@@ -40,13 +58,6 @@ func main() {
 	}
 	defer db.Close()
 
-	// Run migrations
-	migrationsPath := filepath.Join("migrations")
-	if err := database.RunMigrations(db, migrationsPath); err != nil {
-		logger.Error("Failed to run migrations", "error", err)
-		return
-	}
-
 	// Initialize repositories
 	userRepo := &repositories.UserRepositoryImpl{DB: db}
 	tutorRepo := &repositories.TutorRepositoryImpl{DB: db}
@@ -63,13 +74,14 @@ func main() {
 	tutorHandler := interfaces.TutorHandler{TutorUseCase: tutorUseCase}
 	gamificationHandler := interfaces.GamificationHandler{GamificationUseCase: gamificationUseCase}
 	userHandler := interfaces.UserHandler{UserUseCase: userUseCase}
+
 	// Create a new Gin router
 	r := gin.Default()
 
 	// Enable CORS
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"},                   // Allow frontend origin
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}, // Include OPTIONS
+		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,

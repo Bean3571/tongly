@@ -2,124 +2,77 @@ package database
 
 import (
 	"database/sql"
-
 	"fmt"
+	"tongly/backend/internal/logger"
 
-	"os"
-
-	"path/filepath"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
-func RunMigrations(db *sql.DB, migrationsPath string) error {
-
-	// Get absolute path to migrations directory
-
-	absPath, err := filepath.Abs(migrationsPath)
-
-	if err != nil {
-
-		return fmt.Errorf("could not get absolute path: %w", err)
-
-	}
-
-	// Verify the migrations directory exists
-
-	if _, err := os.Stat(absPath); os.IsNotExist(err) {
-
-		return fmt.Errorf("migrations directory does not exist: %s", absPath)
-
-	}
-
-	// Drop all existing tables
-
-	_, err = db.Exec(`
-
+func dropAllTables(db *sql.DB) error {
+	_, err := db.Exec(`
 		DO $$ DECLARE
-
 			r RECORD;
-
 		BEGIN
-
 			FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
-
 				EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';
-
 			END LOOP;
-
 		END $$;
-
 	`)
+	return err
+}
 
+func RunMigrations(dbURL string, migrationsPath string) error {
+	logger.Info("Running database migrations...")
+
+	// First try to run migrations normally
+	m, err := migrate.New(
+		fmt.Sprintf("file://%s", migrationsPath),
+		dbURL,
+	)
 	if err != nil {
+		return fmt.Errorf("failed to create migrate instance: %w", err)
+	}
+	defer m.Close()
 
-		return fmt.Errorf("could not drop existing tables: %w", err)
+	if err := m.Up(); err != nil {
+		if err == migrate.ErrNoChange {
+			logger.Info("No migrations to run")
+			return nil
+		}
 
+		// If there's an error about existing tables, try force migration
+		logger.Info("Tables already exist, attempting force migration...")
+
+		// Connect to database to drop tables
+		db, err := sql.Open("postgres", dbURL)
+		if err != nil {
+			return fmt.Errorf("failed to connect to database: %w", err)
+		}
+		defer db.Close()
+
+		// Drop all tables
+		if err := dropAllTables(db); err != nil {
+			return fmt.Errorf("failed to drop tables: %w", err)
+		}
+
+		// Create new migrate instance
+		m, err = migrate.New(
+			fmt.Sprintf("file://%s", migrationsPath),
+			dbURL,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to create new migrate instance: %w", err)
+		}
+		defer m.Close()
+
+		// Try migrations again
+		if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+			return fmt.Errorf("failed to run force migrations: %w", err)
+		}
 	}
 
-	fmt.Println("Dropped all existing tables")
-
-	// Read and execute the up migration file
-
-	upMigrationPath := filepath.Join(absPath, "001_initial_schema.up.sql")
-
-	migrationSQL, err := os.ReadFile(upMigrationPath)
-
-	if err != nil {
-
-		return fmt.Errorf("could not read migration file: %w", err)
-
-	}
-
-	// Execute the migration within a transaction
-
-	tx, err := db.Begin()
-
-	if err != nil {
-
-		return fmt.Errorf("could not begin transaction: %w", err)
-
-	}
-
-	_, err = tx.Exec(string(migrationSQL))
-
-	if err != nil {
-
-		tx.Rollback()
-
-		return fmt.Errorf("could not execute migration: %w", err)
-
-	}
-
-	if err := tx.Commit(); err != nil {
-
-		return fmt.Errorf("could not commit transaction: %w", err)
-
-	}
-
-	// Verify tables were created
-
-	var tableCount int
-
-	err = db.QueryRow(`
-
-		SELECT COUNT(table_name) 
-
-		FROM information_schema.tables 
-
-		WHERE table_schema = 'public' 
-
-		AND table_type = 'BASE TABLE'
-
-	`).Scan(&tableCount)
-
-	if err != nil {
-
-		return fmt.Errorf("could not verify tables: %w", err)
-
-	}
-
-	fmt.Printf("Number of tables created: %d\n", tableCount)
-
+	logger.Info("Database migrations completed successfully")
 	return nil
-
 }

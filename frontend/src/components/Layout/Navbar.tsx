@@ -1,22 +1,37 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import { FaSun, FaMoon } from 'react-icons/fa';
 
 export const Navbar = () => {
     const { user, logout } = useAuth();
+    const { isDarkMode, toggleTheme } = useTheme();
     const navigate = useNavigate();
 
     return (
-        <nav className="bg-white shadow-sm">
+        <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16">
                     <div className="flex items-center">
-                        <Link to="/" className="text-xl font-bold text-gray-900">
+                        <Link to="/" className="text-xl font-bold text-blue-600 dark:text-blue-400">
                             Tongly
                         </Link>
                     </div>
 
-                    <div className="flex items-center">
+                    <div className="flex items-center space-x-4">
+                        <button
+                            onClick={toggleTheme}
+                            className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                            aria-label="Toggle theme"
+                        >
+                            {isDarkMode ? (
+                                <FaSun className="w-5 h-5" />
+                            ) : (
+                                <FaMoon className="w-5 h-5" />
+                            )}
+                        </button>
+
                         {user ? (
                             <div className="flex items-center space-x-4">
                                 <div className="relative group">
@@ -26,18 +41,18 @@ export const Navbar = () => {
                                             src={user.profilePicture || 'https://via.placeholder.com/32'}
                                             alt={user.username}
                                         />
-                                        <span className="text-gray-700">{user.username}</span>
+                                        <span className="text-gray-700 dark:text-gray-300">{user.username}</span>
                                     </button>
-                                    <div className="absolute right-0 w-48 mt-2 py-2 bg-white rounded-md shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
+                                    <div className="absolute right-0 w-48 mt-2 py-2 bg-white dark:bg-gray-800 rounded-md shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
                                         <button
                                             onClick={() => navigate('/profile')}
-                                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
                                         >
                                             Profile
                                         </button>
                                         <button
                                             onClick={logout}
-                                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                                            className="block px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
                                         >
                                             Logout
                                         </button>
@@ -48,13 +63,13 @@ export const Navbar = () => {
                             <div className="flex items-center space-x-4">
                                 <Link
                                     to="/login"
-                                    className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                                    className="px-4 py-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors"
                                 >
                                     Login
                                 </Link>
                                 <Link
                                     to="/register"
-                                    className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium"
+                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-md font-medium transition-colors"
                                 >
                                     Sign Up
                                 </Link>

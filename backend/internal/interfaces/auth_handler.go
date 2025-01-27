@@ -36,19 +36,27 @@ func (h *AuthHandler) Register(c *gin.Context) {
 func (h *AuthHandler) Login(c *gin.Context) {
 	logger.Info("Login endpoint called")
 	var loginRequest struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
+		Username string `json:"username" binding:"required"`
+		Password string `json:"password" binding:"required"`
 	}
+
 	if err := c.ShouldBindJSON(&loginRequest); err != nil {
-		logger.Error("Invalid request", "error", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid username or password format"})
 		return
 	}
 
 	user, err := h.AuthUseCase.Authenticate(loginRequest.Username, loginRequest.Password)
 	if err != nil {
-		logger.Error("Authentication failed", "error", err)
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		logger.Error("Login failed", "error", err, "username", loginRequest.Username)
+		if err.Error() == "user not found" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+			return
+		}
+		if err.Error() == "invalid credentials" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Incorrect password"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Login failed. Please try again later"})
 		return
 	}
 

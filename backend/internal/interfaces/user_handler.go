@@ -55,8 +55,36 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 
 	var updateData entities.UserUpdateRequest
 	if err := c.ShouldBindJSON(&updateData); err != nil {
+		logger.Error("Failed to bind update data", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
 		return
+	}
+
+	// Log received data
+	logger.Info("Received profile update request",
+		"user_id", userIDInt,
+		"data", updateData)
+
+	// Get current user data first
+	currentUser, err := h.UserUseCase.GetUserByID(userIDInt)
+	if err != nil {
+		logger.Error("Failed to get current user data", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
+		return
+	}
+
+	// Update only provided fields
+	if updateData.Email != "" {
+		currentUser.Email = updateData.Email
+	}
+	if updateData.FirstName != nil {
+		currentUser.FirstName = updateData.FirstName
+	}
+	if updateData.LastName != nil {
+		currentUser.LastName = updateData.LastName
+	}
+	if updateData.ProfilePicture != nil {
+		currentUser.ProfilePicture = updateData.ProfilePicture
 	}
 
 	if err := h.UserUseCase.UpdateUser(userIDInt, updateData); err != nil {

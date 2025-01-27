@@ -69,28 +69,39 @@ func (r *UserRepositoryImpl) GetUserByID(id int) (*entities.User, error) {
 }
 
 func (r *UserRepositoryImpl) UpdateUser(user entities.User) error {
+	logger.Info("Updating user profile",
+		"user_id", user.ID,
+		"email", user.Email,
+		"first_name", user.FirstName,
+		"last_name", user.LastName)
+
 	query := `
         UPDATE users 
         SET email = $1, 
-            profile_picture = COALESCE($2, profile_picture), 
-            first_name = COALESCE($3, first_name),
-            last_name = COALESCE($4, last_name),
-            password_hash = COALESCE($5, password_hash)
-        WHERE id = $6
+            first_name = $2,
+            last_name = $3,
+            profile_picture = $4
+        WHERE id = $5
         RETURNING id`
 
 	var id int
-	err := r.DB.QueryRow(query,
+	err := r.DB.QueryRow(
+		query,
 		user.Email,
-		user.ProfilePicture,
 		user.FirstName,
 		user.LastName,
-		user.PasswordHash,
-		user.ID).Scan(&id)
+		user.ProfilePicture,
+		user.ID,
+	).Scan(&id)
 
 	if err != nil {
-		logger.Error("Failed to update user", "error", err, "user_id", user.ID)
+		logger.Error("Failed to update user",
+			"error", err,
+			"user_id", user.ID)
 		return err
 	}
+
+	logger.Info("User profile updated successfully",
+		"user_id", user.ID)
 	return nil
 }
