@@ -38,8 +38,12 @@ export const Navbar = () => {
                                     <button className="flex items-center space-x-2">
                                         <img
                                             className="h-8 w-8 rounded-full"
-                                            src={user.profilePicture || 'https://via.placeholder.com/32'}
+                                            src={user.profile_picture || 'https://via.placeholder.com/32'}
                                             alt={user.username}
+                                            onError={(e) => {
+                                                const target = e.target as HTMLImageElement;
+                                                target.src = 'https://via.placeholder.com/32';
+                                            }}
                                         />
                                         <span className="text-gray-700 dark:text-gray-300">{user.username}</span>
                                     </button>
