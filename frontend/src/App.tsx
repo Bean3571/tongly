@@ -11,6 +11,12 @@ import { Register } from './pages/Register';
 import { Profile } from './pages/Profile';
 import { Survey } from './pages/Survey';
 import Dashboard from './pages/Dashboard';
+import { Tutors } from './pages/Tutors';
+import { TutorProfile } from './pages/TutorProfile';
+import { Lessons } from './pages/Lessons';
+import { Wallet } from './pages/Wallet';
+import { Challenges } from './pages/Challenges';
+import { Leaderboard } from './pages/Leaderboard';
 import { useAuth } from './contexts/AuthContext';
 
 const queryClient = new QueryClient();
@@ -37,6 +43,8 @@ const AppRoutes = () => {
                     <Route path="/" element={<Home />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
+                    
+                    {/* Protected Routes */}
                     <Route
                         path="/survey"
                         element={
@@ -48,9 +56,9 @@ const AppRoutes = () => {
                     <Route
                         path="/profile"
                         element={
-                            <SurveyRoute>
+                            <PrivateRoute>
                                 <Profile />
-                            </SurveyRoute>
+                            </PrivateRoute>
                         }
                     />
                     <Route
@@ -59,6 +67,54 @@ const AppRoutes = () => {
                             <SurveyRoute>
                                 <Dashboard />
                             </SurveyRoute>
+                        }
+                    />
+                    <Route
+                        path="/tutors"
+                        element={
+                            <PrivateRoute>
+                                <Tutors />
+                            </PrivateRoute>
+                        }
+                    />
+                    <Route
+                        path="/tutors/:id"
+                        element={
+                            <PrivateRoute>
+                                <TutorProfile />
+                            </PrivateRoute>
+                        }
+                    />
+                    <Route
+                        path="/lessons"
+                        element={
+                            <PrivateRoute>
+                                <Lessons />
+                            </PrivateRoute>
+                        }
+                    />
+                    <Route
+                        path="/wallet"
+                        element={
+                            <PrivateRoute>
+                                <Wallet />
+                            </PrivateRoute>
+                        }
+                    />
+                    <Route
+                        path="/challenges"
+                        element={
+                            <PrivateRoute>
+                                <Challenges />
+                            </PrivateRoute>
+                        }
+                    />
+                    <Route
+                        path="/leaderboard"
+                        element={
+                            <PrivateRoute>
+                                <Leaderboard />
+                            </PrivateRoute>
                         }
                     />
                 </Routes>
