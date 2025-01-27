@@ -70,7 +70,7 @@ func main() {
 	userUseCase := usecases.UserUseCase{UserRepo: userRepo}
 
 	// Initialize handlers
-	authHandler := interfaces.AuthHandler{AuthUseCase: authUseCase}
+	authHandler := interfaces.NewAuthHandler(&authUseCase)
 	tutorHandler := interfaces.TutorHandler{TutorUseCase: tutorUseCase}
 	gamificationHandler := interfaces.GamificationHandler{GamificationUseCase: gamificationUseCase}
 	userHandler := interfaces.UserHandler{UserUseCase: userUseCase}
@@ -88,7 +88,7 @@ func main() {
 	}))
 
 	// Register routes using the SetupRouter function
-	router.SetupRouter(r, &authHandler, &tutorHandler, &gamificationHandler, &userHandler)
+	router.SetupRouter(r, authHandler, &tutorHandler, &gamificationHandler, &userHandler)
 
 	// Start server
 	logger.Info("Server started", "port", cfg.ServerPort)

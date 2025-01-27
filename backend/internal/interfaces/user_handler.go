@@ -1,6 +1,7 @@
 package interfaces
 
 import (
+	"fmt"
 	"net/http"
 	"tongly/backend/internal/entities"
 	"tongly/backend/internal/logger"
@@ -20,13 +21,18 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 		return
 	}
 
-	// Convert float64 to int
-	userIDFloat, ok := userID.(float64)
-	if !ok {
+	// Handle both float64 and int types for user ID
+	var userIDInt int
+	switch v := userID.(type) {
+	case float64:
+		userIDInt = int(v)
+	case int:
+		userIDInt = v
+	default:
+		logger.Error("Invalid user ID type", "user_id_type", fmt.Sprintf("%T", userID))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID format"})
 		return
 	}
-	userIDInt := int(userIDFloat)
 
 	user, err := h.UserUseCase.GetUserByID(userIDInt)
 	if err != nil {
@@ -45,17 +51,25 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	// Convert float64 to int
-	userIDFloat, ok := userID.(float64)
-	if !ok {
+	// Handle both float64 and int types for user ID
+	var userIDInt int
+	switch v := userID.(type) {
+	case float64:
+		userIDInt = int(v)
+	case int:
+		userIDInt = v
+	default:
+		logger.Error("Invalid user ID type", "user_id_type", fmt.Sprintf("%T", userID))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID format"})
 		return
 	}
-	userIDInt := int(userIDFloat)
 
 	var updateData entities.UserUpdateRequest
 	if err := c.ShouldBindJSON(&updateData); err != nil {
-		logger.Error("Failed to bind update data", "error", err)
+		logger.Error("Failed to bind update data",
+			"error", err,
+			"error_type", fmt.Sprintf("%T", err),
+			"error_msg", err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
 		return
 	}
@@ -65,31 +79,13 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 		"user_id", userIDInt,
 		"data", updateData)
 
-	// Get current user data first
-	currentUser, err := h.UserUseCase.GetUserByID(userIDInt)
-	if err != nil {
-		logger.Error("Failed to get current user data", "error", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
-		return
-	}
-
-	// Update only provided fields
-	if updateData.Email != "" {
-		currentUser.Email = updateData.Email
-	}
-	if updateData.FirstName != nil {
-		currentUser.FirstName = updateData.FirstName
-	}
-	if updateData.LastName != nil {
-		currentUser.LastName = updateData.LastName
-	}
-	if updateData.ProfilePicture != nil {
-		currentUser.ProfilePicture = updateData.ProfilePicture
-	}
-
 	if err := h.UserUseCase.UpdateUser(userIDInt, updateData); err != nil {
-		logger.Error("Failed to update user profile", "error", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
+		logger.Error("Failed to update user profile",
+			"error", err,
+			"error_type", fmt.Sprintf("%T", err),
+			"error_msg", err.Error(),
+			"user_id", userIDInt)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile: " + err.Error()})
 		return
 	}
 
@@ -103,13 +99,18 @@ func (h *UserHandler) UpdatePassword(c *gin.Context) {
 		return
 	}
 
-	// Convert float64 to int
-	userIDFloat, ok := userID.(float64)
-	if !ok {
+	// Handle both float64 and int types for user ID
+	var userIDInt int
+	switch v := userID.(type) {
+	case float64:
+		userIDInt = int(v)
+	case int:
+		userIDInt = v
+	default:
+		logger.Error("Invalid user ID type", "user_id_type", fmt.Sprintf("%T", userID))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID format"})
 		return
 	}
-	userIDInt := int(userIDFloat)
 
 	var passwordData struct {
 		CurrentPassword string `json:"current_password" binding:"required"`

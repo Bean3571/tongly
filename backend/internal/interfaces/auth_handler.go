@@ -5,68 +5,126 @@ import (
 	"tongly/backend/internal/entities"
 	"tongly/backend/internal/logger"
 	"tongly/backend/internal/usecases"
-	"tongly/backend/pkg/utils"
+	"tongly/backend/pkg/jwt"
 
 	"github.com/gin-gonic/gin"
 )
 
 type AuthHandler struct {
-	AuthUseCase usecases.AuthUseCase
+	AuthUseCase *usecases.AuthUseCase
 }
 
+type LoginCredentials struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+type RegisterRequest struct {
+	Username string `json:"username" binding:"required"`
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6"`
+	Role     string `json:"role" binding:"required"`
+}
+
+func NewAuthHandler(authUseCase *usecases.AuthUseCase) *AuthHandler {
+	return &AuthHandler{
+		AuthUseCase: authUseCase,
+	}
+}
+
+// Register handles user registration
 func (h *AuthHandler) Register(c *gin.Context) {
-	logger.Info("Register endpoint called")
-	var user entities.User
-	if err := c.ShouldBindJSON(&user); err != nil {
-		logger.Error("Invalid request", "error", err)
+	logger.Info("Handling registration request", "path", c.Request.URL.Path)
+
+	var req RegisterRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		logger.Error("Invalid registration request", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
 
+	user := entities.User{
+		Username: req.Username,
+		Email:    req.Email,
+		Role:     req.Role,
+		Password: req.Password,
+	}
+
 	if err := h.AuthUseCase.Register(user); err != nil {
-		logger.Error("Failed to register user", "error", err)
+		logger.Error("Registration failed", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register user"})
 		return
 	}
 
-	logger.Info("User registered successfully", "username", user.Username)
-	c.JSON(http.StatusOK, gin.H{"message": "User registered successfully"})
-}
-
-func (h *AuthHandler) Login(c *gin.Context) {
-	logger.Info("Login endpoint called")
-	var loginRequest struct {
-		Username string `json:"username" binding:"required"`
-		Password string `json:"password" binding:"required"`
-	}
-
-	if err := c.ShouldBindJSON(&loginRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid username or password format"})
+	// Get the user after registration to have the ID
+	registeredUser, err := h.AuthUseCase.Authenticate(req.Username, req.Password)
+	if err != nil {
+		logger.Error("Failed to authenticate after registration", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Registration successful but failed to login"})
 		return
 	}
 
-	user, err := h.AuthUseCase.Authenticate(loginRequest.Username, loginRequest.Password)
+	// Generate token for the newly registered user
+	token, err := jwt.GenerateToken(registeredUser.ID, registeredUser.Role)
 	if err != nil {
-		logger.Error("Login failed", "error", err, "username", loginRequest.Username)
-		if err.Error() == "user not found" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
-			return
-		}
-		if err.Error() == "invalid credentials" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Incorrect password"})
-			return
-		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Login failed. Please try again later"})
-		return
-	}
-
-	token, err := utils.GenerateJWT(user.ID, user.Role)
-	if err != nil {
-		logger.Error("Failed to generate JWT", "error", err)
+		logger.Error("Failed to generate token", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
 
-	logger.Info("User logged in successfully", "username", user.Username)
-	c.JSON(http.StatusOK, gin.H{"token": token})
+	logger.Info("Registration successful", "username", user.Username)
+	c.JSON(http.StatusOK, gin.H{
+		"token": token,
+		"user": gin.H{
+			"id":       registeredUser.ID,
+			"username": registeredUser.Username,
+			"email":    registeredUser.Email,
+			"role":     registeredUser.Role,
+		},
+	})
+}
+
+// Login handles user authentication
+func (h *AuthHandler) Login(c *gin.Context) {
+	logger.Info("Handling login request", "path", c.Request.URL.Path)
+
+	var credentials LoginCredentials
+	if err := c.ShouldBindJSON(&credentials); err != nil {
+		logger.Error("Invalid login request", "error", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid credentials"})
+		return
+	}
+
+	user, err := h.AuthUseCase.Authenticate(credentials.Username, credentials.Password)
+	if err != nil {
+		logger.Error("Authentication failed", "username", credentials.Username, "error", err)
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		return
+	}
+
+	token, err := jwt.GenerateToken(user.ID, user.Role)
+	if err != nil {
+		logger.Error("Failed to generate token", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
+
+	logger.Info("Login successful", "username", user.Username)
+	c.JSON(http.StatusOK, gin.H{
+		"token": token,
+		"user": gin.H{
+			"id":       user.ID,
+			"username": user.Username,
+			"email":    user.Email,
+			"role":     user.Role,
+		},
+	})
+}
+
+func (h *AuthHandler) RegisterRoutes(r *gin.Engine) {
+	auth := r.Group("/auth")
+	{
+		auth.POST("/register", h.Register)
+		auth.POST("/login", h.Login)
+	}
 }

@@ -3,9 +3,8 @@ package middleware
 import (
 	"net/http"
 	"strings"
-	"tongly/backend/pkg/utils"
+	"tongly/backend/pkg/jwt"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,16 +18,15 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-		token, err := utils.ValidateJWT(tokenString)
-		if err != nil || !token.Valid {
+		userID, role, err := jwt.ValidateToken(tokenString)
+		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 			c.Abort()
 			return
 		}
 
-		claims := token.Claims.(jwt.MapClaims)
-		c.Set("user_id", claims["user_id"])
-		c.Set("role", claims["role"])
+		c.Set("user_id", userID)
+		c.Set("role", role)
 		c.Next()
 	}
 }

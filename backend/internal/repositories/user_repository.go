@@ -7,4 +7,5 @@ type UserRepository interface {
 	GetUserByUsername(username string) (*entities.User, error)
 	GetUserByID(id int) (*entities.User, error)
 	UpdateUser(user entities.User) error
+	UpdateSurvey(userID int, nativeLanguage string, languages []entities.LanguageLevel, interests []string, learningGoals []string) error
 }
