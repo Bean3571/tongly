@@ -1,3 +1,33 @@
+<<<<<<< Updated upstream
+=======
+-- Users table (already exists, shown for reference)
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    profile_picture TEXT,
+    role VARCHAR(50) NOT NULL,
+    age INTEGER,
+    native_language VARCHAR(50),
+    languages JSONB DEFAULT '[]'::jsonb,
+    interests TEXT[] DEFAULT ARRAY[]::TEXT[],
+    learning_goals TEXT[] DEFAULT ARRAY[]::TEXT[],
+    survey_complete BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create indexes
+CREATE INDEX idx_users_username ON users(username);
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_role ON users(role);
+CREATE INDEX idx_users_native_language ON users(native_language);
+CREATE INDEX idx_users_survey_complete ON users(survey_complete);
+
+>>>>>>> Stashed changes
 -- Function to automatically update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -44,6 +74,7 @@ CREATE TRIGGER update_users_updated_at
 -- Tutors table
 CREATE TABLE tutors (
     id SERIAL PRIMARY KEY,
+<<<<<<< Updated upstream
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     bio TEXT NOT NULL,
     education JSONB NOT NULL DEFAULT '[]',
@@ -76,6 +107,34 @@ CREATE TRIGGER update_tutors_updated_at
     EXECUTE FUNCTION update_updated_at_column();
 
 -- Lessons table
+=======
+    user_id INTEGER UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    bio TEXT,
+    hourly_rate DECIMAL(10,2) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tutor languages (many-to-many relationship)
+CREATE TABLE tutor_languages (
+    tutor_id INTEGER REFERENCES tutors(id) ON DELETE CASCADE,
+    language_id INTEGER REFERENCES languages(id) ON DELETE CASCADE,
+    proficiency_level VARCHAR(20) NOT NULL CHECK (proficiency_level IN ('native', 'fluent', 'advanced', 'intermediate')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (tutor_id, language_id)
+);
+
+-- Availability slots
+CREATE TABLE availability_slots (
+    id SERIAL PRIMARY KEY,
+    tutor_id INTEGER REFERENCES tutors(id) ON DELETE CASCADE,
+    day_of_week INTEGER NOT NULL CHECK (day_of_week BETWEEN 0 AND 6),
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Lessons
+>>>>>>> Stashed changes
 CREATE TABLE lessons (
     id SERIAL PRIMARY KEY,
     tutor_id INTEGER NOT NULL REFERENCES tutors(id) ON DELETE CASCADE,

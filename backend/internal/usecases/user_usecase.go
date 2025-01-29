@@ -39,6 +39,7 @@ func (uc *UserUseCase) UpdateUser(userID int, updateData entities.UserUpdateRequ
 		return errors.New("user not found")
 	}
 
+<<<<<<< Updated upstream
 	// Check if this is a survey update (only if survey fields are provided and other fields are empty)
 	isSurveyUpdate := (updateData.NativeLanguage != nil || len(updateData.Languages) > 0 ||
 		len(updateData.Interests) > 0 || len(updateData.LearningGoals) > 0) &&
@@ -53,6 +54,14 @@ func (uc *UserUseCase) UpdateUser(userID int, updateData entities.UserUpdateRequ
 		return uc.UserRepo.UpdateSurvey(
 			userID,
 			nativeLanguage,
+=======
+	// Check if this is a survey update
+	if updateData.NativeLanguage != nil || updateData.Languages != nil ||
+		updateData.Interests != nil || updateData.LearningGoals != nil {
+		return uc.UserRepo.UpdateSurvey(
+			userID,
+			*updateData.NativeLanguage,
+>>>>>>> Stashed changes
 			updateData.Languages,
 			updateData.Interests,
 			updateData.LearningGoals,
@@ -71,12 +80,6 @@ func (uc *UserUseCase) UpdateUser(userID int, updateData entities.UserUpdateRequ
 	}
 	if updateData.ProfilePicture != nil {
 		user.ProfilePicture = updateData.ProfilePicture
-	}
-	if updateData.Age != nil {
-		user.Age = updateData.Age
-	}
-	if updateData.Gender != nil {
-		user.Gender = updateData.Gender
 	}
 
 	logger.Info("Prepared user data for profile update",

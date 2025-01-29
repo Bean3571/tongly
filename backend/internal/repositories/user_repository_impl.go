@@ -19,12 +19,6 @@ func NewUserRepositoryImpl(db *sqlx.DB) UserRepository {
 }
 
 func (r *UserRepositoryImpl) CreateUser(user entities.User) error {
-	// Set default avatar if not provided
-	if user.ProfilePicture == nil {
-		defaultAvatar := "/default-avatar.svg"
-		user.ProfilePicture = &defaultAvatar
-	}
-
 	query := `INSERT INTO users (username, password_hash, role, email, profile_picture) 
               VALUES ($1, $2, $3, $4, $5)`
 	_, err := r.DB.Exec(query, user.Username, user.PasswordHash, user.Role, user.Email, user.ProfilePicture)
@@ -61,12 +55,12 @@ func (r *UserRepositoryImpl) GetUserByID(id int) (*entities.User, error) {
 
 	var user entities.User
 	var age sql.NullInt64
-	var firstName, lastName, profilePicture, nativeLanguage, gender sql.NullString
+	var firstName, lastName, profilePicture, nativeLanguage sql.NullString
 	var languagesJSON []byte
 
 	query := `
 		SELECT id, username, password_hash, role, email, first_name, last_name, profile_picture,
-			   age, gender, native_language, languages, interests, learning_goals, survey_complete
+			   age, native_language, languages, interests, learning_goals, survey_complete
 		FROM users
 		WHERE id = $1`
 
@@ -80,7 +74,6 @@ func (r *UserRepositoryImpl) GetUserByID(id int) (*entities.User, error) {
 		&lastName,
 		&profilePicture,
 		&age,
-		&gender,
 		&nativeLanguage,
 		&languagesJSON,
 		pq.Array(&user.Interests),
@@ -113,9 +106,6 @@ func (r *UserRepositoryImpl) GetUserByID(id int) (*entities.User, error) {
 	}
 	if profilePicture.Valid {
 		user.ProfilePicture = &profilePicture.String
-	}
-	if gender.Valid {
-		user.Gender = &gender.String
 	}
 	if nativeLanguage.Valid {
 		user.NativeLanguage = &nativeLanguage.String
@@ -220,22 +210,15 @@ func (r *UserRepositoryImpl) UpdateUser(user entities.User) error {
 		"first_name", user.FirstName,
 		"last_name", user.LastName)
 
-	// Initialize empty arrays if nil
-	if user.Languages == nil {
-		user.Languages = make([]entities.LanguageLevel, 0)
-	}
-	if user.Interests == nil {
-		user.Interests = make([]string, 0)
-	}
-	if user.LearningGoals == nil {
-		user.LearningGoals = make([]string, 0)
-	}
-
 	// Convert languages to JSON
-	languagesJSON, err := json.Marshal(user.Languages)
-	if err != nil {
-		logger.Error("Failed to marshal languages", "error", err)
-		return err
+	var languagesJSON []byte
+	var err error
+	if len(user.Languages) > 0 {
+		languagesJSON, err = json.Marshal(user.Languages)
+		if err != nil {
+			logger.Error("Failed to marshal languages", "error", err)
+			return err
+		}
 	}
 
 	// Use a transaction to ensure data consistency
@@ -248,19 +231,18 @@ func (r *UserRepositoryImpl) UpdateUser(user entities.User) error {
 
 	query := `
         UPDATE users 
-        SET email = COALESCE($1, email),
+        SET email = COALESCE(NULLIF($1, ''), email),
             first_name = $2,
             last_name = $3,
             profile_picture = $4,
             age = $5,
-            gender = $6,
-            native_language = $7,
-            languages = $8::jsonb,
-            interests = $9::text[],
-            learning_goals = $10::text[],
-            survey_complete = $11,
+            native_language = $6,
+            languages = COALESCE($7::jsonb, languages),
+            interests = COALESCE($8::text[], interests),
+            learning_goals = COALESCE($9::text[], learning_goals),
+            survey_complete = $10,
             updated_at = CURRENT_TIMESTAMP
-        WHERE id = $12
+        WHERE id = $11
         RETURNING id`
 
 	var id int
@@ -271,7 +253,6 @@ func (r *UserRepositoryImpl) UpdateUser(user entities.User) error {
 		user.LastName,
 		user.ProfilePicture,
 		user.Age,
-		user.Gender,
 		user.NativeLanguage,
 		languagesJSON,
 		pq.Array(user.Interests),
@@ -293,7 +274,7 @@ func (r *UserRepositoryImpl) UpdateUser(user entities.User) error {
 		return err
 	}
 
-	logger.Info("User updated successfully",
+	logger.Info("User profile updated successfully",
 		"user_id", user.ID,
 		"updated_id", id)
 	return nil

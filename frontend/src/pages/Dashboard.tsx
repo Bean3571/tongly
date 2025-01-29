@@ -118,6 +118,7 @@ const Dashboard: React.FC = () => {
         }
     };
 
+<<<<<<< Updated upstream
     const getAvailableLanguages = () => {
         return Object.keys(languageEmojis).filter(
             lang => !editedLanguages.some(existing => existing.language === lang)
@@ -148,6 +149,8 @@ const Dashboard: React.FC = () => {
         setEditedLanguages(newLanguages);
     };
 
+=======
+>>>>>>> Stashed changes
     return (
         <div className="container mx-auto px-4 py-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
@@ -176,14 +179,8 @@ const Dashboard: React.FC = () => {
                                         <select
                                             value={lang.language}
                                             onChange={(e) => {
-                                                const newLanguage = e.target.value;
-                                                // Check if the new language is already selected
-                                                if (editedLanguages.some((l, i) => i !== index && l.language === newLanguage)) {
-                                                    showNotification('error', 'This language is already in your list.');
-                                                    return;
-                                                }
                                                 const newLanguages = [...editedLanguages];
-                                                newLanguages[index] = { ...lang, language: newLanguage };
+                                                newLanguages[index] = { ...lang, language: e.target.value };
                                                 setEditedLanguages(newLanguages);
                                             }}
                                             className="flex-1 p-2 rounded-lg border border-gray-300 dark:border-gray-600 
@@ -224,7 +221,11 @@ const Dashboard: React.FC = () => {
                                 ))}
                             </div>
                             <button
+<<<<<<< Updated upstream
                                 onClick={addLanguage}
+=======
+                                onClick={() => setEditedLanguages([...editedLanguages, { language: 'English', level: 'Beginner (A1)' }])}
+>>>>>>> Stashed changes
                                 className="w-full p-2 border-2 border-dashed border-gray-300 dark:border-gray-600 
                                          rounded-lg text-gray-600 dark:text-gray-300 hover:border-blue-500 
                                          hover:text-blue-500 transition-colors"

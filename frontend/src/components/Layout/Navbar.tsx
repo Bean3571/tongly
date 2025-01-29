@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -7,20 +7,6 @@ import { FaSun, FaMoon } from 'react-icons/fa';
 export const Navbar = () => {
     const { user, logout } = useAuth();
     const { isDarkMode, toggleTheme } = useTheme();
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement>(null);
-
-    // Close dropdown when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsDropdownOpen(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
 
     return (
         <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
@@ -28,7 +14,7 @@ export const Navbar = () => {
                 <div className="flex justify-between h-16">
                     <div className="flex items-center">
                         <Link to="/" className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                            Tongly👅
+                            Tongly
                         </Link>
                         
                         {user && (
@@ -75,73 +61,74 @@ export const Navbar = () => {
                     <div className="flex items-center space-x-4">
                         <button
                             onClick={toggleTheme}
-                            className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 
-                                     dark:hover:text-gray-200 transition-colors"
+                            className="p-2 rounded-lg text-gray-500 dark:text-gray-400 
+                                     hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                            aria-label="Toggle theme"
                         >
-                            {isDarkMode ? <FaSun /> : <FaMoon />}
+                            {isDarkMode ? (
+                                <FaSun className="w-5 h-5" />
+                            ) : (
+                                <FaMoon className="w-5 h-5" />
+                            )}
                         </button>
 
                         {user ? (
-                            <div className="relative" ref={dropdownRef}>
-                                <button
-                                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                    className="flex items-center space-x-2 focus:outline-none"
+                            <div className="flex items-center space-x-4">
+                                <Link
+                                    to="/wallet"
+                                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 
+                                             dark:hover:text-blue-400 transition-colors"
                                 >
-                                    <img
-                                        src={user.profile_picture || '/default-avatar.svg'}
-                                        alt={user.username}
-                                        className="w-8 h-8 rounded-full object-cover border-2 border-gray-200 
-                                                 dark:border-gray-700 hover:border-blue-500 
-                                                 dark:hover:border-blue-400 transition-colors"
-                                    />
-                                </button>
-
-                                {isDropdownOpen && (
-                                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 
-                                                    rounded-md shadow-lg py-1 z-50 border border-gray-200 
-                                                    dark:border-gray-700">
-                                        <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                                {user.first_name || user.username}
-                                            </p>
-                                            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                                                {user.email}
-                                            </p>
-                                        </div>
+                                    <span className="font-medium">$250.00</span>
+                                </Link>
+                                <div className="relative group">
+                                    <button className="flex items-center space-x-2">
+                                        <img
+                                            className="h-8 w-8 rounded-full"
+                                            src={user.profile_picture || 'https://via.placeholder.com/32'}
+                                            alt={user.username}
+                                            onError={(e) => {
+                                                const target = e.target as HTMLImageElement;
+                                                target.src = 'https://via.placeholder.com/32';
+                                            }}
+                                        />
+                                        <span className="text-gray-700 dark:text-gray-300">
+                                            {user.username}
+                                        </span>
+                                    </button>
+                                    <div className="absolute right-0 w-48 mt-2 py-2 bg-white dark:bg-gray-800 
+                                                  rounded-md shadow-xl opacity-0 invisible group-hover:opacity-100 
+                                                  group-hover:visible transition-all duration-300">
                                         <Link
                                             to="/profile"
-                                            onClick={() => setIsDropdownOpen(false)}
                                             className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 
-                                                     hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                     hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
                                         >
                                             Profile
                                         </Link>
                                         <button
-                                            onClick={() => {
-                                                setIsDropdownOpen(false);
-                                                logout();
-                                            }}
-                                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 
-                                                     dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            onClick={logout}
+                                            className="block px-4 py-2 text-sm text-red-600 dark:text-red-400 
+                                                     hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
                                         >
                                             Logout
                                         </button>
                                     </div>
-                                )}
+                                </div>
                             </div>
                         ) : (
                             <div className="flex items-center space-x-4">
                                 <Link
                                     to="/login"
-                                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 
-                                             dark:hover:text-blue-400 transition-colors"
+                                    className="px-4 py-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 
+                                             dark:hover:text-blue-300 font-medium transition-colors"
                                 >
                                     Login
                                 </Link>
                                 <Link
                                     to="/register"
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
-                                             transition-colors"
+                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 
+                                             dark:hover:bg-blue-600 text-white rounded-md font-medium transition-colors"
                                 >
                                     Sign Up
                                 </Link>
@@ -152,6 +139,4 @@ export const Navbar = () => {
             </div>
         </nav>
     );
-};
-
-export default Navbar; 
+}; 
