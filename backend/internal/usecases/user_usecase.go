@@ -39,7 +39,27 @@ func (uc *UserUseCase) UpdateUser(userID int, updateData entities.UserUpdateRequ
 		return errors.New("user not found")
 	}
 
-	// Update user fields
+	// Check if this is a survey update (only if survey fields are provided and other fields are empty)
+	isSurveyUpdate := (updateData.NativeLanguage != nil || len(updateData.Languages) > 0 ||
+		len(updateData.Interests) > 0 || len(updateData.LearningGoals) > 0) &&
+		updateData.Email == "" && updateData.FirstName == nil && updateData.LastName == nil &&
+		updateData.ProfilePicture == nil && updateData.Age == nil && updateData.Gender == nil
+
+	if isSurveyUpdate {
+		nativeLanguage := ""
+		if updateData.NativeLanguage != nil {
+			nativeLanguage = *updateData.NativeLanguage
+		}
+		return uc.UserRepo.UpdateSurvey(
+			userID,
+			nativeLanguage,
+			updateData.Languages,
+			updateData.Interests,
+			updateData.LearningGoals,
+		)
+	}
+
+	// Handle regular profile update
 	if updateData.Email != "" {
 		user.Email = updateData.Email
 	}
@@ -59,33 +79,9 @@ func (uc *UserUseCase) UpdateUser(userID int, updateData entities.UserUpdateRequ
 		user.Gender = updateData.Gender
 	}
 
-	// Only update survey-related fields if explicitly provided
-	isSurveyUpdate := updateData.NativeLanguage != nil ||
-		updateData.Languages != nil ||
-		updateData.Interests != nil ||
-		updateData.LearningGoals != nil
-
-	if isSurveyUpdate {
-		if updateData.NativeLanguage != nil {
-			user.NativeLanguage = updateData.NativeLanguage
-		}
-		if updateData.Languages != nil {
-			user.Languages = updateData.Languages
-		}
-		if updateData.Interests != nil {
-			user.Interests = updateData.Interests
-		}
-		if updateData.LearningGoals != nil {
-			user.LearningGoals = updateData.LearningGoals
-		}
-		if updateData.SurveyComplete != nil {
-			user.SurveyComplete = *updateData.SurveyComplete
-		}
-	}
-
-	logger.Info("Prepared user data for update",
+	logger.Info("Prepared user data for profile update",
 		"user_id", userID,
-		"is_survey_update", isSurveyUpdate)
+		"updated_user", user)
 
 	return uc.UserRepo.UpdateUser(*user)
 }

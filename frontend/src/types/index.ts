@@ -28,18 +28,25 @@ export interface User {
     id: number;
     username: string;
     email: string;
-    first_name?: string;
-    last_name?: string;
-    profile_picture?: string;
+    first_name?: string | null;
+    last_name?: string | null;
+    profile_picture?: string | null;
     role: string;
+<<<<<<< Updated upstream
     gender?: Gender;
     native_language?: string;
     languages: Language[];
+=======
+    age?: number | null;
+    gender?: Gender | null;
+    native_language?: string | null;
+    languages: LanguageLevel[];
+>>>>>>> Stashed changes
     interests: string[];
     learning_goals: string[];
     survey_complete: boolean;
-    created_at: string;
-    updated_at: string;
+    created_at?: string;
+    updated_at?: string;
 }
 
 export interface LoginCredentials {
@@ -54,6 +61,14 @@ export interface RegisterData {
     role: string;
 }
 
+<<<<<<< Updated upstream
+=======
+export interface LanguageLevel {
+    language: string;
+    level: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | 'Native';
+}
+
+>>>>>>> Stashed changes
 export interface ProfileUpdateData {
     first_name?: string;
     last_name?: string;
