@@ -3,15 +3,21 @@ package interfaces
 import (
 	"fmt"
 	"net/http"
-	"tongly/backend/internal/entities"
-	"tongly/backend/internal/logger"
-	"tongly/backend/internal/usecases"
+	"tongly-basic/backend/internal/entities"
+	"tongly-basic/backend/internal/logger"
+	"tongly-basic/backend/internal/usecases"
 
 	"github.com/gin-gonic/gin"
 )
 
 type UserHandler struct {
-	UserUseCase usecases.UserUseCase
+	UserUseCase *usecases.UserUseCase
+}
+
+func NewUserHandler(userUseCase *usecases.UserUseCase) *UserHandler {
+	return &UserHandler{
+		UserUseCase: userUseCase,
+	}
 }
 
 func (h *UserHandler) GetProfile(c *gin.Context) {

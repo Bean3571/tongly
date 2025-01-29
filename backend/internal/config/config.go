@@ -1,7 +1,7 @@
 package config
 
 import (
-	"log"
+	"fmt"
 	"os"
 	"strconv"
 
@@ -15,34 +15,39 @@ type Config struct {
 	DBPassword string
 	DBName     string
 	DBSSLMode  string
-	JWTSecret  string
 	ServerPort string
 }
 
-func LoadConfig() *Config {
-	// Load .env file
+func LoadConfig() (*Config, error) {
 	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found, using environment variables")
+		return nil, fmt.Errorf("error loading .env file: %w", err)
 	}
 
-	dbPort, _ := strconv.Atoi(getEnv("DB_PORT", "5432"))
-
-	return &Config{
-		DBHost:     getEnv("DB_HOST", "localhost"),
-		DBPort:     dbPort,
-		DBUser:     getEnv("DB_USER", "user"),
-		DBPassword: getEnv("DB_PASSWORD", "password"),
-		DBName:     getEnv("DB_NAME", "tongly"),
-		DBSSLMode:  getEnv("DB_SSLMODE", "disable"),
-		JWTSecret:  getEnv("JWT_SECRET", "supersecretkey"),
-		ServerPort: getEnv("SERVER_PORT", "8080"),
+	cfg := &Config{
+		DBHost:     getEnvOrDefault("DB_HOST", "localhost"),
+		DBPort:     getEnvAsIntOrDefault("DB_PORT", 5432),
+		DBUser:     getEnvOrDefault("DB_USER", "postgres"),
+		DBPassword: getEnvOrDefault("DB_PASSWORD", "postgres"),
+		DBName:     getEnvOrDefault("DB_NAME", "tongly"),
+		DBSSLMode:  getEnvOrDefault("DB_SSLMODE", "disable"),
+		ServerPort: getEnvOrDefault("SERVER_PORT", "8080"),
 	}
+
+	return cfg, nil
 }
 
-func getEnv(key, defaultValue string) string {
-	value, exists := os.LookupEnv(key)
-	if !exists {
-		return defaultValue
+func getEnvOrDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
 	}
-	return value
+	return defaultValue
+}
+
+func getEnvAsIntOrDefault(key string, defaultValue int) int {
+	if value := os.Getenv(key); value != "" {
+		if intValue, err := strconv.Atoi(value); err == nil {
+			return intValue
+		}
+	}
+	return defaultValue
 }

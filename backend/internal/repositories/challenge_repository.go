@@ -1,6 +1,6 @@
 package repositories
 
-import "tongly/backend/internal/entities"
+import "tongly-basic/backend/internal/entities"
 
 type ChallengeRepository interface {
 	SubmitChallenge(challenge entities.Challenge) error

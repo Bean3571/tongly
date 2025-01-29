@@ -1,142 +1,54 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { NotificationProvider } from './contexts/NotificationContext';
-import { Navbar } from './components/Layout/Navbar';
-import { Home } from './pages/Home';
-import { Login } from './pages/Login';
-import { Register } from './pages/Register';
-import { Profile } from './pages/Profile';
-import { Survey } from './pages/Survey';
-import Dashboard from './pages/Dashboard';
-import { Tutors } from './pages/Tutors';
-import { TutorProfile } from './pages/TutorProfile';
-import { Lessons } from './pages/Lessons';
-import { Wallet } from './pages/Wallet';
-import { Challenges } from './pages/Challenges';
-import { Leaderboard } from './pages/Leaderboard';
-import { useAuth } from './contexts/AuthContext';
+import Navbar from './components/Navbar';
+import Notification from './components/Notification';
+import { PrivateRoute } from './components/PrivateRoute';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Profile from './pages/Profile';
+import TutorRegistration from './pages/TutorRegistration';
 
 const queryClient = new QueryClient();
 
-const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-    const { user } = useAuth();
-    if (!user) return <Navigate to="/login" />;
-    return <>{children}</>;
-};
-
-const SurveyRoute = ({ children }: { children: React.ReactNode }) => {
-    const { user } = useAuth();
-    if (!user) return <Navigate to="/login" />;
-    if (!user.survey_complete) return <Navigate to="/survey" />;
-    return <>{children}</>;
-};
-
-const AppRoutes = () => {
-    return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-            <Navbar />
-            <main className="container mx-auto px-4 py-8">
-                <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    
-                    {/* Protected Routes */}
-                    <Route
-                        path="/survey"
-                        element={
-                            <PrivateRoute>
-                                <Survey />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route
-                        path="/profile"
-                        element={
-                            <PrivateRoute>
-                                <Profile />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route
-                        path="/dashboard"
-                        element={
-                            <SurveyRoute>
-                                <Dashboard />
-                            </SurveyRoute>
-                        }
-                    />
-                    <Route
-                        path="/tutors"
-                        element={
-                            <PrivateRoute>
-                                <Tutors />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route
-                        path="/tutors/:id"
-                        element={
-                            <PrivateRoute>
-                                <TutorProfile />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route
-                        path="/lessons"
-                        element={
-                            <PrivateRoute>
-                                <Lessons />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route
-                        path="/wallet"
-                        element={
-                            <PrivateRoute>
-                                <Wallet />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route
-                        path="/challenges"
-                        element={
-                            <PrivateRoute>
-                                <Challenges />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route
-                        path="/leaderboard"
-                        element={
-                            <PrivateRoute>
-                                <Leaderboard />
-                            </PrivateRoute>
-                        }
-                    />
-                </Routes>
-            </main>
-        </div>
-    );
-};
-
-const App = () => {
+function App() {
     return (
         <QueryClientProvider client={queryClient}>
             <Router>
                 <ThemeProvider>
                     <NotificationProvider>
                         <AuthProvider>
-                            <AppRoutes />
+                            <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+                                <Navbar />
+                                <main className="container mx-auto px-4 py-8">
+                                    <Routes>
+                                        <Route path="/" element={<Home />} />
+                                        <Route path="/login" element={<Login />} />
+                                        <Route path="/register" element={<Register />} />
+                                        <Route path="/profile" element={
+                                            <PrivateRoute>
+                                                <Profile />
+                                            </PrivateRoute>
+                                        } />
+                                        <Route path="/tutor/register" element={
+                                            <PrivateRoute>
+                                                <TutorRegistration />
+                                            </PrivateRoute>
+                                        } />
+                                    </Routes>
+                                </main>
+                                <Notification />
+                            </div>
                         </AuthProvider>
                     </NotificationProvider>
                 </ThemeProvider>
             </Router>
         </QueryClientProvider>
     );
-};
+}
 
 export default App;

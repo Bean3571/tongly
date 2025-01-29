@@ -1,13 +1,19 @@
 package router
 
 import (
-	"tongly/backend/internal/interfaces"
-	"tongly/backend/pkg/middleware"
+	"tongly-basic/backend/internal/interfaces"
+	"tongly-basic/backend/pkg/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(r *gin.Engine, authHandler *interfaces.AuthHandler, tutorHandler *interfaces.TutorHandler, gamificationHandler *interfaces.GamificationHandler, userHandler *interfaces.UserHandler) {
+func SetupRouter(
+	r *gin.Engine,
+	authHandler *interfaces.AuthHandler,
+	tutorHandler *interfaces.TutorHandler,
+	userHandler *interfaces.UserHandler,
+	gamificationHandler *interfaces.GamificationHandler,
+) {
 	// Add CORS middleware
 	r.Use(func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
@@ -49,6 +55,7 @@ func SetupRouter(r *gin.Engine, authHandler *interfaces.AuthHandler, tutorHandle
 		// Tutor routes
 		protected.POST("/tutors", tutorHandler.RegisterTutor)
 		protected.GET("/tutors", tutorHandler.ListTutors)
+		protected.GET("/tutors/profile", tutorHandler.GetTutorProfile)
 
 		// Gamification routes
 		protected.POST("/challenges/submit", gamificationHandler.SubmitChallenge)

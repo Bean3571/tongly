@@ -3,10 +3,12 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useNotification } from '../contexts/NotificationContext';
 
 export const Register = () => {
     const navigate = useNavigate();
     const { register } = useAuth();
+    const { showNotification } = useNotification();
 
     const formik = useFormik({
         initialValues: {
@@ -14,6 +16,8 @@ export const Register = () => {
             email: '',
             password: '',
             confirmPassword: '',
+            first_name: '',
+            last_name: '',
         },
         validationSchema: Yup.object({
             username: Yup.string()
@@ -28,13 +32,23 @@ export const Register = () => {
             confirmPassword: Yup.string()
                 .oneOf([Yup.ref('password')], 'Passwords must match')
                 .required('Required'),
+            first_name: Yup.string().required('Required'),
+            last_name: Yup.string().required('Required'),
         }),
         onSubmit: async (values) => {
             try {
-                await register(values.username, values.email, values.password);
+                await register({
+                    username: values.username,
+                    email: values.email,
+                    password: values.password,
+                    first_name: values.first_name,
+                    last_name: values.last_name
+                });
+                showNotification('success', 'Registration successful! Please log in.');
                 navigate('/login');
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Registration failed:', error);
+                showNotification('error', error?.response?.data?.message || 'Registration failed. Please try again.');
             }
         },
     });
@@ -132,6 +146,46 @@ export const Register = () => {
                                 />
                                 {formik.touched.confirmPassword && formik.errors.confirmPassword && (
                                     <div className="mt-1 text-sm text-red-600 dark:text-red-400">{formik.errors.confirmPassword}</div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                First Name
+                            </label>
+                            <div className="mt-1">
+                                <input
+                                    id="first_name"
+                                    type="text"
+                                    {...formik.getFieldProps('first_name')}
+                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 
+                                             rounded-md shadow-sm placeholder-gray-400 
+                                             focus:outline-none focus:ring-blue-500 focus:border-blue-500 
+                                             dark:bg-gray-700 dark:text-white"
+                                />
+                                {formik.touched.first_name && formik.errors.first_name && (
+                                    <div className="mt-1 text-sm text-red-600 dark:text-red-400">{formik.errors.first_name}</div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Last Name
+                            </label>
+                            <div className="mt-1">
+                                <input
+                                    id="last_name"
+                                    type="text"
+                                    {...formik.getFieldProps('last_name')}
+                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 
+                                             rounded-md shadow-sm placeholder-gray-400 
+                                             focus:outline-none focus:ring-blue-500 focus:border-blue-500 
+                                             dark:bg-gray-700 dark:text-white"
+                                />
+                                {formik.touched.last_name && formik.errors.last_name && (
+                                    <div className="mt-1 text-sm text-red-600 dark:text-red-400">{formik.errors.last_name}</div>
                                 )}
                             </div>
                         </div>

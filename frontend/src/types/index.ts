@@ -1,3 +1,29 @@
+export type LanguageLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | 'Native';
+
+export type Gender = 'male' | 'female' | 'other' | 'prefer_not_to_say';
+
+export type NotificationType = 'success' | 'error' | 'warning' | 'info';
+
+export type SchedulePreset = 'weekdays' | 'weekends' | 'all_week' | 'mornings' | 'evenings' | 'custom';
+
+export interface Language {
+    name: string;
+    level: LanguageLevel;
+}
+
+export interface TutorLanguage extends Language {
+    is_native: boolean;
+    can_teach: boolean;
+}
+
+export interface AvailabilitySlot {
+    day_of_week: number;
+    start_time: string;
+    end_time: string;
+    is_recurring: boolean;
+    preset_type: SchedulePreset;
+}
+
 export interface User {
     id: number;
     username: string;
@@ -6,33 +32,14 @@ export interface User {
     last_name?: string;
     profile_picture?: string;
     role: string;
-    age?: number;
     gender?: Gender;
     native_language?: string;
-    languages?: LanguageLevel[];
-    interests?: string[];
-    learning_goals?: string[];
+    languages: Language[];
+    interests: string[];
+    learning_goals: string[];
     survey_complete: boolean;
     created_at: string;
     updated_at: string;
-}
-
-export type Gender = 'male' | 'female' | 'not_selected';
-
-export type LearningGoal = 
-    | 'business'
-    | 'job'
-    | 'study'
-    | 'trip'
-    | 'migration'
-    | 'exams'
-    | 'culture'
-    | 'friends'
-    | 'hobby';
-
-export interface AuthResponse {
-    token: string;
-    user: User;
 }
 
 export interface LoginCredentials {
@@ -47,58 +54,16 @@ export interface RegisterData {
     role: string;
 }
 
-export interface LanguageLevel {
-    language: string;
-    level: string;
-}
-
 export interface ProfileUpdateData {
-    email?: string;
-    first_name?: string | null;
-    last_name?: string | null;
-    profile_picture?: string | null;
-    age?: number | null;
-    gender?: Gender | null;
-    native_language?: string | null;
-    languages?: LanguageLevel[];
+    first_name?: string;
+    last_name?: string;
+    gender?: Gender;
+    profile_picture?: string;
+    native_language?: string;
+    languages?: Language[];
     interests?: string[];
     learning_goals?: string[];
     survey_complete?: boolean;
-}
-
-export interface TutorProfile {
-    id: number;
-    user_id: number;
-    bio: string;
-    education: string[];
-    certificates: string[];
-    teaching_experience: string;
-    hourly_rate: number;
-    schedule_preset: SchedulePreset;
-    min_lesson_duration: number;
-    max_students: number;
-    trial_lesson_available: boolean;
-    trial_lesson_price: number | null;
-    languages: TutorLanguage[];
-    availability: AvailabilitySlot[];
-    created_at: string;
-    updated_at: string;
-}
-
-export interface TutorLanguage extends LanguageLevel {
-    is_native: boolean;
-    can_teach: boolean;
-}
-
-export type SchedulePreset = 'weekdays' | 'weekends' | 'all_week' | 'mornings' | 'evenings' | 'custom';
-
-export interface AvailabilitySlot {
-    id?: number;
-    day_of_week: number;
-    start_time: string;
-    end_time: string;
-    is_recurring: boolean;
-    preset_type: SchedulePreset;
 }
 
 export interface TutorRegistrationData {
@@ -114,4 +79,9 @@ export interface TutorRegistrationData {
     trial_lesson_price?: number;
     languages: TutorLanguage[];
     availability: AvailabilitySlot[];
+}
+
+export interface AuthResponse {
+    token: string;
+    user: User;
 } 

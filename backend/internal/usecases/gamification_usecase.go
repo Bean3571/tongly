@@ -1,8 +1,8 @@
 package usecases
 
 import (
-	"tongly/backend/internal/entities"
-	"tongly/backend/internal/repositories"
+	"tongly-basic/backend/internal/entities"
+	"tongly-basic/backend/internal/repositories"
 )
 
 type GamificationUseCase struct {
@@ -15,4 +15,8 @@ func (uc *GamificationUseCase) SubmitChallenge(challenge entities.Challenge) err
 
 func (uc *GamificationUseCase) GetLeaderboard() ([]entities.Challenge, error) {
 	return uc.ChallengeRepo.GetLeaderboard()
+}
+
+func NewGamificationUseCase() *GamificationUseCase {
+	return &GamificationUseCase{}
 }

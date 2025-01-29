@@ -2,66 +2,64 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import { useNotification } from './NotificationContext';
-import type { User } from '../types';
+import type { User, LoginCredentials, ProfileUpdateData, NotificationType, RegisterData } from '../types';
 
-interface AuthContextType {
-    user: User | null;
-    login: (username: string, password: string) => Promise<void>;
-    register: (username: string, email: string, password: string) => Promise<void>;
+export interface AuthContextType {
+    user: any;
+    login: (credentials: LoginCredentials) => Promise<void>;
     logout: () => void;
+    register: (data: any) => Promise<void>;
     refreshUser: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>({
-    user: null,
-    login: async () => {},
-    register: async () => {},
-    logout: () => {},
-    refreshUser: async () => {},
-});
-
-export const useAuth = () => useContext(AuthContext);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setUser] = useState<any>(null);
     const navigate = useNavigate();
     const { showNotification } = useNotification();
 
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (token) {
-            refreshUser().catch(() => {
-                localStorage.removeItem('token');
-                setUser(null);
-                showNotification('error', 'Session expired. Please login again.');
-            });
+            api.user.getProfile()
+                .then(userData => {
+                    setUser(userData);
+                })
+                .catch(() => {
+                    localStorage.removeItem('token');
+                });
         }
     }, []);
 
-    const login = async (username: string, password: string) => {
+    const refreshUser = async () => {
         try {
-            const response = await api.auth.login({ username, password });
+            const response = await api.user.getProfile();
+            setUser(response.data);
+        } catch (error) {
+            console.error('Failed to refresh user:', error);
+        }
+    };
+
+    const login = async (credentials: LoginCredentials) => {
+        try {
+            const response = await api.auth.login(credentials);
+            setUser(response.data);
             localStorage.setItem('token', response.token);
-            setUser(response.user);
-            showNotification('success', 'Welcome back!');
             navigate('/dashboard');
         } catch (error) {
-            console.error('Login failed:', error);
-            showNotification('error', 'Invalid username or password');
             throw error;
         }
     };
 
-    const register = async (username: string, email: string, password: string) => {
+    const register = async (data: RegisterData) => {
         try {
-            const response = await api.auth.register({ username, email, password, role: 'student' });
+            const response = await api.auth.register(data);
+            setUser(response.data);
             localStorage.setItem('token', response.token);
-            setUser(response.user);
-            showNotification('success', 'Registration successful! Let\'s set up your profile.');
             navigate('/survey');
         } catch (error) {
             console.error('Registration failed:', error);
-            showNotification('error', 'Registration failed. Please try again.');
             throw error;
         }
     };
@@ -73,19 +71,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         navigate('/login');
     };
 
-    const refreshUser = async () => {
-        try {
-            const userData = await api.user.getProfile();
-            setUser(userData);
-        } catch (error) {
-            console.error('Failed to refresh user data:', error);
-            throw error;
-        }
+    const value = {
+        user,
+        login,
+        logout,
+        register,
+        refreshUser
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, register, logout, refreshUser }}>
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );
+};
+
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (context === undefined) {
+        throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
 }; 

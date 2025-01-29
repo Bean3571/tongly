@@ -5,8 +5,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"tongly/backend/internal/config"
-	"tongly/backend/internal/logger"
+	"tongly-basic/backend/internal/config"
+	"tongly-basic/backend/internal/logger"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -42,7 +42,11 @@ func main() {
 	flag.Parse()
 
 	// Load config
-	cfg := config.LoadConfig()
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		logger.Error("Failed to load config", "error", err)
+		os.Exit(1)
+	}
 
 	// Use test database if env is test
 	if *env == "test" {

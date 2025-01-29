@@ -1,6 +1,6 @@
 import axios from 'axios';
 import type { AxiosRequestConfig } from 'axios/index';
-import { Gender, LanguageLevel, LoginCredentials, RegisterData, ProfileUpdateData, TutorRegistrationData } from '../types';
+import type { LoginCredentials, RegisterData, ProfileUpdateData, TutorRegistrationData } from '../types';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
 
@@ -96,6 +96,7 @@ export const api = {
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include',
                 body: JSON.stringify(data),
             });
             return handleResponse(response);

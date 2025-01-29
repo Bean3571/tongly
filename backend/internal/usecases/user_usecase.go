@@ -2,13 +2,19 @@ package usecases
 
 import (
 	"errors"
-	"tongly/backend/internal/entities"
-	"tongly/backend/internal/logger"
-	"tongly/backend/internal/repositories"
+	"tongly-basic/backend/internal/entities"
+	"tongly-basic/backend/internal/logger"
+	"tongly-basic/backend/internal/repositories"
 )
 
 type UserUseCase struct {
 	UserRepo repositories.UserRepository
+}
+
+func NewUserUseCase(userRepo repositories.UserRepository) *UserUseCase {
+	return &UserUseCase{
+		UserRepo: userRepo,
+	}
 }
 
 func (uc *UserUseCase) GetUserByID(userID int) (*entities.User, error) {

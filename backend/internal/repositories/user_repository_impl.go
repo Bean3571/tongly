@@ -3,14 +3,19 @@ package repositories
 import (
 	"database/sql"
 	"encoding/json"
-	"tongly/backend/internal/entities"
-	"tongly/backend/internal/logger"
+	"tongly-basic/backend/internal/entities"
+	"tongly-basic/backend/internal/logger"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 )
 
 type UserRepositoryImpl struct {
-	DB *sql.DB
+	DB *sqlx.DB
+}
+
+func NewUserRepositoryImpl(db *sqlx.DB) UserRepository {
+	return &UserRepositoryImpl{DB: db}
 }
 
 func (r *UserRepositoryImpl) CreateUser(user entities.User) error {
@@ -35,7 +40,7 @@ func (r *UserRepositoryImpl) CreateUser(user entities.User) error {
 func (r *UserRepositoryImpl) GetUserByUsername(username string) (*entities.User, error) {
 	query := `SELECT id, username, password_hash, role, email, profile_picture 
               FROM users WHERE username = $1`
-	row := r.DB.QueryRow(query, username)
+	row := r.DB.QueryRowx(query, username)
 
 	var user entities.User
 	if err := row.Scan(&user.ID, &user.Username, &user.PasswordHash, &user.Role, &user.Email, &user.ProfilePicture); err != nil {
@@ -65,7 +70,7 @@ func (r *UserRepositoryImpl) GetUserByID(id int) (*entities.User, error) {
 		FROM users
 		WHERE id = $1`
 
-	err := r.DB.QueryRow(query, id).Scan(
+	err := r.DB.QueryRowx(query, id).Scan(
 		&user.ID,
 		&user.Username,
 		&user.PasswordHash,
@@ -161,7 +166,7 @@ func (r *UserRepositoryImpl) UpdateSurvey(userID int, nativeLanguage string, lan
 	}
 
 	// Use a transaction to ensure data consistency
-	tx, err := r.DB.Begin()
+	tx, err := r.DB.Beginx()
 	if err != nil {
 		logger.Error("Failed to begin transaction", "error", err)
 		return err
@@ -180,7 +185,7 @@ func (r *UserRepositoryImpl) UpdateSurvey(userID int, nativeLanguage string, lan
         RETURNING id`
 
 	var id int
-	err = tx.QueryRow(
+	err = tx.QueryRowx(
 		query,
 		nativeLanguage,
 		languagesJSON,
@@ -234,7 +239,7 @@ func (r *UserRepositoryImpl) UpdateUser(user entities.User) error {
 	}
 
 	// Use a transaction to ensure data consistency
-	tx, err := r.DB.Begin()
+	tx, err := r.DB.Beginx()
 	if err != nil {
 		logger.Error("Failed to begin transaction", "error", err)
 		return err
@@ -259,7 +264,7 @@ func (r *UserRepositoryImpl) UpdateUser(user entities.User) error {
         RETURNING id`
 
 	var id int
-	err = tx.QueryRow(
+	err = tx.QueryRowx(
 		query,
 		user.Email,
 		user.FirstName,

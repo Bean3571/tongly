@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { api } from '../api/client';
-import type { LanguageLevel, LearningGoal, User } from '../types';
+import type { LanguageLevel, Language } from '../types';
 
 const languageEmojis: { [key: string]: string } = {
     'English': '🇬🇧',
@@ -66,7 +66,7 @@ const Dashboard: React.FC = () => {
     const [isEditingLanguages, setIsEditingLanguages] = useState(false);
     const [isEditingGoals, setIsEditingGoals] = useState(false);
     const [isEditingInterests, setIsEditingInterests] = useState(false);
-    const [editedLanguages, setEditedLanguages] = useState<LanguageLevel[]>(user?.languages || []);
+    const [editedLanguages, setEditedLanguages] = useState<Language[]>(user?.languages || []);
     const [editedGoals, setEditedGoals] = useState<string[]>(user?.learning_goals || []);
     const [editedInterests, setEditedInterests] = useState<string[]>(user?.interests || []);
 
@@ -82,10 +82,9 @@ const Dashboard: React.FC = () => {
             });
             await refreshUser();
             setIsEditingLanguages(false);
-            showNotification('success', 'Languages updated successfully!');
+            showNotification('success', 'Languages updated successfully');
         } catch (error) {
-            console.error('Failed to update languages:', error);
-            showNotification('error', 'Failed to update languages. Please try again.');
+            showNotification('error', 'Failed to update languages');
         }
     };
 
@@ -119,21 +118,34 @@ const Dashboard: React.FC = () => {
         }
     };
 
-    const handleAddLanguage = () => {
-        // Get all available languages that are not already selected
-        const availableLanguages = Object.keys(languageEmojis).filter(
+    const getAvailableLanguages = () => {
+        return Object.keys(languageEmojis).filter(
             lang => !editedLanguages.some(existing => existing.language === lang)
         );
+    };
 
+    const addLanguage = () => {
+        const availableLanguages = getAvailableLanguages();
         if (availableLanguages.length === 0) {
-            showNotification('info', 'You have already added all available languages.');
+            showNotification('error', 'You have already added all available languages.');
             return;
         }
 
         setEditedLanguages([
-            ...editedLanguages, 
-            { language: availableLanguages[0], level: 'Beginner (A1)' }
+            ...editedLanguages,
+            { language: availableLanguages[0], level: 'A1' }
         ]);
+    };
+
+    const handleLanguageLevelChange = (index: number, lang: Language, value: string) => {
+        const validLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'Native'] as const;
+        if (!validLevels.includes(value as any)) {
+            showNotification('error', 'Invalid language level selected');
+            return;
+        }
+        const newLanguages = [...editedLanguages];
+        newLanguages[index] = { ...lang, level: value as Language['level'] };
+        setEditedLanguages(newLanguages);
     };
 
     return (
@@ -187,7 +199,7 @@ const Dashboard: React.FC = () => {
                                             value={lang.level}
                                             onChange={(e) => {
                                                 const newLanguages = [...editedLanguages];
-                                                newLanguages[index] = { ...lang, level: e.target.value };
+                                                newLanguages[index] = { ...lang, level: e.target.value as LanguageLevel };
                                                 setEditedLanguages(newLanguages);
                                             }}
                                             className="flex-1 p-2 rounded-lg border border-gray-300 dark:border-gray-600 
@@ -212,7 +224,7 @@ const Dashboard: React.FC = () => {
                                 ))}
                             </div>
                             <button
-                                onClick={handleAddLanguage}
+                                onClick={addLanguage}
                                 className="w-full p-2 border-2 border-dashed border-gray-300 dark:border-gray-600 
                                          rounded-lg text-gray-600 dark:text-gray-300 hover:border-blue-500 
                                          hover:text-blue-500 transition-colors"
@@ -229,7 +241,7 @@ const Dashboard: React.FC = () => {
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            {(user.languages || []).map((lang: LanguageLevel) => (
+                            {(user.languages || []).map((lang: Language) => (
                                 <div key={lang.language} className="mb-4">
                                     <div className="flex justify-between items-center mb-2">
                                         <span className="text-gray-700 dark:text-gray-300">

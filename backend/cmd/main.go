@@ -1,98 +1,58 @@
 package main
 
 import (
-	"fmt"
-	"path/filepath"
-	"tongly/backend/internal/config"
-	"tongly/backend/internal/database"
-	"tongly/backend/internal/interfaces"
-	"tongly/backend/internal/logger"
-	"tongly/backend/internal/repositories"
-	"tongly/backend/internal/router"
-	"tongly/backend/internal/usecases"
+	"log"
+	"tongly-basic/backend/internal/config"
+	"tongly-basic/backend/internal/database"
+	"tongly-basic/backend/internal/interfaces"
+	"tongly-basic/backend/internal/repositories"
+	"tongly-basic/backend/internal/router"
+	"tongly-basic/backend/internal/usecases"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	_ "github.com/lib/pq"
 )
 
 func main() {
-	// Initialize the logger
-	logger.Init()
-	logger.Info("Starting Tongly backend server...")
-
-	// Load config
-	cfg := config.LoadConfig()
-
-	// Create database URL
-	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s",
-		cfg.DBUser,
-		cfg.DBPassword,
-		cfg.DBHost,
-		cfg.DBPort,
-		cfg.DBName,
-		cfg.DBSSLMode,
-	)
-
-	// Run migrations before connecting to the database
-	migrationsPath := filepath.Join("migrations")
-	if err := database.RunMigrations(dbURL, migrationsPath); err != nil {
-		logger.Error("Failed to run migrations", "error", err)
-		return
-	}
-
-	// Initialize database connection
-	dbConfig := &database.Config{
-		Host:     cfg.DBHost,
-		Port:     cfg.DBPort,
-		User:     cfg.DBUser,
-		Password: cfg.DBPassword,
-		DBName:   cfg.DBName,
-		SSLMode:  cfg.DBSSLMode,
-	}
-
-	db, err := database.NewConnection(dbConfig)
+	// Load configuration
+	cfg, err := config.LoadConfig()
 	if err != nil {
-		logger.Error("Failed to connect to database", "error", err)
-		return
+		log.Fatalf("Failed to load config: %v", err)
+	}
+
+	// Connect to database
+	db, err := database.Connect(cfg)
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	defer db.Close()
 
-	// Initialize repositories
-	userRepo := &repositories.UserRepositoryImpl{DB: db}
-	tutorRepo := &repositories.TutorRepositoryImpl{DB: db}
-	challengeRepo := &repositories.ChallengeRepositoryImpl{DB: db}
+	// Run migrations
+	if err := database.RunMigrations(cfg); err != nil {
+		log.Fatalf("Failed to run migrations: %v", err)
+	}
 
-	// Initialize use cases
-	authUseCase := usecases.AuthUseCase{UserRepo: userRepo}
-	tutorUseCase := usecases.TutorUseCase{TutorRepo: tutorRepo}
-	gamificationUseCase := usecases.GamificationUseCase{ChallengeRepo: challengeRepo}
-	userUseCase := usecases.UserUseCase{UserRepo: userRepo}
+	// Initialize repositories
+	userRepo := repositories.NewUserRepositoryImpl(db)
+	tutorRepo := repositories.NewTutorRepository(db)
+
+	// Initialize usecases
+	authUseCase := usecases.NewAuthUseCase(userRepo)
+	userUseCase := usecases.NewUserUseCase(userRepo)
+	tutorUseCase := usecases.NewTutorUseCase(tutorRepo, userRepo)
+	gamificationUseCase := usecases.NewGamificationUseCase()
 
 	// Initialize handlers
-	authHandler := interfaces.NewAuthHandler(&authUseCase)
-	tutorHandler := interfaces.TutorHandler{TutorUseCase: tutorUseCase}
-	gamificationHandler := interfaces.GamificationHandler{GamificationUseCase: gamificationUseCase}
-	userHandler := interfaces.UserHandler{UserUseCase: userUseCase}
+	authHandler := interfaces.NewAuthHandler(authUseCase)
+	userHandler := interfaces.NewUserHandler(userUseCase)
+	tutorHandler := interfaces.NewTutorHandler(tutorUseCase)
+	gamificationHandler := interfaces.NewGamificationHandler(gamificationUseCase)
 
-	// Create a new Gin router
+	// Setup router
 	r := gin.Default()
-
-	// Enable CORS
-	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-	}))
-
-	// Register routes using the SetupRouter function
-	router.SetupRouter(r, authHandler, &tutorHandler, &gamificationHandler, &userHandler)
+	router.SetupRouter(r, authHandler, tutorHandler, userHandler, gamificationHandler)
 
 	// Start server
-	logger.Info("Server started", "port", cfg.ServerPort)
-	if err := r.Run(":" + cfg.ServerPort); err != nil {
-		logger.Error("Failed to start server", "error", err)
+	if err := r.Run(":8080"); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
 	}
 }

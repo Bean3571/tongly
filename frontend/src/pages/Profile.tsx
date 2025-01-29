@@ -1,15 +1,17 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { api } from '../api/client';
-import { Gender } from '../types';
+import { Gender, ProfileUpdateData, Language } from '../types';
 
 interface FormData {
     first_name: string;
     last_name: string;
     email: string;
-    age: string | number;
     gender: Gender;
+    languages: Language[];
+    interests: string[];
+    learning_goals: string[];
 }
 
 export const Profile = () => {
@@ -22,9 +24,25 @@ export const Profile = () => {
         first_name: user?.first_name || '',
         last_name: user?.last_name || '',
         email: user?.email || '',
-        age: user?.age || '',
-        gender: (user?.gender as Gender) || 'not_selected',
+        gender: user?.gender || 'prefer_not_to_say',
+        languages: user?.languages || [],
+        interests: user?.interests || [],
+        learning_goals: user?.learning_goals || []
     });
+
+    useEffect(() => {
+        if (user) {
+            setFormData({
+                first_name: user.first_name,
+                last_name: user.last_name,
+                email: user.email,
+                gender: user.gender || 'prefer_not_to_say',
+                languages: user.languages,
+                interests: user.interests,
+                learning_goals: user.learning_goals
+            });
+        }
+    }, [user]);
 
     if (!user) {
         return null;
@@ -106,27 +124,21 @@ export const Profile = () => {
             showNotification('error', 'Please enter a valid email address');
             return false;
         }
-        if (formData.age && (parseInt(formData.age.toString()) < 13 || parseInt(formData.age.toString()) > 120)) {
-            showNotification('error', 'Age must be between 13 and 120');
-            return false;
-        }
         return true;
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
-        if (!validateForm()) {
-            return;
-        }
+        if (!user) return;
 
         try {
-            const updateData = {
-                first_name: formData.first_name.trim() || null,
-                last_name: formData.last_name.trim() || null,
-                email: formData.email.trim(),
-                age: formData.age ? parseInt(formData.age.toString()) : null,
-                gender: formData.gender || null
+            const updateData: ProfileUpdateData = {
+                first_name: formData.first_name.trim() || undefined,
+                last_name: formData.last_name.trim() || undefined,
+                gender: formData.gender,
+                languages: formData.languages,
+                interests: formData.interests,
+                learning_goals: formData.learning_goals
             };
 
             await api.user.updateProfile(updateData);
@@ -134,23 +146,9 @@ export const Profile = () => {
             setIsEditing(false);
             showNotification('success', 'Profile updated successfully!');
         } catch (error) {
-            console.error('Failed to update profile:', error);
-            showNotification('error', error instanceof Error ? error.message : 'Failed to update profile. Please try again.');
+            showNotification('error', 'Failed to update profile');
         }
     };
-
-    // Update form data when user data changes
-    React.useEffect(() => {
-        if (user) {
-            setFormData({
-                first_name: user.first_name || '',
-                last_name: user.last_name || '',
-                email: user.email || '',
-                age: user.age || '',
-                gender: (user.gender as Gender) || 'not_selected',
-            });
-        }
-    }, [user]);
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -244,21 +242,6 @@ export const Profile = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                            Age
-                                        </label>
-                                        <input
-                                            type="number"
-                                            value={formData.age}
-                                            onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                                            min="13"
-                                            max="120"
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 
-                                                     rounded-lg shadow-sm focus:outline-none focus:ring-2 
-                                                     focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                             Gender
                                         </label>
                                         <select
@@ -268,7 +251,7 @@ export const Profile = () => {
                                                      rounded-lg shadow-sm focus:outline-none focus:ring-2 
                                                      focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                                         >
-                                            <option value="not_selected">Prefer not to say</option>
+                                            <option value="prefer_not_to_say">Prefer not to say</option>
                                             <option value="male">Male</option>
                                             <option value="female">Female</option>
                                         </select>
@@ -313,18 +296,10 @@ export const Profile = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                            Age
-                                        </h3>
-                                        <p className="mt-1 text-gray-900 dark:text-white">
-                                            {user.age || 'Not set'}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
                                             Gender
                                         </h3>
                                         <p className="mt-1 text-gray-900 dark:text-white">
-                                            {user.gender === 'not_selected' 
+                                            {user.gender === 'prefer_not_to_say' 
                                                 ? 'Prefer not to say' 
                                                 : user.gender ? user.gender.charAt(0).toUpperCase() + user.gender.slice(1) : 'Not set'}
                                         </p>

@@ -1,33 +1,33 @@
 import React from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useNotification } from '../contexts/NotificationContext';
 
 export const Login = () => {
-    const { login, user } = useAuth();
-
-    // Redirect if already logged in
-    if (user) {
-        return <Navigate to="/dashboard" />;
-    }
+    const navigate = useNavigate();
+    const { login } = useAuth();
+    const { showNotification } = useNotification();
 
     const formik = useFormik({
         initialValues: {
-            username: '',
-            password: '',
+            email: '',
+            password: ''
         },
         validationSchema: Yup.object({
-            username: Yup.string().required('Required'),
-            password: Yup.string().required('Required'),
+            email: Yup.string().email('Invalid email address').required('Required'),
+            password: Yup.string().required('Required')
         }),
         onSubmit: async (values) => {
             try {
-                await login(values.username, values.password);
+                await login({ email: values.email, password: values.password });
+                showNotification('success', 'Successfully logged in');
+                navigate('/dashboard');
             } catch (error) {
-                console.error('Login failed:', error);
+                showNotification('error', 'Failed to login. Please check your credentials.');
             }
-        },
+        }
     });
 
     return (
@@ -48,21 +48,21 @@ export const Login = () => {
                 <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow sm:rounded-lg sm:px-10">
                     <form className="space-y-6" onSubmit={formik.handleSubmit}>
                         <div>
-                            <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Username
+                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Email
                             </label>
                             <div className="mt-1">
                                 <input
-                                    id="username"
-                                    type="text"
-                                    {...formik.getFieldProps('username')}
+                                    id="email"
+                                    type="email"
+                                    {...formik.getFieldProps('email')}
                                     className="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 
                                              rounded-md shadow-sm placeholder-gray-400 
                                              focus:outline-none focus:ring-blue-500 focus:border-blue-500 
                                              dark:bg-gray-700 dark:text-white"
                                 />
-                                {formik.touched.username && formik.errors.username && (
-                                    <div className="mt-1 text-sm text-red-600 dark:text-red-400">{formik.errors.username}</div>
+                                {formik.touched.email && formik.errors.email && (
+                                    <div className="mt-1 text-sm text-red-600 dark:text-red-400">{formik.errors.email}</div>
                                 )}
                             </div>
                         </div>

@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 	"strings"
-	"tongly/backend/pkg/jwt"
+	"tongly-basic/backend/pkg/jwt"
 
 	"github.com/gin-gonic/gin"
 )

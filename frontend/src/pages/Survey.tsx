@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../api/client';
 import { useNotification } from '../contexts/NotificationContext';
+import type { LanguageLevel } from '../types';
 
 const languageEmojis: { [key: string]: string } = {
     'English': '🇬🇧',
@@ -83,16 +84,15 @@ export const Survey = () => {
 
     const handleSubmit = async () => {
         try {
-            await api.user.updateProfile({
-                native_language: formData.nativeLanguage,
+            const updateData = {
                 languages: [{
                     language: formData.learningLanguage,
-                    level: formData.languageLevel
+                    level: formData.languageLevel as LanguageLevel
                 }],
                 interests: formData.interests,
-                learning_goals: formData.learningGoals,
-                survey_complete: true
-            });
+                learning_goals: formData.learningGoals
+            };
+            await api.user.updateProfile(updateData);
             await refreshUser();
             showNotification('success', 'Survey completed successfully!');
             navigate('/dashboard');

@@ -2,7 +2,7 @@ package repositories
 
 import (
 	"database/sql"
-	"tongly/backend/internal/entities"
+	"tongly-basic/backend/internal/entities"
 )
 
 type ChallengeRepositoryImpl struct {

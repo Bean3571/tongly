@@ -12,9 +12,7 @@ const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'F
 const SCHEDULE_PRESETS: { [key in SchedulePreset]: { label: string; description: string } } = {
     weekdays: { label: 'Weekdays', description: 'Monday to Friday, 9 AM - 5 PM' },
     weekends: { label: 'Weekends', description: 'Saturday and Sunday, 10 AM - 6 PM' },
-    all_week: { label: 'All Week', description: 'Every day, 9 AM - 5 PM' },
-    mornings: { label: 'Mornings', description: 'Every day, 7 AM - 12 PM' },
-    evenings: { label: 'Evenings', description: 'Every day, 5 PM - 10 PM' },
+    flexible: { label: 'Flexible Schedule', description: 'Set your own schedule' },
     custom: { label: 'Custom Schedule', description: 'Set your own schedule' }
 };
 
@@ -33,7 +31,8 @@ export const TutorRegistration = () => {
         min_lesson_duration: 30,
         max_students: 1,
         trial_lesson_available: true,
-        trial_lesson_price: undefined,
+        trial_lesson_price: 10,
+        description: '',
         languages: [],
         availability: []
     });
@@ -134,7 +133,7 @@ export const TutorRegistration = () => {
         setFormData({
             ...formData,
             schedule_preset: preset,
-            availability: preset === 'custom' ? [] : generateAvailabilityFromPreset(preset)
+            availability: preset === 'custom' ? [] : generateAvailabilityFromPreset(preset),
         });
     };
 
@@ -241,7 +240,8 @@ export const TutorRegistration = () => {
                             <div className="mt-2">
                                 <LanguageSelector
                                     languages={formData.languages}
-                                    onChange={(languages) => setFormData({ ...formData, languages })}
+                                    onChange={(languages) => setFormData({ ...formData, languages: languages as TutorLanguage[] })}
+                                    isTutorMode={true}
                                 />
                             </div>
                         </div>
@@ -290,7 +290,7 @@ export const TutorRegistration = () => {
                                         value={formData.trial_lesson_price || ''}
                                         onChange={(e) => setFormData({ 
                                             ...formData, 
-                                            trial_lesson_price: Number(e.target.value) 
+                                            trial_lesson_price: parseFloat(e.target.value) 
                                         })}
                                         min="0"
                                         step="0.5"

@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"tongly-basic/models"
+	"tongly-basic/backend/models"
 
 	"github.com/jmoiron/sqlx"
 )

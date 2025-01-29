@@ -1,32 +1,3 @@
--- Users table
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    username VARCHAR(255) UNIQUE NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    first_name VARCHAR(255),
-    last_name VARCHAR(255),
-    profile_picture VARCHAR(255) DEFAULT '/default-avatar.svg',
-    role VARCHAR(50) NOT NULL,
-    age INTEGER,
-    gender VARCHAR(20) CHECK (gender IN ('male', 'female', 'not_selected')) DEFAULT 'not_selected',
-    native_language VARCHAR(50),
-    languages JSONB DEFAULT '[]'::jsonb,
-    interests TEXT[] DEFAULT ARRAY[]::TEXT[],
-    learning_goals TEXT[] DEFAULT ARRAY[]::TEXT[],
-    survey_complete BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- Create indexes
-CREATE INDEX idx_users_username ON users(username);
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_role ON users(role);
-CREATE INDEX idx_users_native_language ON users(native_language);
-CREATE INDEX idx_users_survey_complete ON users(survey_complete);
-CREATE INDEX idx_users_gender ON users(gender);
-
 -- Function to automatically update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -36,140 +7,127 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- Trigger to automatically update updated_at timestamp
-CREATE TRIGGER update_users_updated_at
+-- Users table
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    profile_picture VARCHAR(255),
+    role VARCHAR(50) NOT NULL,
+    age INT,
+    gender VARCHAR(20),
+    native_language VARCHAR(50),
+    languages JSONB DEFAULT '[]',
+    interests TEXT[] DEFAULT '{}',
+    learning_goals TEXT[] DEFAULT '{}',
+    survey_complete BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_users_username ON users(username);
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_role ON users(role);
+CREATE INDEX idx_users_native_language ON users(native_language);
+CREATE INDEX idx_users_survey_complete ON users(survey_complete);
+CREATE INDEX idx_users_gender ON users(gender);
+
+-- Trigger to update users.updated_at
+CREATE TRIGGER update_users_updated_at 
     BEFORE UPDATE ON users
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
--- Languages table
-CREATE TABLE languages (
-    id SERIAL PRIMARY KEY,
-    code VARCHAR(5) NOT NULL UNIQUE,
-    name VARCHAR(50) NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- Tutors table (extends users)
+-- Tutors table
 CREATE TABLE tutors (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-    bio TEXT,
-    education TEXT[],
-    certificates TEXT[],
-    teaching_experience TEXT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    bio TEXT NOT NULL,
+    education JSONB NOT NULL DEFAULT '[]',
+    certificates JSONB NOT NULL DEFAULT '[]',
+    teaching_experience TEXT NOT NULL,
     hourly_rate DECIMAL(10,2) NOT NULL,
-    schedule_preset VARCHAR(20) CHECK (schedule_preset IN ('weekdays', 'weekends', 'all_week', 'custom')),
-    min_lesson_duration INTEGER DEFAULT 30 CHECK (min_lesson_duration >= 30),
-    max_students INTEGER DEFAULT 1,
-    trial_lesson_available BOOLEAN DEFAULT true,
-    trial_lesson_price DECIMAL(10,2),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    schedule_preset VARCHAR(20) NOT NULL,
+    min_lesson_duration INTEGER NOT NULL,
+    max_students INTEGER NOT NULL,
+    trial_available BOOLEAN NOT NULL DEFAULT false,
+    trial_price DECIMAL(10,2),
+    languages JSONB NOT NULL DEFAULT '[]',
+    availability JSONB NOT NULL DEFAULT '[]',
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT tutors_user_id_unique UNIQUE (user_id),
+    CONSTRAINT tutors_hourly_rate_check CHECK (hourly_rate > 0),
+    CONSTRAINT tutors_min_lesson_duration_check CHECK (min_lesson_duration IN (30, 45, 60, 90, 120)),
+    CONSTRAINT tutors_max_students_check CHECK (max_students BETWEEN 1 AND 5),
+    CONSTRAINT tutors_trial_price_check CHECK (trial_price IS NULL OR trial_price >= 0)
 );
 
--- Tutor languages (many-to-many relationship)
-CREATE TABLE tutor_languages (
-    tutor_id INTEGER REFERENCES tutors(id) ON DELETE CASCADE,
-    language_id INTEGER REFERENCES languages(id) ON DELETE CASCADE,
-    is_native BOOLEAN DEFAULT false,
-    proficiency_level VARCHAR(20) NOT NULL CHECK (proficiency_level IN ('native', 'fluent', 'advanced', 'intermediate')),
-    can_teach BOOLEAN DEFAULT true,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (tutor_id, language_id)
-);
+CREATE INDEX tutors_hourly_rate_idx ON tutors (hourly_rate);
+CREATE INDEX tutors_schedule_preset_idx ON tutors (schedule_preset);
 
--- Availability slots with preset support
-CREATE TABLE availability_slots (
-    id SERIAL PRIMARY KEY,
-    tutor_id INTEGER REFERENCES tutors(id) ON DELETE CASCADE,
-    day_of_week INTEGER NOT NULL CHECK (day_of_week BETWEEN 0 AND 6),
-    start_time TIME NOT NULL,
-    end_time TIME NOT NULL,
-    is_recurring BOOLEAN DEFAULT true,
-    preset_type VARCHAR(20) REFERENCES schedule_presets(name),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- Schedule presets
-CREATE TABLE schedule_presets (
-    name VARCHAR(20) PRIMARY KEY,
-    description TEXT,
-    days INTEGER[],
-    default_start_time TIME,
-    default_end_time TIME
-);
-
--- Insert default schedule presets
-INSERT INTO schedule_presets (name, description, days, default_start_time, default_end_time) VALUES
-    ('weekdays', 'Monday to Friday', ARRAY[1,2,3,4,5], '09:00', '17:00'),
-    ('weekends', 'Saturday and Sunday', ARRAY[0,6], '10:00', '18:00'),
-    ('all_week', 'All week', ARRAY[0,1,2,3,4,5,6], '09:00', '17:00'),
-    ('mornings', 'Morning hours every day', ARRAY[0,1,2,3,4,5,6], '07:00', '12:00'),
-    ('evenings', 'Evening hours every day', ARRAY[0,1,2,3,4,5,6], '17:00', '22:00'),
-    ('custom', 'Custom schedule', NULL, NULL, NULL);
-
--- Trigger to update updated_at timestamp
-CREATE TRIGGER update_tutors_updated_at
+-- Trigger to update tutors.updated_at
+CREATE TRIGGER update_tutors_updated_at 
     BEFORE UPDATE ON tutors
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_availability_slots_updated_at
-    BEFORE UPDATE ON availability_slots
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
-
--- Lessons
+-- Lessons table
 CREATE TABLE lessons (
     id SERIAL PRIMARY KEY,
-    student_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    tutor_id INTEGER REFERENCES tutors(id) ON DELETE CASCADE,
-    language_id INTEGER REFERENCES languages(id) ON DELETE CASCADE,
+    tutor_id INTEGER NOT NULL REFERENCES tutors(id) ON DELETE CASCADE,
+    student_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     start_time TIMESTAMP WITH TIME ZONE NOT NULL,
-    duration INTEGER NOT NULL, -- in minutes
-    status VARCHAR(20) NOT NULL CHECK (status IN ('scheduled', 'completed', 'cancelled')),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    duration INTEGER NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'scheduled',
+    price DECIMAL(10,2) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT lessons_duration_check CHECK (duration IN (30, 45, 60, 90, 120))
 );
 
--- Reviews
+-- Reviews table
 CREATE TABLE reviews (
     id SERIAL PRIMARY KEY,
-    lesson_id INTEGER UNIQUE REFERENCES lessons(id) ON DELETE CASCADE,
-    rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    lesson_id INTEGER NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+    rating INTEGER NOT NULL,
     comment TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT reviews_rating_check CHECK (rating BETWEEN 1 AND 5)
 );
 
--- Wallet transactions
+-- Wallet transactions table
 CREATE TABLE wallet_transactions (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     amount DECIMAL(10,2) NOT NULL,
-    transaction_type VARCHAR(20) NOT NULL CHECK (transaction_type IN ('deposit', 'withdrawal', 'lesson_payment')),
-    status VARCHAR(20) NOT NULL CHECK (status IN ('pending', 'completed', 'failed')),
-    reference_id TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    type VARCHAR(20) NOT NULL,
+    status VARCHAR(20) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Language challenges
+-- Challenges table
 CREATE TABLE challenges (
     id SERIAL PRIMARY KEY,
-    language_id INTEGER REFERENCES languages(id) ON DELETE CASCADE,
-    title VARCHAR(100) NOT NULL,
+    title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
-    difficulty_level VARCHAR(20) NOT NULL CHECK (difficulty_level IN ('beginner', 'intermediate', 'advanced')),
     points INTEGER NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    difficulty VARCHAR(20) NOT NULL,
+    duration_days INTEGER NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- User challenge completions
+-- Challenge completions table
 CREATE TABLE challenge_completions (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    challenge_id INTEGER REFERENCES challenges(id) ON DELETE CASCADE,
-    score INTEGER NOT NULL,
-    completed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (user_id, challenge_id)
+    challenge_id INTEGER NOT NULL REFERENCES challenges(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    completed_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    points_earned INTEGER NOT NULL,
+    UNIQUE (challenge_id, user_id)
 ); 

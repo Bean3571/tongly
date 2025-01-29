@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { TutorLanguage } from '../types';
+import { Language, LanguageLevel, TutorLanguage } from '../types';
 
-const LANGUAGE_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'Native'] as const;
+const LANGUAGE_LEVELS: LanguageLevel[] = ["A1", "A2", "B1", "B2", "C1", "C2", "Native"];
 const COMMON_LANGUAGES = [
     'English',
     'Spanish',
@@ -16,40 +16,37 @@ const COMMON_LANGUAGES = [
     'Arabic'
 ];
 
-interface LanguageSelectorProps {
-    languages: TutorLanguage[];
-    onChange: (languages: TutorLanguage[]) => void;
+interface Props {
+    languages: Language[] | TutorLanguage[];
+    onChange: (languages: Language[] | TutorLanguage[]) => void;
+    isTutorMode?: boolean;
 }
 
-export const LanguageSelector: React.FC<LanguageSelectorProps> = ({ languages, onChange }) => {
+export const LanguageSelector: React.FC<Props> = ({ languages, onChange, isTutorMode = false }) => {
     const [newLanguage, setNewLanguage] = useState('');
-    const [selectedLevel, setSelectedLevel] = useState<typeof LANGUAGE_LEVELS[number]>('B2');
+    const [selectedLevel, setSelectedLevel] = useState<LanguageLevel>("A1");
     const [isNative, setIsNative] = useState(false);
-    const [canTeach, setCanTeach] = useState(true);
+    const [canTeach, setCanTeach] = useState(false);
     const [showLanguageInput, setShowLanguageInput] = useState(false);
 
-    const handleAddLanguage = () => {
-        const language = newLanguage.trim();
+    const handleAddLanguage = (language: string) => {
         if (!language) return;
 
         if (languages.some(l => l.language.toLowerCase() === language.toLowerCase())) {
-            // Language already exists
-            return;
+            return; // Language already exists
         }
 
-        const newLanguageEntry: TutorLanguage = {
+        const newLanguageEntry = isTutorMode ? {
             language,
             level: selectedLevel,
             is_native: isNative,
             can_teach: canTeach
-        };
+        } as TutorLanguage : {
+            language,
+            level: selectedLevel
+        } as Language;
 
         onChange([...languages, newLanguageEntry]);
-        setNewLanguage('');
-        setSelectedLevel('B2');
-        setIsNative(false);
-        setCanTeach(true);
-        setShowLanguageInput(false);
     };
 
     const handleRemoveLanguage = (language: string) => {
@@ -63,32 +60,27 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({ languages, o
 
     return (
         <div className="space-y-4">
-            {/* Display selected languages */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {languages.map((lang) => (
-                    <div
-                        key={lang.language}
-                        className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
-                    >
-                        <div>
-                            <div className="font-medium">{lang.language}</div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
-                                {lang.is_native ? 'Native' : `Level: ${lang.level}`}
-                                {lang.can_teach && ' • Can teach'}
-                            </div>
+            {languages.map((lang) => (
+                <div
+                    key={lang.language}
+                    className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                >
+                    <div>
+                        <div className="font-medium">{lang.language}</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                            Level: {lang.level}
                         </div>
-                        <button
-                            type="button"
-                            onClick={() => handleRemoveLanguage(lang.language)}
-                            className="text-red-600 hover:text-red-800"
-                        >
-                            Remove
-                        </button>
                     </div>
-                ))}
-            </div>
+                    <button
+                        type="button"
+                        onClick={() => handleRemoveLanguage(lang.language)}
+                        className="text-red-600 hover:text-red-800"
+                    >
+                        Remove
+                    </button>
+                </div>
+            ))}
 
-            {/* Add new language */}
             {!showLanguageInput ? (
                 <div>
                     <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -140,8 +132,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({ languages, o
                             </label>
                             <select
                                 value={selectedLevel}
-                                onChange={(e) => setSelectedLevel(e.target.value as typeof LANGUAGE_LEVELS[number])}
-                                disabled={isNative}
+                                onChange={(e) => setSelectedLevel(e.target.value as LanguageLevel)}
                                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm 
                                          focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 
                                          dark:border-gray-600"
@@ -186,7 +177,14 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({ languages, o
                     <div className="flex space-x-4">
                         <button
                             type="button"
-                            onClick={handleAddLanguage}
+                            onClick={() => {
+                                handleAddLanguage(newLanguage);
+                                setShowLanguageInput(false);
+                                setNewLanguage('');
+                                setSelectedLevel("A1");
+                                setIsNative(false);
+                                setCanTeach(false);
+                            }}
                             disabled={!newLanguage.trim()}
                             className="flex-1 px-4 py-2 border border-transparent rounded-md shadow-sm 
                                      text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 
@@ -200,9 +198,9 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({ languages, o
                             onClick={() => {
                                 setShowLanguageInput(false);
                                 setNewLanguage('');
-                                setSelectedLevel('B2');
+                                setSelectedLevel("A1");
                                 setIsNative(false);
-                                setCanTeach(true);
+                                setCanTeach(false);
                             }}
                             className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm 
                                      font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none 

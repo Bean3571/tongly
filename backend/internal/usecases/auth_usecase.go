@@ -2,13 +2,20 @@ package usecases
 
 import (
 	"errors"
-	"tongly/backend/internal/entities"
-	"tongly/backend/internal/logger"
-	"tongly/backend/internal/repositories"
+	"tongly-basic/backend/internal/entities"
+	"tongly-basic/backend/internal/logger"
+	"tongly-basic/backend/internal/repositories"
 )
 
 type AuthUseCase struct {
 	UserRepo repositories.UserRepository
+}
+
+// Add after the AuthUseCase struct definition
+func NewAuthUseCase(userRepo repositories.UserRepository) *AuthUseCase {
+	return &AuthUseCase{
+		UserRepo: userRepo,
+	}
 }
 
 // Register handles user registration

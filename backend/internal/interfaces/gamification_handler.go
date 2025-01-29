@@ -2,14 +2,20 @@ package interfaces
 
 import (
 	"net/http"
-	"tongly/backend/internal/entities"
-	"tongly/backend/internal/usecases"
+	"tongly-basic/backend/internal/entities"
+	"tongly-basic/backend/internal/usecases"
 
 	"github.com/gin-gonic/gin"
 )
 
 type GamificationHandler struct {
-	GamificationUseCase usecases.GamificationUseCase
+	GamificationUseCase *usecases.GamificationUseCase
+}
+
+func NewGamificationHandler(gamificationUseCase *usecases.GamificationUseCase) *GamificationHandler {
+	return &GamificationHandler{
+		GamificationUseCase: gamificationUseCase,
+	}
 }
 
 func (h *GamificationHandler) SubmitChallenge(c *gin.Context) {

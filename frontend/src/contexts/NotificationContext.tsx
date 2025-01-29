@@ -1,70 +1,52 @@
-import React, { createContext, useContext, useState } from 'react';
-
-type NotificationType = 'success' | 'error' | 'info' | 'warning';
+import React, { createContext, useContext, useState, useCallback } from 'react';
+import { NotificationType } from '../types';
 
 interface Notification {
-    id: number;
     type: NotificationType;
     message: string;
 }
 
 interface NotificationContextType {
-    notifications: Notification[];
+    notification: Notification | null;
     showNotification: (type: NotificationType, message: string) => void;
-    removeNotification: (id: number) => void;
 }
 
-const NotificationContext = createContext<NotificationContextType>({
-    notifications: [],
-    showNotification: () => {},
-    removeNotification: () => {},
-});
+const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
-export const useNotification = () => useContext(NotificationContext);
+export const useNotification = () => {
+    const context = useContext(NotificationContext);
+    if (!context) {
+        throw new Error('useNotification must be used within a NotificationProvider');
+    }
+    return context;
+};
 
-export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [notifications, setNotifications] = useState<Notification[]>([]);
+interface NotificationProviderProps {
+    children: React.ReactNode;
+}
 
-    const showNotification = (type: NotificationType, message: string) => {
-        const id = Date.now();
-        setNotifications(prev => [...prev, { id, type, message }]);
+export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
+    const [notification, setNotification] = useState<Notification | null>(null);
+    const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
 
-        // Auto remove after 5 seconds
-        setTimeout(() => {
-            removeNotification(id);
-        }, 5000);
-    };
+    const showNotification = useCallback((type: NotificationType, message: string) => {
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+        }
 
-    const removeNotification = (id: number) => {
-        setNotifications(prev => prev.filter(notification => notification.id !== id));
-    };
+        setNotification({ type, message });
+
+        const id = setTimeout(() => {
+            setNotification(null);
+            setTimeoutId(null);
+        }, 3000);
+
+        setTimeoutId(id);
+    }, [timeoutId]);
 
     return (
-        <NotificationContext.Provider value={{ notifications, showNotification, removeNotification }}>
+        <NotificationContext.Provider value={{ notification, showNotification }}>
             {children}
-            {/* Notification Toast Container */}
-            <div className="fixed bottom-4 right-4 z-50 space-y-2">
-                {notifications.map(notification => (
-                    <div
-                        key={notification.id}
-                        className={`px-4 py-3 rounded-lg shadow-lg max-w-md transform transition-all duration-300 
-                                  ${notification.type === 'success' ? 'bg-green-500 text-white' :
-                                    notification.type === 'error' ? 'bg-red-500 text-white' :
-                                    notification.type === 'warning' ? 'bg-yellow-500 text-white' :
-                                    'bg-blue-500 text-white'}`}
-                    >
-                        <div className="flex justify-between items-center">
-                            <p className="font-medium">{notification.message}</p>
-                            <button
-                                onClick={() => removeNotification(notification.id)}
-                                className="ml-4 text-white hover:text-gray-200 transition-colors"
-                            >
-                                ×
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </div>
         </NotificationContext.Provider>
     );
 }; 
