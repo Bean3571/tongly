@@ -1,8 +1,8 @@
 package usecases
 
 import (
-	"tongly/backend/internal/entities"
-	"tongly/backend/internal/repositories"
+	"tongly-backend/internal/entities"
+	"tongly-backend/internal/repositories"
 )
 
 type TutorUseCase struct {

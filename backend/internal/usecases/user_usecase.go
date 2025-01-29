@@ -2,9 +2,9 @@ package usecases
 
 import (
 	"errors"
-	"tongly/backend/internal/entities"
-	"tongly/backend/internal/logger"
-	"tongly/backend/internal/repositories"
+	"tongly-backend/internal/entities"
+	"tongly-backend/internal/logger"
+	"tongly-backend/internal/repositories"
 )
 
 type UserUseCase struct {

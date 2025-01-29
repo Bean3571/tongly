@@ -1,8 +1,8 @@
 package router
 
 import (
-	"tongly/backend/internal/interfaces"
-	"tongly/backend/pkg/middleware"
+	"tongly-backend/internal/interfaces"
+	"tongly-backend/pkg/middleware"
 
 	"github.com/gin-gonic/gin"
 )

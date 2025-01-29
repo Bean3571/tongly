@@ -2,8 +2,8 @@ package interfaces
 
 import (
 	"net/http"
-	"tongly/backend/internal/entities"
-	"tongly/backend/internal/usecases"
+	"tongly-backend/internal/entities"
+	"tongly-backend/internal/usecases"
 
 	"github.com/gin-gonic/gin"
 )

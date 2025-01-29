@@ -3,9 +3,9 @@ package interfaces
 import (
 	"fmt"
 	"net/http"
-	"tongly/backend/internal/entities"
-	"tongly/backend/internal/logger"
-	"tongly/backend/internal/usecases"
+	"tongly-backend/internal/entities"
+	"tongly-backend/internal/logger"
+	"tongly-backend/internal/usecases"
 
 	"github.com/gin-gonic/gin"
 )

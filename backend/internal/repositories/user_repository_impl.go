@@ -3,8 +3,8 @@ package repositories
 import (
 	"database/sql"
 	"encoding/json"
-	"tongly/backend/internal/entities"
-	"tongly/backend/internal/logger"
+	"tongly-backend/internal/entities"
+	"tongly-backend/internal/logger"
 
 	"github.com/lib/pq"
 )

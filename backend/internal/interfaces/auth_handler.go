@@ -2,10 +2,10 @@ package interfaces
 
 import (
 	"net/http"
-	"tongly/backend/internal/entities"
-	"tongly/backend/internal/logger"
-	"tongly/backend/internal/usecases"
-	"tongly/backend/pkg/jwt"
+	"tongly-backend/internal/entities"
+	"tongly-backend/internal/logger"
+	"tongly-backend/internal/usecases"
+	"tongly-backend/pkg/jwt"
 
 	"github.com/gin-gonic/gin"
 )

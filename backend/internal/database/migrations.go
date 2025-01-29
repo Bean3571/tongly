@@ -2,7 +2,7 @@ package database
 
 import (
 	"fmt"
-	"tongly/backend/internal/logger"
+	"tongly-backend/internal/logger"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"

@@ -1,6 +1,6 @@
 package repositories
 
-import "tongly/backend/internal/entities"
+import "tongly-backend/internal/entities"
 
 type UserRepository interface {
 	CreateUser(user entities.User) error

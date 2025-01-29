@@ -5,8 +5,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"tongly/backend/internal/config"
-	"tongly/backend/internal/logger"
+	"tongly-backend/internal/config"
+	"tongly-backend/internal/logger"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
