@@ -1,145 +1,342 @@
-import React from 'react';
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
+import React, { useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useNotification } from '../contexts/NotificationContext';
 import { api } from '../api/client';
+import { Gender } from '../types';
+
+interface FormData {
+    first_name: string;
+    last_name: string;
+    email: string;
+    age: string | number;
+    gender: Gender;
+}
 
 export const Profile = () => {
     const { user, refreshUser } = useAuth();
-
-    const formik = useFormik({
-        initialValues: {
-            email: user?.email || '',
-            firstName: user?.first_name || '',
-            lastName: user?.last_name || '',
-            profilePicture: user?.profile_picture || '',
-        },
-        validationSchema: Yup.object({
-            email: Yup.string().email('Invalid email address').required('Required'),
-            firstName: Yup.string(),
-            lastName: Yup.string(),
-            profilePicture: Yup.string().url('Must be a valid URL').nullable(),
-        }),
-        onSubmit: async (values) => {
-            try {
-                const updateData = {
-                    email: values.email,
-                    first_name: values.firstName || null,
-                    last_name: values.lastName || null,
-                    profile_picture: values.profilePicture || null,
-                };
-                
-                await api.user.updateProfile(updateData);
-                await refreshUser();
-                alert('Profile updated successfully');
-            } catch (error) {
-                console.error('Failed to update profile:', error);
-                alert('Failed to update profile');
-            }
-        },
+    const { showNotification } = useNotification();
+    const [isEditing, setIsEditing] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+    const [formData, setFormData] = useState<FormData>({
+        first_name: user?.first_name || '',
+        last_name: user?.last_name || '',
+        email: user?.email || '',
+        age: user?.age || '',
+        gender: (user?.gender as Gender) || 'not_selected',
     });
 
+    if (!user) {
+        return null;
+    }
+
+    const handleAvatarClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            showNotification('error', 'Please select an image file');
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            showNotification('error', 'Image size should be less than 5MB');
+            return;
+        }
+
+        try {
+            // Create preview
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setAvatarPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+
+            // Create form data
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Get token
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+
+            // Upload avatar
+            const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080'}/api/profile/avatar`, {
+                method: 'POST',
+                body: formData,
+                credentials: 'include',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                }
+            });
+
+            let responseText = await response.text();
+            if (!response.ok) {
+                try {
+                    const errorData = JSON.parse(responseText);
+                    throw new Error(errorData.error || 'Failed to upload avatar');
+                } catch (e) {
+                    throw new Error(responseText || 'Failed to upload avatar');
+                }
+            }
+
+            await refreshUser();
+            showNotification('success', 'Avatar updated successfully!');
+        } catch (error) {
+            console.error('Failed to upload avatar:', error);
+            showNotification('error', error instanceof Error ? error.message : 'Failed to upload avatar. Please try again.');
+            setAvatarPreview(null);
+        }
+    };
+
+    const validateForm = () => {
+        if (!formData.email.trim()) {
+            showNotification('error', 'Email is required');
+            return false;
+        }
+        if (!formData.email.includes('@')) {
+            showNotification('error', 'Please enter a valid email address');
+            return false;
+        }
+        if (formData.age && (parseInt(formData.age.toString()) < 13 || parseInt(formData.age.toString()) > 120)) {
+            showNotification('error', 'Age must be between 13 and 120');
+            return false;
+        }
+        return true;
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        if (!validateForm()) {
+            return;
+        }
+
+        try {
+            const updateData = {
+                first_name: formData.first_name.trim() || null,
+                last_name: formData.last_name.trim() || null,
+                email: formData.email.trim(),
+                age: formData.age ? parseInt(formData.age.toString()) : null,
+                gender: formData.gender || null
+            };
+
+            await api.user.updateProfile(updateData);
+            await refreshUser();
+            setIsEditing(false);
+            showNotification('success', 'Profile updated successfully!');
+        } catch (error) {
+            console.error('Failed to update profile:', error);
+            showNotification('error', error instanceof Error ? error.message : 'Failed to update profile. Please try again.');
+        }
+    };
+
+    // Update form data when user data changes
+    React.useEffect(() => {
+        if (user) {
+            setFormData({
+                first_name: user.first_name || '',
+                last_name: user.last_name || '',
+                email: user.email || '',
+                age: user.age || '',
+                gender: (user.gender as Gender) || 'not_selected',
+            });
+        }
+    }, [user]);
+
     return (
-        <div className="max-w-2xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md mt-8">
-            <div className="flex items-center mb-8">
-                <img
-                    src={user?.profile_picture || 'https://via.placeholder.com/64'}
-                    alt={user?.username}
-                    className="w-16 h-16 rounded-full mr-4"
-                />
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Profile Settings</h1>
-                    <p className="text-gray-600 dark:text-gray-400">@{user?.username}</p>
+        <div className="container mx-auto px-4 py-8">
+            <div className="max-w-2xl mx-auto">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+                    <div className="p-6">
+                        <div className="flex items-center justify-between mb-6">
+                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                                Profile Settings
+                            </h1>
+                            <button
+                                onClick={() => setIsEditing(!isEditing)}
+                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg 
+                                         hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                {isEditing ? 'Cancel' : 'Edit Profile'}
+                            </button>
+                        </div>
+
+                        <div className="flex items-center mb-6">
+                            <div className="relative">
+                                <img
+                                    src={avatarPreview || user.profile_picture || '/default-avatar.svg'}
+                                    alt="Profile"
+                                    className="w-24 h-24 rounded-full object-cover border-4 border-white dark:border-gray-700"
+                                />
+                                {isEditing && (
+                                    <button
+                                        onClick={handleAvatarClick}
+                                        className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full 
+                                                 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                        </svg>
+                                    </button>
+                                )}
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleAvatarChange}
+                                    className="hidden"
+                                />
+                            </div>
+                        </div>
+
+                        {isEditing ? (
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                            First Name
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.first_name}
+                                            onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 
+                                                     rounded-lg shadow-sm focus:outline-none focus:ring-2 
+                                                     focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                            Last Name
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.last_name}
+                                            onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 
+                                                     rounded-lg shadow-sm focus:outline-none focus:ring-2 
+                                                     focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Email
+                                    </label>
+                                    <input
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 
+                                                 rounded-lg shadow-sm focus:outline-none focus:ring-2 
+                                                 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                            Age
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={formData.age}
+                                            onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                                            min="13"
+                                            max="120"
+                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 
+                                                     rounded-lg shadow-sm focus:outline-none focus:ring-2 
+                                                     focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                            Gender
+                                        </label>
+                                        <select
+                                            value={formData.gender}
+                                            onChange={(e) => setFormData({ ...formData, gender: e.target.value as Gender })}
+                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 
+                                                     rounded-lg shadow-sm focus:outline-none focus:ring-2 
+                                                     focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                                        >
+                                            <option value="not_selected">Prefer not to say</option>
+                                            <option value="male">Male</option>
+                                            <option value="female">Female</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className="flex justify-end">
+                                    <button
+                                        type="submit"
+                                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
+                                                 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        Save Changes
+                                    </button>
+                                </div>
+                            </form>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                            First Name
+                                        </h3>
+                                        <p className="mt-1 text-gray-900 dark:text-white">
+                                            {user.first_name || 'Not set'}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                            Last Name
+                                        </h3>
+                                        <p className="mt-1 text-gray-900 dark:text-white">
+                                            {user.last_name || 'Not set'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                        Email
+                                    </h3>
+                                    <p className="mt-1 text-gray-900 dark:text-white">{user.email}</p>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                            Age
+                                        </h3>
+                                        <p className="mt-1 text-gray-900 dark:text-white">
+                                            {user.age || 'Not set'}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                            Gender
+                                        </h3>
+                                        <p className="mt-1 text-gray-900 dark:text-white">
+                                            {user.gender === 'not_selected' 
+                                                ? 'Prefer not to say' 
+                                                : user.gender ? user.gender.charAt(0).toUpperCase() + user.gender.slice(1) : 'Not set'}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
-
-            <form onSubmit={formik.handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Email
-                        </label>
-                        <input
-                            id="email"
-                            type="email"
-                            {...formik.getFieldProps('email')}
-                            className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 
-                                     focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-                                     dark:bg-gray-700 dark:text-white transition-colors
-                                     disabled:bg-gray-100 dark:disabled:bg-gray-600"
-                        />
-                        {formik.touched.email && formik.errors.email && (
-                            <div className="text-red-600 dark:text-red-400 text-sm mt-1">{String(formik.errors.email)}</div>
-                        )}
-                    </div>
-
-                    <div>
-                        <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            First Name
-                        </label>
-                        <input
-                            id="firstName"
-                            type="text"
-                            {...formik.getFieldProps('firstName')}
-                            className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 
-                                     focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-                                     dark:bg-gray-700 dark:text-white transition-colors"
-                        />
-                    </div>
-
-                    <div>
-                        <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Last Name
-                        </label>
-                        <input
-                            id="lastName"
-                            type="text"
-                            {...formik.getFieldProps('lastName')}
-                            className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 
-                                     focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-                                     dark:bg-gray-700 dark:text-white transition-colors"
-                        />
-                    </div>
-
-                    <div>
-                        <label htmlFor="profilePicture" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Profile Picture URL
-                        </label>
-                        <input
-                            id="profilePicture"
-                            type="text"
-                            {...formik.getFieldProps('profilePicture')}
-                            className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 
-                                     focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-                                     dark:bg-gray-700 dark:text-white transition-colors"
-                        />
-                        {formik.touched.profilePicture && formik.errors.profilePicture && (
-                            <div className="text-red-600 dark:text-red-400 text-sm mt-1">{String(formik.errors.profilePicture)}</div>
-                        )}
-                    </div>
-                </div>
-
-                <div className="flex items-center justify-end space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <button
-                        type="button"
-                        onClick={() => formik.resetForm()}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 
-                                 hover:text-gray-900 dark:hover:text-white transition-colors"
-                    >
-                        Reset
-                    </button>
-                    <button
-                        type="submit"
-                        disabled={!formik.dirty || !formik.isValid}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium
-                                 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 
-                                 focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600
-                                 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                        Save Changes
-                    </button>
-                </div>
-            </form>
         </div>
     );
-}; 
+};
+
+export default Profile; 

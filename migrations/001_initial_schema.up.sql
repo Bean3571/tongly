@@ -1,4 +1,4 @@
--- Users table (already exists, shown for reference)
+-- Users table
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(255) UNIQUE NOT NULL,
@@ -6,9 +6,10 @@ CREATE TABLE users (
     password_hash VARCHAR(255) NOT NULL,
     first_name VARCHAR(255),
     last_name VARCHAR(255),
-    profile_picture TEXT,
+    profile_picture VARCHAR(255) DEFAULT '/default-avatar.svg',
     role VARCHAR(50) NOT NULL,
     age INTEGER,
+    gender VARCHAR(20) CHECK (gender IN ('male', 'female', 'not_selected')) DEFAULT 'not_selected',
     native_language VARCHAR(50),
     languages JSONB DEFAULT '[]'::jsonb,
     interests TEXT[] DEFAULT ARRAY[]::TEXT[],
@@ -24,6 +25,7 @@ CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_role ON users(role);
 CREATE INDEX idx_users_native_language ON users(native_language);
 CREATE INDEX idx_users_survey_complete ON users(survey_complete);
+CREATE INDEX idx_users_gender ON users(gender);
 
 -- Function to automatically update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -53,28 +55,71 @@ CREATE TABLE tutors (
     id SERIAL PRIMARY KEY,
     user_id INTEGER UNIQUE REFERENCES users(id) ON DELETE CASCADE,
     bio TEXT,
+    education TEXT[],
+    certificates TEXT[],
+    teaching_experience TEXT,
     hourly_rate DECIMAL(10,2) NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    schedule_preset VARCHAR(20) CHECK (schedule_preset IN ('weekdays', 'weekends', 'all_week', 'custom')),
+    min_lesson_duration INTEGER DEFAULT 30 CHECK (min_lesson_duration >= 30),
+    max_students INTEGER DEFAULT 1,
+    trial_lesson_available BOOLEAN DEFAULT true,
+    trial_lesson_price DECIMAL(10,2),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Tutor languages (many-to-many relationship)
 CREATE TABLE tutor_languages (
     tutor_id INTEGER REFERENCES tutors(id) ON DELETE CASCADE,
     language_id INTEGER REFERENCES languages(id) ON DELETE CASCADE,
+    is_native BOOLEAN DEFAULT false,
     proficiency_level VARCHAR(20) NOT NULL CHECK (proficiency_level IN ('native', 'fluent', 'advanced', 'intermediate')),
+    can_teach BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (tutor_id, language_id)
 );
 
--- Availability slots
+-- Availability slots with preset support
 CREATE TABLE availability_slots (
     id SERIAL PRIMARY KEY,
     tutor_id INTEGER REFERENCES tutors(id) ON DELETE CASCADE,
     day_of_week INTEGER NOT NULL CHECK (day_of_week BETWEEN 0 AND 6),
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    is_recurring BOOLEAN DEFAULT true,
+    preset_type VARCHAR(20) REFERENCES schedule_presets(name),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Schedule presets
+CREATE TABLE schedule_presets (
+    name VARCHAR(20) PRIMARY KEY,
+    description TEXT,
+    days INTEGER[],
+    default_start_time TIME,
+    default_end_time TIME
+);
+
+-- Insert default schedule presets
+INSERT INTO schedule_presets (name, description, days, default_start_time, default_end_time) VALUES
+    ('weekdays', 'Monday to Friday', ARRAY[1,2,3,4,5], '09:00', '17:00'),
+    ('weekends', 'Saturday and Sunday', ARRAY[0,6], '10:00', '18:00'),
+    ('all_week', 'All week', ARRAY[0,1,2,3,4,5,6], '09:00', '17:00'),
+    ('mornings', 'Morning hours every day', ARRAY[0,1,2,3,4,5,6], '07:00', '12:00'),
+    ('evenings', 'Evening hours every day', ARRAY[0,1,2,3,4,5,6], '17:00', '22:00'),
+    ('custom', 'Custom schedule', NULL, NULL, NULL);
+
+-- Trigger to update updated_at timestamp
+CREATE TRIGGER update_tutors_updated_at
+    BEFORE UPDATE ON tutors
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_availability_slots_updated_at
+    BEFORE UPDATE ON availability_slots
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
 
 -- Lessons
 CREATE TABLE lessons (

@@ -33,19 +33,7 @@ func (uc *UserUseCase) UpdateUser(userID int, updateData entities.UserUpdateRequ
 		return errors.New("user not found")
 	}
 
-	// Check if this is a survey update
-	if updateData.NativeLanguage != nil || updateData.Languages != nil ||
-		updateData.Interests != nil || updateData.LearningGoals != nil {
-		return uc.UserRepo.UpdateSurvey(
-			userID,
-			*updateData.NativeLanguage,
-			updateData.Languages,
-			updateData.Interests,
-			updateData.LearningGoals,
-		)
-	}
-
-	// Handle regular profile update
+	// Update user fields
 	if updateData.Email != "" {
 		user.Email = updateData.Email
 	}
@@ -58,10 +46,40 @@ func (uc *UserUseCase) UpdateUser(userID int, updateData entities.UserUpdateRequ
 	if updateData.ProfilePicture != nil {
 		user.ProfilePicture = updateData.ProfilePicture
 	}
+	if updateData.Age != nil {
+		user.Age = updateData.Age
+	}
+	if updateData.Gender != nil {
+		user.Gender = updateData.Gender
+	}
 
-	logger.Info("Prepared user data for profile update",
+	// Only update survey-related fields if explicitly provided
+	isSurveyUpdate := updateData.NativeLanguage != nil ||
+		updateData.Languages != nil ||
+		updateData.Interests != nil ||
+		updateData.LearningGoals != nil
+
+	if isSurveyUpdate {
+		if updateData.NativeLanguage != nil {
+			user.NativeLanguage = updateData.NativeLanguage
+		}
+		if updateData.Languages != nil {
+			user.Languages = updateData.Languages
+		}
+		if updateData.Interests != nil {
+			user.Interests = updateData.Interests
+		}
+		if updateData.LearningGoals != nil {
+			user.LearningGoals = updateData.LearningGoals
+		}
+		if updateData.SurveyComplete != nil {
+			user.SurveyComplete = *updateData.SurveyComplete
+		}
+	}
+
+	logger.Info("Prepared user data for update",
 		"user_id", userID,
-		"updated_user", user)
+		"is_survey_update", isSurveyUpdate)
 
 	return uc.UserRepo.UpdateUser(*user)
 }

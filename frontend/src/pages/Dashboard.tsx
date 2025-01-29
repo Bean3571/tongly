@@ -119,6 +119,23 @@ const Dashboard: React.FC = () => {
         }
     };
 
+    const handleAddLanguage = () => {
+        // Get all available languages that are not already selected
+        const availableLanguages = Object.keys(languageEmojis).filter(
+            lang => !editedLanguages.some(existing => existing.language === lang)
+        );
+
+        if (availableLanguages.length === 0) {
+            showNotification('info', 'You have already added all available languages.');
+            return;
+        }
+
+        setEditedLanguages([
+            ...editedLanguages, 
+            { language: availableLanguages[0], level: 'Beginner (A1)' }
+        ]);
+    };
+
     return (
         <div className="container mx-auto px-4 py-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
@@ -147,8 +164,14 @@ const Dashboard: React.FC = () => {
                                         <select
                                             value={lang.language}
                                             onChange={(e) => {
+                                                const newLanguage = e.target.value;
+                                                // Check if the new language is already selected
+                                                if (editedLanguages.some((l, i) => i !== index && l.language === newLanguage)) {
+                                                    showNotification('error', 'This language is already in your list.');
+                                                    return;
+                                                }
                                                 const newLanguages = [...editedLanguages];
-                                                newLanguages[index] = { ...lang, language: e.target.value };
+                                                newLanguages[index] = { ...lang, language: newLanguage };
                                                 setEditedLanguages(newLanguages);
                                             }}
                                             className="flex-1 p-2 rounded-lg border border-gray-300 dark:border-gray-600 
@@ -189,7 +212,7 @@ const Dashboard: React.FC = () => {
                                 ))}
                             </div>
                             <button
-                                onClick={() => setEditedLanguages([...editedLanguages, { language: 'English', level: 'Beginner (A1)' }])}
+                                onClick={handleAddLanguage}
                                 className="w-full p-2 border-2 border-dashed border-gray-300 dark:border-gray-600 
                                          rounded-lg text-gray-600 dark:text-gray-300 hover:border-blue-500 
                                          hover:text-blue-500 transition-colors"
