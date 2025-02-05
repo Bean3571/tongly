@@ -1,10 +1,11 @@
 import axios from 'axios';
 import type { AxiosRequestConfig } from 'axios/index';
 import type { LanguageLevel } from '../types';
+import { logger } from '../services/logger';
 
 const baseURL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
-console.log('API Client initialized with baseURL:', baseURL);
+logger.info('API Client initialized with baseURL:', baseURL);
 
 const apiClient = axios.create({
     baseURL,
@@ -19,7 +20,7 @@ apiClient.interceptors.request.use(
         const token = localStorage.getItem('token');
         if (token && config.headers) {
             config.headers.Authorization = `Bearer ${token}`;
-            console.log('Request:', {
+            logger.debug('Request:', {
                 method: config.method,
                 url: config.url,
                 headers: {
@@ -28,7 +29,7 @@ apiClient.interceptors.request.use(
                 }
             });
         } else {
-            console.log('Request:', {
+            logger.debug('Request:', {
                 method: config.method,
                 url: config.url,
                 headers: config.headers
@@ -37,7 +38,7 @@ apiClient.interceptors.request.use(
         return config;
     },
     (error) => {
-        console.error('Request error:', error);
+        logger.error('Request error:', error);
         return Promise.reject(error);
     }
 );
@@ -45,7 +46,7 @@ apiClient.interceptors.request.use(
 // Response interceptor
 apiClient.interceptors.response.use(
     (response) => {
-        console.log('Response:', {
+        logger.debug('Response:', {
             status: response.status,
             url: response.config.url,
             data: response.data
@@ -53,7 +54,7 @@ apiClient.interceptors.response.use(
         return response;
     },
     (error) => {
-        console.error('Response error:', {
+        logger.error('Response error:', {
             url: error.config?.url,
             status: error.response?.status,
             data: error.response?.data,
@@ -61,7 +62,7 @@ apiClient.interceptors.response.use(
         });
 
         if (error.response?.status === 401) {
-            console.log('Unauthorized access, redirecting to login');
+            logger.warn('Unauthorized access, redirecting to login');
             localStorage.removeItem('token');
             window.location.href = '/login';
         }

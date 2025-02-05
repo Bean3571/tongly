@@ -8,6 +8,14 @@ import (
 )
 
 func SetupRouter(r *gin.Engine, authHandler *interfaces.AuthHandler, tutorHandler *interfaces.TutorHandler, gamificationHandler *interfaces.GamificationHandler, userHandler *interfaces.UserHandler) {
+	// Add logger middleware with configuration
+	r.Use(middleware.Logger(middleware.LoggerConfig{
+		// Skip logging for health check and options requests
+		SkipPaths: []string{"/health", "/metrics"},
+		// Skip logging for 304 Not Modified responses
+		SkipStatusCodes: []int{304},
+	}))
+
 	// Add CORS middleware
 	r.Use(func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
