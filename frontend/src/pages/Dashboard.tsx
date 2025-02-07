@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { api } from '../api/client';
@@ -66,13 +66,20 @@ const Dashboard: React.FC = () => {
     const [isEditingLanguages, setIsEditingLanguages] = useState(false);
     const [isEditingGoals, setIsEditingGoals] = useState(false);
     const [isEditingInterests, setIsEditingInterests] = useState(false);
+    const [isEditingNativeLanguage, setIsEditingNativeLanguage] = useState(false);
     const [editedLanguages, setEditedLanguages] = useState<LanguageLevel[]>(user?.profile?.languages || []);
     const [editedGoals, setEditedGoals] = useState<string[]>(user?.profile?.learning_goals || []);
     const [editedInterests, setEditedInterests] = useState<string[]>(user?.profile?.interests || []);
+    const [editedNativeLanguage, setEditedNativeLanguage] = useState<string>(user?.profile?.native_language || '');
 
-    if (!user) {
-        return null;
-    }
+    useEffect(() => {
+        if (user?.profile) {
+            setEditedLanguages(user.profile.languages || []);
+            setEditedInterests(user.profile.interests || []);
+            setEditedGoals(user.profile.learning_goals || []);
+            setEditedNativeLanguage(user.profile.native_language || '');
+        }
+    }, [user]);
 
     const handleSaveLanguages = async () => {
         try {
@@ -143,6 +150,33 @@ const Dashboard: React.FC = () => {
         }
     };
 
+    const handleSaveNativeLanguage = async () => {
+        try {
+            await api.user.updateProfile({
+                native_language: editedNativeLanguage,
+                languages: user?.profile?.languages || [],
+                interests: user?.profile?.interests || [],
+                learning_goals: user?.profile?.learning_goals || [],
+                first_name: user?.profile?.first_name || null,
+                last_name: user?.profile?.last_name || null,
+                profile_picture: user?.profile?.profile_picture || null,
+                age: user?.profile?.age || null,
+                sex: user?.profile?.sex || null,
+                survey_complete: user?.profile?.survey_complete || false
+            });
+            await refreshUser();
+            setIsEditingNativeLanguage(false);
+            showNotification('success', 'Native language updated successfully');
+        } catch (error) {
+            console.error('Failed to update native language:', error);
+            showNotification('error', 'Failed to update native language');
+        }
+    };
+
+    if (!user) {
+        return null;
+    }
+
     return (
         <div className="container mx-auto px-4 py-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
@@ -150,6 +184,57 @@ const Dashboard: React.FC = () => {
             </h1>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Native Language Section */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                            Native Language 🌍
+                        </h2>
+                        <button
+                            onClick={() => setIsEditingNativeLanguage(!isEditingNativeLanguage)}
+                            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                        >
+                            {isEditingNativeLanguage ? 'Cancel' : 'Edit'}
+                        </button>
+                    </div>
+                    {isEditingNativeLanguage ? (
+                        <div className="space-y-4">
+                            <select
+                                value={editedNativeLanguage}
+                                onChange={(e) => setEditedNativeLanguage(e.target.value)}
+                                className="w-full p-2 rounded-lg border border-gray-300 dark:border-gray-600 
+                                         dark:bg-gray-700 dark:text-white"
+                            >
+                                <option value="">Select Native Language</option>
+                                {Object.keys(languageEmojis).map((language) => (
+                                    <option key={language} value={language}>
+                                        {languageEmojis[language]} {language}
+                                    </option>
+                                ))}
+                            </select>
+                            <button
+                                onClick={handleSaveNativeLanguage}
+                                className="w-full mt-4 bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 
+                                         transition-colors"
+                            >
+                                Save Changes
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="text-gray-700 dark:text-gray-300">
+                            {user?.profile?.native_language ? (
+                                <span className="text-lg">
+                                    {languageEmojis[user.profile.native_language]} {user.profile.native_language}
+                                </span>
+                            ) : (
+                                <span className="text-gray-500 dark:text-gray-400 italic">
+                                    Not set
+                                </span>
+                            )}
+                        </div>
+                    )}
+                </div>
+
                 {/* Language Learning Progress */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                     <div className="flex justify-between items-center mb-4">
