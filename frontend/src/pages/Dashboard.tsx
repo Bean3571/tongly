@@ -77,45 +77,69 @@ const Dashboard: React.FC = () => {
     const handleSaveLanguages = async () => {
         try {
             await api.user.updateProfile({
-                ...user,
                 languages: editedLanguages,
+                interests: user?.profile?.interests || [],
+                learning_goals: user?.profile?.learning_goals || [],
+                first_name: user?.profile?.first_name || null,
+                last_name: user?.profile?.last_name || null,
+                profile_picture: user?.profile?.profile_picture || null,
+                age: user?.profile?.age || null,
+                sex: user?.profile?.sex || null,
+                native_language: user?.profile?.native_language || null,
+                survey_complete: user?.profile?.survey_complete || false
             });
             await refreshUser();
             setIsEditingLanguages(false);
-            showNotification('success', 'Languages updated successfully!');
+            showNotification('success', 'Languages updated successfully');
         } catch (error) {
             console.error('Failed to update languages:', error);
-            showNotification('error', 'Failed to update languages. Please try again.');
+            showNotification('error', 'Failed to update languages');
         }
     };
 
     const handleSaveGoals = async () => {
         try {
             await api.user.updateProfile({
-                ...user,
                 learning_goals: editedGoals,
+                languages: user?.profile?.languages || [],
+                interests: user?.profile?.interests || [],
+                first_name: user?.profile?.first_name || null,
+                last_name: user?.profile?.last_name || null,
+                profile_picture: user?.profile?.profile_picture || null,
+                age: user?.profile?.age || null,
+                sex: user?.profile?.sex || null,
+                native_language: user?.profile?.native_language || null,
+                survey_complete: user?.profile?.survey_complete || false
             });
             await refreshUser();
             setIsEditingGoals(false);
-            showNotification('success', 'Learning goals updated successfully!');
+            showNotification('success', 'Learning goals updated successfully');
         } catch (error) {
-            console.error('Failed to update goals:', error);
-            showNotification('error', 'Failed to update goals. Please try again.');
+            console.error('Failed to update learning goals:', error);
+            showNotification('error', 'Failed to update learning goals');
         }
     };
 
     const handleSaveInterests = async () => {
         try {
             await api.user.updateProfile({
-                ...user,
                 interests: editedInterests,
+                languages: user?.profile?.languages || [],
+                learning_goals: user?.profile?.learning_goals || [],
+                first_name: user?.profile?.first_name || null,
+                last_name: user?.profile?.last_name || null,
+                profile_picture: user?.profile?.profile_picture || null,
+                age: user?.profile?.age || null,
+                sex: user?.profile?.sex || null,
+                native_language: user?.profile?.native_language || null,
+                survey_complete: user?.profile?.survey_complete || false
             });
             await refreshUser();
             setIsEditingInterests(false);
-            showNotification('success', 'Interests updated successfully!');
+            showNotification('success', 'Interests updated successfully');
         } catch (error) {
             console.error('Failed to update interests:', error);
-            showNotification('error', 'Failed to update interests. Please try again.');
+            showNotification('error', 'Failed to update interests');
         }
     };
 
