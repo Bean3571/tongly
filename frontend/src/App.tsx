@@ -30,7 +30,7 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
 const SurveyRoute = ({ children }: { children: React.ReactNode }) => {
     const { user } = useAuth();
     if (!user) return <Navigate to="/login" />;
-    if (!user.survey_complete) return <Navigate to="/survey" />;
+    if (user.profile?.survey_complete === false) return <Navigate to="/survey" />;
     return <>{children}</>;
 };
 

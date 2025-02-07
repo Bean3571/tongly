@@ -37,7 +37,7 @@ const Navbar = () => {
                                 <div className="relative group">
                                     <div className="flex items-center cursor-pointer">
                                         <img
-                                            src={user.profile_picture || 'https://via.placeholder.com/32'}
+                                            src={user.profile?.profile_picture || 'https://via.placeholder.com/32'}
                                             alt={user.username}
                                             className="w-8 h-8 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700"
                                             onError={(e) => {

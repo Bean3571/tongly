@@ -7,4 +7,5 @@ DROP TABLE IF EXISTS availability_slots;
 DROP TABLE IF EXISTS tutor_languages;
 DROP TABLE IF EXISTS tutors;
 DROP TABLE IF EXISTS languages;
-DROP TABLE IF EXISTS users; 
+DROP TABLE IF EXISTS user_profiles;
+DROP TABLE IF EXISTS users;

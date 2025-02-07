@@ -37,6 +37,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 localStorage.removeItem('token');
                 setUser(null);
                 showNotification('error', 'Session expired. Please login again.');
+                navigate('/login');
             });
         }
     }, []);
@@ -49,7 +50,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setUser(response.user);
             logger.info('Login successful', { userId: response.user.id });
             showNotification('success', 'Welcome back!');
-            navigate('/dashboard');
+            
+            // Check if survey is complete before redirecting
+            if (response.user.profile?.survey_complete === false) {
+                navigate('/survey');
+            } else {
+                navigate('/dashboard');
+            }
         } catch (error) {
             logger.error('Login failed', { username, error });
             showNotification('error', 'Invalid username or password');

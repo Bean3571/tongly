@@ -2,18 +2,25 @@ export interface User {
     id: number;
     username: string;
     email: string;
-    first_name?: string;
-    last_name?: string;
-    profile_picture?: string;
     role: string;
-    age?: number;
-    native_language?: string;
-    languages?: LanguageLevel[];
-    interests?: string[];
-    learning_goals?: string[];
-    survey_complete: boolean;
+    profile?: UserProfile;
     created_at: string;
     updated_at: string;
+}
+
+export interface UserProfile {
+    id: number;
+    user_id: number;
+    first_name?: string | null;
+    last_name?: string | null;
+    profile_picture?: string | null;
+    age?: number | null;
+    sex?: 'male' | 'female' | 'other' | null;
+    native_language?: string | null;
+    languages: LanguageLevel[];
+    interests: string[];
+    learning_goals: string[];
+    survey_complete: boolean;
 }
 
 export type LearningGoal = 
@@ -55,6 +62,7 @@ export interface ProfileUpdateData {
     last_name?: string | null;
     profile_picture?: string | null;
     age?: number | null;
+    sex?: 'male' | 'female' | 'other' | null;
     native_language?: string | null;
     languages?: LanguageLevel[];
     interests?: string[];

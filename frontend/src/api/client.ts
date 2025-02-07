@@ -88,11 +88,13 @@ export interface ProfileUpdateData {
     last_name?: string | null;
     profile_picture?: string | null;
     age?: number | null;
+    sex?: 'male' | 'female' | 'other' | null;
     native_language?: string | null;
     languages?: LanguageLevel[];
     interests?: string[];
     learning_goals?: string[];
     survey_complete?: boolean;
+
 }
 
 export const api = {
@@ -135,12 +137,28 @@ export const api = {
                 throw error;
             }
         },
-        updatePassword: async (oldPassword: string, newPassword: string) => {
+        updatePassword: async (currentPassword: string, newPassword: string) => {
             try {
-                const response = await apiClient.put('/api/profile/password', { oldPassword, newPassword });
+                const response = await apiClient.put('/api/profile/password', {
+                    current_password: currentPassword,
+                    new_password: newPassword,
+                });
                 return response.data;
             } catch (error) {
                 console.error('Failed to update password:', error);
+                throw error;
+            }
+        },
+        uploadProfilePicture: async (formData: FormData) => {
+            try {
+                const response = await apiClient.post('/api/profile/avatar', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+                return response.data;
+            } catch (error) {
+                console.error('Failed to upload profile picture:', error);
                 throw error;
             }
         },

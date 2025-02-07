@@ -84,9 +84,9 @@ export const Navbar = () => {
                                 <div className="relative group">
                                     <button className="flex items-center space-x-2">
                                         <img
-                                            className="h-8 w-8 rounded-full"
-                                            src={user.profile_picture || 'https://via.placeholder.com/32'}
+                                            src={user.profile?.profile_picture || 'https://via.placeholder.com/32'}
                                             alt={user.username}
+                                            className="h-8 w-8 rounded-full"
                                             onError={(e) => {
                                                 const target = e.target as HTMLImageElement;
                                                 target.src = 'https://via.placeholder.com/32';

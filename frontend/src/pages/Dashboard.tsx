@@ -66,9 +66,9 @@ const Dashboard: React.FC = () => {
     const [isEditingLanguages, setIsEditingLanguages] = useState(false);
     const [isEditingGoals, setIsEditingGoals] = useState(false);
     const [isEditingInterests, setIsEditingInterests] = useState(false);
-    const [editedLanguages, setEditedLanguages] = useState<LanguageLevel[]>(user?.languages || []);
-    const [editedGoals, setEditedGoals] = useState<string[]>(user?.learning_goals || []);
-    const [editedInterests, setEditedInterests] = useState<string[]>(user?.interests || []);
+    const [editedLanguages, setEditedLanguages] = useState<LanguageLevel[]>(user?.profile?.languages || []);
+    const [editedGoals, setEditedGoals] = useState<string[]>(user?.profile?.learning_goals || []);
+    const [editedInterests, setEditedInterests] = useState<string[]>(user?.profile?.interests || []);
 
     if (!user) {
         return null;
@@ -122,7 +122,7 @@ const Dashboard: React.FC = () => {
     return (
         <div className="container mx-auto px-4 py-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
-                Welcome back, {user.first_name || user.username}! 👋
+                Welcome back, {user.profile?.first_name || user.username}! 👋
             </h1>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -206,7 +206,7 @@ const Dashboard: React.FC = () => {
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            {(user.languages || []).map((lang: LanguageLevel) => (
+                            {(user.profile?.languages || []).map((lang: LanguageLevel) => (
                                 <div key={lang.language} className="mb-4">
                                     <div className="flex justify-between items-center mb-2">
                                         <span className="text-gray-700 dark:text-gray-300">
@@ -270,7 +270,7 @@ const Dashboard: React.FC = () => {
                         </div>
                     ) : (
                         <div className="space-y-3">
-                            {(user.learning_goals || []).map((goal: string) => (
+                            {(user.profile?.learning_goals || []).map((goal: string) => (
                                 <div
                                     key={goal}
                                     className="flex items-center text-gray-700 dark:text-gray-300"
@@ -328,7 +328,7 @@ const Dashboard: React.FC = () => {
                         </div>
                     ) : (
                         <div className="flex flex-wrap gap-2">
-                            {(user.interests || []).map((interest: string) => (
+                            {(user.profile?.interests || []).map((interest: string) => (
                                 <span
                                     key={interest}
                                     className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full 

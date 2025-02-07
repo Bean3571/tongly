@@ -45,25 +45,82 @@ func (uc *UserUseCase) UpdateUser(userID int, updateData entities.UserUpdateRequ
 		)
 	}
 
-	// Handle regular profile update
+	// Update user data if email is provided
 	if updateData.Email != "" {
 		user.Email = updateData.Email
+		if err := uc.UserRepo.UpdateUser(*user); err != nil {
+			logger.Error("Failed to update user data",
+				"error", err,
+				"user_id", userID)
+			return err
+		}
 	}
+
+	// Get or create profile
+	profile, err := uc.UserRepo.GetProfileByUserID(userID)
+	if err != nil {
+		logger.Error("Failed to get user profile",
+			"error", err,
+			"user_id", userID)
+		return err
+	}
+
+	if profile == nil {
+		// Create new profile
+		profile = &entities.UserProfile{
+			UserID: userID,
+		}
+	}
+
+	// Update profile fields
 	if updateData.FirstName != nil {
-		user.FirstName = updateData.FirstName
+		profile.FirstName = updateData.FirstName
 	}
 	if updateData.LastName != nil {
-		user.LastName = updateData.LastName
+		profile.LastName = updateData.LastName
 	}
 	if updateData.ProfilePicture != nil {
-		user.ProfilePicture = updateData.ProfilePicture
+		profile.ProfilePicture = updateData.ProfilePicture
+	}
+	if updateData.Age != nil {
+		profile.Age = updateData.Age
+	}
+	if updateData.Sex != nil {
+		profile.Sex = updateData.Sex
+	}
+	if updateData.NativeLanguage != nil {
+		profile.NativeLanguage = updateData.NativeLanguage
+	}
+	if updateData.Languages != nil {
+		profile.Languages = updateData.Languages
+	}
+	if updateData.Interests != nil {
+		profile.Interests = updateData.Interests
+	}
+	if updateData.LearningGoals != nil {
+		profile.LearningGoals = updateData.LearningGoals
+	}
+	if updateData.SurveyComplete != nil {
+		profile.SurveyComplete = *updateData.SurveyComplete
 	}
 
-	logger.Info("Prepared user data for profile update",
-		"user_id", userID,
-		"updated_user", user)
+	// Create or update profile
+	if profile.ID == 0 {
+		err = uc.UserRepo.CreateProfile(*profile)
+	} else {
+		err = uc.UserRepo.UpdateProfile(*profile)
+	}
 
-	return uc.UserRepo.UpdateUser(*user)
+	if err != nil {
+		logger.Error("Failed to update profile",
+			"error", err,
+			"user_id", userID)
+		return err
+	}
+
+	logger.Info("User and profile update completed successfully",
+		"user_id", userID)
+	return nil
 }
 
 func (uc *UserUseCase) UpdatePassword(userID int, currentPassword, newPassword string) error {

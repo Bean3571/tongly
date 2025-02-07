@@ -36,6 +36,9 @@ func SetupRouter(r *gin.Engine, authHandler *interfaces.AuthHandler, tutorHandle
 		c.Status(200)
 	})
 
+	// Serve static files
+	r.Static("/uploads", "./uploads")
+
 	api := r.Group("/api")
 
 	// Auth routes
@@ -53,6 +56,7 @@ func SetupRouter(r *gin.Engine, authHandler *interfaces.AuthHandler, tutorHandle
 		protected.GET("/profile", userHandler.GetProfile)
 		protected.PUT("/profile", userHandler.UpdateProfile)
 		protected.PUT("/profile/password", userHandler.UpdatePassword)
+		protected.POST("/profile/avatar", userHandler.UploadProfilePicture)
 
 		// Tutor routes
 		protected.POST("/tutors", tutorHandler.RegisterTutor)

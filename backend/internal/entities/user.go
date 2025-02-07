@@ -54,17 +54,26 @@ var Interests = []string{
 	"education",   // 🎓 Education
 }
 
+// User represents the authentication data
 type User struct {
+	ID           int          `json:"id"`
+	Username     string       `json:"username"`
+	Password     string       `json:"password,omitempty"`
+	PasswordHash string       `json:"-"`
+	Email        string       `json:"email"`
+	Role         string       `json:"role"`
+	Profile      *UserProfile `json:"profile,omitempty"`
+}
+
+// UserProfile represents user's personal and preference data
+type UserProfile struct {
 	ID             int             `json:"id"`
-	Username       string          `json:"username"`
-	Password       string          `json:"password,omitempty"`
-	PasswordHash   string          `json:"-"`
-	Role           string          `json:"role"`
-	Email          string          `json:"email"`
+	UserID         int             `json:"user_id"`
 	FirstName      *string         `json:"first_name,omitempty"`
 	LastName       *string         `json:"last_name,omitempty"`
 	ProfilePicture *string         `json:"profile_picture,omitempty"`
 	Age            *int            `json:"age,omitempty"`
+	Sex            *string         `json:"sex,omitempty"`
 	NativeLanguage *string         `json:"native_language,omitempty"`
 	Languages      []LanguageLevel `json:"languages,omitempty"`
 	Interests      []string        `json:"interests,omitempty"`
