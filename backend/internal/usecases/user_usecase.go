@@ -34,11 +34,15 @@ func (uc *UserUseCase) UpdateUser(userID int, updateData entities.UserUpdateRequ
 	}
 
 	// Check if this is a survey update
-	if updateData.NativeLanguage != nil || updateData.Languages != nil ||
-		updateData.Interests != nil || updateData.LearningGoals != nil {
+	if updateData.NativeLanguage != nil || len(updateData.Languages) > 0 ||
+		len(updateData.Interests) > 0 || len(updateData.LearningGoals) > 0 {
+		nativeLanguage := ""
+		if updateData.NativeLanguage != nil {
+			nativeLanguage = *updateData.NativeLanguage
+		}
 		return uc.UserRepo.UpdateSurvey(
 			userID,
-			*updateData.NativeLanguage,
+			nativeLanguage,
 			updateData.Languages,
 			updateData.Interests,
 			updateData.LearningGoals,
@@ -91,13 +95,13 @@ func (uc *UserUseCase) UpdateUser(userID int, updateData entities.UserUpdateRequ
 	if updateData.NativeLanguage != nil {
 		profile.NativeLanguage = updateData.NativeLanguage
 	}
-	if updateData.Languages != nil {
+	if len(updateData.Languages) > 0 {
 		profile.Languages = updateData.Languages
 	}
-	if updateData.Interests != nil {
+	if len(updateData.Interests) > 0 {
 		profile.Interests = updateData.Interests
 	}
-	if updateData.LearningGoals != nil {
+	if len(updateData.LearningGoals) > 0 {
 		profile.LearningGoals = updateData.LearningGoals
 	}
 	if updateData.SurveyComplete != nil {

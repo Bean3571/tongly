@@ -5,6 +5,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { api } from '../api/client';
 
+const DEFAULT_AVATAR = 'https://secure.gravatar.com/avatar/default?s=200&d=mp';
+
 export const Profile = () => {
     const { user, refreshUser } = useAuth();
     const { showNotification } = useNotification();
@@ -97,7 +99,7 @@ export const Profile = () => {
             formData.append('file', file);
 
             const response = await api.user.uploadProfilePicture(formData);
-            await personalInfoFormik.setFieldValue('profilePicture', response.url);
+            await refreshUser();
             showNotification('success', 'Profile picture uploaded successfully');
         } catch (error) {
             console.error('Failed to upload profile picture:', error);
@@ -116,11 +118,15 @@ export const Profile = () => {
                 </h2>
                 <form onSubmit={personalInfoFormik.handleSubmit} className="space-y-6">
                     <div className="flex items-center space-x-6 mb-6">
-                        <div className="relative">
+                        <div className="relative group">
                             <img
-                                src={personalInfoFormik.values.profilePicture || 'https://via.placeholder.com/100'}
-                                alt={user?.username}
-                                className="w-24 h-24 rounded-full object-cover"
+                                src={user?.profile?.profile_picture || DEFAULT_AVATAR}
+                                alt={user?.username || 'User'}
+                                className="w-32 h-32 rounded-full object-cover border-4 border-gray-200 dark:border-gray-700"
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = DEFAULT_AVATAR;
+                                }}
                             />
                             <input
                                 type="file"
@@ -128,53 +134,69 @@ export const Profile = () => {
                                 onChange={handleFileUpload}
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                             />
-                            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white rounded-full opacity-0 hover:opacity-100 transition-opacity">
+                            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                                 Change Photo
                             </div>
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                                {user?.username}
+                            </h3>
+                            <p className="text-gray-500 dark:text-gray-400">
+                                {user?.email}
+                            </p>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 First Name
                             </label>
                             <input
                                 type="text"
                                 {...personalInfoFormik.getFieldProps('firstName')}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
+                                         focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+                                         dark:bg-gray-700 dark:text-white transition-colors"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Last Name
                             </label>
                             <input
                                 type="text"
                                 {...personalInfoFormik.getFieldProps('lastName')}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
+                                         focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+                                         dark:bg-gray-700 dark:text-white transition-colors"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Age
                             </label>
                             <input
                                 type="number"
                                 {...personalInfoFormik.getFieldProps('age')}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
+                                         focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+                                         dark:bg-gray-700 dark:text-white transition-colors"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Sex
                             </label>
                             <select
                                 {...personalInfoFormik.getFieldProps('sex')}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
+                                         focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+                                         dark:bg-gray-700 dark:text-white transition-colors"
                             >
                                 <option value="">Select...</option>
                                 <option value="male">Male</option>
@@ -187,9 +209,11 @@ export const Profile = () => {
                     <div className="flex justify-end">
                         <button
                             type="submit"
-                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
+                                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 
+                                     transition-colors"
                         >
-                            Save Personal Information
+                            Save Changes
                         </button>
                     </div>
                 </form>
@@ -202,25 +226,28 @@ export const Profile = () => {
                 </h2>
                 <form onSubmit={securityFormik.handleSubmit} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Username (not editable)
                         </label>
                         <input
                             type="text"
                             value={user?.username}
                             disabled
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-100 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-300 cursor-not-allowed"
+                            className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
+                                     bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Email
                         </label>
                         <input
                             type="email"
                             {...securityFormik.getFieldProps('email')}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                            className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
+                                     focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+                                     dark:bg-gray-700 dark:text-white transition-colors"
                         />
                     </div>
 
@@ -228,7 +255,8 @@ export const Profile = () => {
                         <button
                             type="button"
                             onClick={() => setIsChangingPassword(!isChangingPassword)}
-                            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 
+                                     font-medium transition-colors"
                         >
                             {isChangingPassword ? 'Cancel Password Change' : 'Change Password'}
                         </button>
@@ -236,35 +264,41 @@ export const Profile = () => {
                         {isChangingPassword && (
                             <div className="mt-4 space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         Current Password
                                     </label>
                                     <input
                                         type="password"
                                         {...securityFormik.getFieldProps('currentPassword')}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
+                                                 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+                                                 dark:bg-gray-700 dark:text-white transition-colors"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         New Password
                                     </label>
                                     <input
                                         type="password"
                                         {...securityFormik.getFieldProps('newPassword')}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
+                                                 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+                                                 dark:bg-gray-700 dark:text-white transition-colors"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         Confirm New Password
                                     </label>
                                     <input
                                         type="password"
                                         {...securityFormik.getFieldProps('confirmPassword')}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
+                                                 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+                                                 dark:bg-gray-700 dark:text-white transition-colors"
                                     />
                                 </div>
                             </div>
@@ -274,9 +308,11 @@ export const Profile = () => {
                     <div className="flex justify-end">
                         <button
                             type="submit"
-                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
+                                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 
+                                     transition-colors"
                         >
-                            Save Security Settings
+                            Save Changes
                         </button>
                     </div>
                 </form>

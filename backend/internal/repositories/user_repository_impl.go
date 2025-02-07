@@ -237,16 +237,16 @@ func (r *UserRepositoryImpl) GetProfileByUserID(userID int) (*entities.UserProfi
 
 func (r *UserRepositoryImpl) UpdateProfile(profile entities.UserProfile) error {
 	query := `UPDATE user_profiles 
-             SET first_name = $1,
-                 last_name = $2,
-                 profile_picture = $3,
-                 age = $4,
-                 sex = $5,
-                 native_language = $6,
-                 languages = $7::jsonb,
-                 interests = $8::text[],
-                 learning_goals = $9::text[],
-                 survey_complete = $10,
+             SET first_name = COALESCE($1, first_name),
+                 last_name = COALESCE($2, last_name),
+                 profile_picture = COALESCE($3, profile_picture),
+                 age = COALESCE($4, age),
+                 sex = COALESCE($5, sex),
+                 native_language = COALESCE($6, native_language),
+                 languages = COALESCE($7::jsonb, languages),
+                 interests = COALESCE($8::text[], interests),
+                 learning_goals = COALESCE($9::text[], learning_goals),
+                 survey_complete = COALESCE($10, survey_complete),
                  updated_at = CURRENT_TIMESTAMP
              WHERE user_id = $11
              RETURNING id`

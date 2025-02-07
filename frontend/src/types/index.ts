@@ -56,6 +56,29 @@ export interface LanguageLevel {
     level: string;
 }
 
+export const Languages = [
+    'English',
+    'Spanish',
+    'French',
+    'German',
+    'Chinese',
+    'Japanese',
+    'Korean',
+    'Russian',
+    'Arabic',
+    'Portuguese',
+    'Italian',
+] as const;
+
+export const LanguageLevels = [
+    'Beginner (A1)',
+    'Elementary (A2)',
+    'Intermediate (B1)',
+    'Upper Intermediate (B2)',
+    'Advanced (C1)',
+    'Mastery (C2)',
+] as const;
+
 export interface ProfileUpdateData {
     email?: string;
     first_name?: string | null;

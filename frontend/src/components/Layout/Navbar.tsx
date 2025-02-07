@@ -4,6 +4,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { FaSun, FaMoon } from 'react-icons/fa';
 
+const DEFAULT_AVATAR = 'https://secure.gravatar.com/avatar/default?s=200&d=mp';
+
 export const Navbar = () => {
     const { user, logout } = useAuth();
     const { isDarkMode, toggleTheme } = useTheme();
@@ -84,12 +86,12 @@ export const Navbar = () => {
                                 <div className="relative group">
                                     <button className="flex items-center space-x-2">
                                         <img
-                                            src={user.profile?.profile_picture || 'https://via.placeholder.com/32'}
+                                            src={user.profile?.profile_picture || DEFAULT_AVATAR}
                                             alt={user.username}
                                             className="h-8 w-8 rounded-full"
                                             onError={(e) => {
                                                 const target = e.target as HTMLImageElement;
-                                                target.src = 'https://via.placeholder.com/32';
+                                                target.src = DEFAULT_AVATAR;
                                             }}
                                         />
                                         <span className="text-gray-700 dark:text-gray-300">
