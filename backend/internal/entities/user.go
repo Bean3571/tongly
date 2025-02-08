@@ -79,6 +79,7 @@ type UserProfile struct {
 	Interests      []string        `json:"interests,omitempty"`
 	LearningGoals  []string        `json:"learning_goals,omitempty"`
 	SurveyComplete bool            `json:"survey_complete"`
+	IsTutor        bool            `json:"is_tutor"`
 }
 
 // HashPassword hashes the user's password using bcrypt

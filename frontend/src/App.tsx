@@ -5,6 +5,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { Navbar } from './components/Layout/Navbar';
+import { Footer } from './components/Footer';
 import { Home } from './pages/Home';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
@@ -13,6 +14,7 @@ import { Survey } from './pages/Survey';
 import Dashboard from './pages/Dashboard';
 import { Tutors } from './pages/Tutors';
 import { TutorProfile } from './pages/TutorProfile';
+import { TutorRegistration } from './pages/TutorRegistration';
 import { Lessons } from './pages/Lessons';
 import { Wallet } from './pages/Wallet';
 import { Challenges } from './pages/Challenges';
@@ -36,9 +38,9 @@ const SurveyRoute = ({ children }: { children: React.ReactNode }) => {
 
 const AppRoutes = () => {
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+        <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
             <Navbar />
-            <main className="container mx-auto px-4 py-8">
+            <main className="container mx-auto px-4 py-8 flex-grow">
                 <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/login" element={<Login />} />
@@ -86,6 +88,14 @@ const AppRoutes = () => {
                         }
                     />
                     <Route
+                        path="/tutor/register"
+                        element={
+                            <PrivateRoute>
+                                <TutorRegistration />
+                            </PrivateRoute>
+                        }
+                    />
+                    <Route
                         path="/lessons"
                         element={
                             <PrivateRoute>
@@ -119,6 +129,7 @@ const AppRoutes = () => {
                     />
                 </Routes>
             </main>
+            <Footer />
         </div>
     );
 };

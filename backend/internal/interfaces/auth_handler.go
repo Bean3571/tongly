@@ -11,7 +11,8 @@ import (
 )
 
 type AuthHandler struct {
-	AuthUseCase *usecases.AuthUseCase
+	AuthUseCase  *usecases.AuthUseCase
+	TutorUseCase *usecases.TutorUseCase
 }
 
 type LoginCredentials struct {
@@ -23,12 +24,19 @@ type RegisterRequest struct {
 	Username string `json:"username" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,min=6"`
-	Role     string `json:"role" binding:"required"`
+	Role     string `json:"role" binding:"required,oneof=student tutor"`
+	// Tutor registration fields
+	EducationDegree      string  `json:"education_degree,omitempty"`
+	EducationInstitution string  `json:"education_institution,omitempty"`
+	IntroductionVideo    string  `json:"introduction_video,omitempty"`
+	HourlyRate           float64 `json:"hourly_rate,omitempty"`
+	OffersTrial          bool    `json:"offers_trial,omitempty"`
 }
 
-func NewAuthHandler(authUseCase *usecases.AuthUseCase) *AuthHandler {
+func NewAuthHandler(authUseCase *usecases.AuthUseCase, tutorUseCase *usecases.TutorUseCase) *AuthHandler {
 	return &AuthHandler{
-		AuthUseCase: authUseCase,
+		AuthUseCase:  authUseCase,
+		TutorUseCase: tutorUseCase,
 	}
 }
 
@@ -41,6 +49,14 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		logger.Error("Invalid registration request", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
+	}
+
+	// Validate tutor fields if registering as tutor
+	if req.Role == "tutor" {
+		if req.EducationDegree == "" || req.EducationInstitution == "" || req.IntroductionVideo == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Missing required tutor fields"})
+			return
+		}
 	}
 
 	user := entities.User{
@@ -64,7 +80,49 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	// Generate token for the newly registered user
+	// If registering as tutor, create tutor profile
+	if req.Role == "tutor" {
+		tutorReq := entities.TutorRegistrationRequest{
+			EducationDegree:      req.EducationDegree,
+			EducationInstitution: req.EducationInstitution,
+			IntroductionVideo:    req.IntroductionVideo,
+			HourlyRate:           req.HourlyRate,
+			OffersTrial:          req.OffersTrial,
+		}
+
+		// Generate token first
+		token, err := jwt.GenerateToken(registeredUser.ID, registeredUser.Role)
+		if err != nil {
+			logger.Error("Failed to generate token", "error", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+			return
+		}
+
+		if err := h.TutorUseCase.RegisterTutor(c.Request.Context(), registeredUser.ID, tutorReq); err != nil {
+			logger.Error("Failed to create tutor profile", "error", err)
+			// Continue with registration but notify user of tutor profile creation failure
+			c.JSON(http.StatusOK, gin.H{
+				"token":   token,
+				"user":    registeredUser,
+				"warning": "User registered but failed to create tutor profile. Please try again later.",
+			})
+			return
+		}
+
+		logger.Info("Registration successful", "username", user.Username)
+		c.JSON(http.StatusOK, gin.H{
+			"token": token,
+			"user": gin.H{
+				"id":       registeredUser.ID,
+				"username": registeredUser.Username,
+				"email":    registeredUser.Email,
+				"role":     registeredUser.Role,
+			},
+		})
+		return
+	}
+
+	// For non-tutor registrations
 	token, err := jwt.GenerateToken(registeredUser.ID, registeredUser.Role)
 	if err != nil {
 		logger.Error("Failed to generate token", "error", err)

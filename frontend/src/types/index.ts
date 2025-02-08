@@ -21,6 +21,7 @@ export interface UserProfile {
     interests: string[];
     learning_goals: string[];
     survey_complete: boolean;
+    is_tutor: boolean;
 }
 
 export type LearningGoal = 

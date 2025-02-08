@@ -97,6 +97,14 @@ export interface ProfileUpdateData {
 
 }
 
+interface TutorRegistrationData {
+    education_degree: string;
+    education_institution: string;
+    introduction_video: string;
+    hourly_rate: number;
+    offers_trial: boolean;
+}
+
 export const api = {
     auth: {
         login: async (credentials: LoginCredentials) => {
@@ -159,6 +167,17 @@ export const api = {
                 return response.data;
             } catch (error) {
                 console.error('Failed to upload profile picture:', error);
+                throw error;
+            }
+        },
+    },
+    tutors: {
+        register: async (data: TutorRegistrationData) => {
+            try {
+                const response = await apiClient.post('/api/tutors', data);
+                return response.data;
+            } catch (error) {
+                console.error('Failed to register as tutor:', error);
                 throw error;
             }
         },

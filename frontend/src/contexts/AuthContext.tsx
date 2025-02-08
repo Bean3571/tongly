@@ -8,7 +8,7 @@ import type { User } from '../types';
 interface AuthContextType {
     user: User | null;
     login: (username: string, password: string) => Promise<void>;
-    register: (username: string, email: string, password: string) => Promise<void>;
+    register: (data: any) => Promise<void>;
     logout: () => void;
     refreshUser: () => Promise<void>;
 }
@@ -64,17 +64,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    const register = async (username: string, email: string, password: string) => {
+    const register = async (data: any) => {
         try {
-            logger.info('Attempting registration', { username, email });
-            const response = await api.auth.register({ username, email, password, role: 'student' });
+            logger.info('Attempting registration', { username: data.username, email: data.email });
+            const response = await api.auth.register(data);
             localStorage.setItem('token', response.token);
             setUser(response.user);
             logger.info('Registration successful', { userId: response.user.id });
             showNotification('success', 'Registration successful! Let\'s set up your profile.');
             navigate('/survey');
         } catch (error) {
-            logger.error('Registration failed', { username, email, error });
+            logger.error('Registration failed', { error });
             showNotification('error', 'Registration failed. Please try again.');
             throw error;
         }

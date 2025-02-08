@@ -65,12 +65,15 @@ func main() {
 
 	// Initialize use cases
 	authUseCase := usecases.AuthUseCase{UserRepo: userRepo}
-	tutorUseCase := usecases.TutorUseCase{TutorRepo: tutorRepo}
+	tutorUseCase := &usecases.TutorUseCase{
+		TutorRepo: tutorRepo,
+		UserRepo:  userRepo,
+	}
 	gamificationUseCase := usecases.GamificationUseCase{ChallengeRepo: challengeRepo}
 	userUseCase := usecases.UserUseCase{UserRepo: userRepo}
 
 	// Initialize handlers
-	authHandler := interfaces.NewAuthHandler(&authUseCase)
+	authHandler := interfaces.NewAuthHandler(&authUseCase, tutorUseCase)
 	tutorHandler := interfaces.TutorHandler{TutorUseCase: tutorUseCase}
 	gamificationHandler := interfaces.GamificationHandler{GamificationUseCase: gamificationUseCase}
 	userHandler := interfaces.UserHandler{UserUseCase: userUseCase}
