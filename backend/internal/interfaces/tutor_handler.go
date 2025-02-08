@@ -131,3 +131,28 @@ func (h *TutorHandler) UpdateTutorApprovalStatus(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Tutor status updated successfully"})
 }
+
+// UpdateProfile handles updating a tutor's profile
+func (h *TutorHandler) UpdateProfile(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	var req entities.TutorProfileUpdateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		logger.Error("Failed to bind request data", "error", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+		return
+	}
+
+	err := h.TutorUseCase.UpdateTutorProfile(c.Request.Context(), userID.(int), req)
+	if err != nil {
+		logger.Error("Failed to update tutor profile", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Tutor profile updated successfully"})
+}

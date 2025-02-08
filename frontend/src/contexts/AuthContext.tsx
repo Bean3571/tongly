@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
+import type { RegisterData } from '../api/client';
 import { useNotification } from './NotificationContext';
 import { logger } from '../services/logger';
 import type { User } from '../types';
@@ -51,8 +52,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             logger.info('Login successful', { userId: response.user.id });
             showNotification('success', 'Welcome back!');
             
-            // Check if survey is complete before redirecting
-            if (response.user.profile?.survey_complete === false) {
+            // Check if user is a tutor and needs to complete their profile
+            if (response.user.role === 'tutor') {
+                navigate('/tutor/dashboard');
+            } else if (!response.user.profile?.survey_complete) {
                 navigate('/survey');
             } else {
                 navigate('/dashboard');
@@ -64,18 +67,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    const register = async (data: any) => {
+    const register = async (data: RegisterData) => {
         try {
-            logger.info('Attempting registration', { username: data.username, email: data.email });
+            logger.info('Attempting registration', { username: data.username, email: data.email, role: data.role });
             const response = await api.auth.register(data);
             localStorage.setItem('token', response.token);
             setUser(response.user);
             logger.info('Registration successful', { userId: response.user.id });
             showNotification('success', 'Registration successful! Let\'s set up your profile.');
-            navigate('/survey');
-        } catch (error) {
-            logger.error('Registration failed', { error });
-            showNotification('error', 'Registration failed. Please try again.');
+            
+            // Redirect based on role
+            if (data.role === 'tutor') {
+                navigate('/tutor/dashboard');
+            } else {
+                navigate('/survey');
+            }
+        } catch (error: any) {
+            logger.error('Registration failed', { 
+                error: error.message,
+                response: error.response?.data,
+                status: error.response?.status 
+            });
+            showNotification('error', error.response?.data?.error || 'Registration failed. Please try again.');
             throw error;
         }
     };

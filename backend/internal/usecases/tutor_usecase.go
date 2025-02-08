@@ -71,6 +71,20 @@ func (uc *TutorUseCase) RegisterTutor(ctx context.Context, userID int, req entit
 		return err
 	}
 
+	// Create empty tutor profile
+	profile := &entities.TutorProfile{
+		TutorID:           tutor.ID,
+		NativeLanguages:   []string{},
+		TeachingLanguages: []entities.LanguageLevel{},
+		Interests:         []string{},
+	}
+
+	err = uc.TutorRepo.CreateTutorProfile(ctx, profile)
+	if err != nil {
+		logger.Error("Failed to create tutor profile", "error", err, "tutor_id", tutor.ID)
+		return err
+	}
+
 	// Update user profile to mark as tutor
 	if user.Profile == nil {
 		user.Profile = &entities.UserProfile{
@@ -94,7 +108,22 @@ func (uc *TutorUseCase) RegisterTutor(ctx context.Context, userID int, req entit
 
 // GetTutorByID retrieves a tutor by their ID
 func (uc *TutorUseCase) GetTutorByID(ctx context.Context, id int) (*entities.Tutor, error) {
-	return uc.TutorRepo.GetTutorByID(ctx, id)
+	tutor, err := uc.TutorRepo.GetTutorByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if tutor == nil {
+		return nil, nil
+	}
+
+	// Get tutor profile
+	profile, err := uc.TutorRepo.GetTutorProfile(ctx, tutor.ID)
+	if err != nil {
+		return nil, err
+	}
+	tutor.Profile = profile
+
+	return tutor, nil
 }
 
 // GetTutorByUserID retrieves a tutor by their user ID
@@ -144,4 +173,38 @@ func (uc *TutorUseCase) UpdateTutorApprovalStatus(ctx context.Context, tutorID i
 		return errors.New("invalid approval status")
 	}
 	return uc.TutorRepo.UpdateTutorApprovalStatus(ctx, tutorID, status)
+}
+
+// UpdateTutorProfile updates a tutor's profile information
+func (uc *TutorUseCase) UpdateTutorProfile(ctx context.Context, userID int, req entities.TutorProfileUpdateRequest) error {
+	logger.Info("Starting tutor profile update", "user_id", userID)
+
+	// Get tutor
+	tutor, err := uc.TutorRepo.GetTutorByUserID(ctx, userID)
+	if err != nil {
+		logger.Error("Failed to get tutor", "error", err, "user_id", userID)
+		return err
+	}
+	if tutor == nil {
+		return errors.New("tutor profile not found")
+	}
+
+	// Update profile
+	profile := &entities.TutorProfile{
+		TutorID:           tutor.ID,
+		NativeLanguages:   req.NativeLanguages,
+		TeachingLanguages: req.TeachingLanguages,
+		Bio:               req.Bio,
+		Interests:         req.Interests,
+		ProfilePicture:    req.ProfilePicture,
+	}
+
+	err = uc.TutorRepo.UpdateTutorProfile(ctx, profile)
+	if err != nil {
+		logger.Error("Failed to update tutor profile", "error", err, "tutor_id", tutor.ID)
+		return err
+	}
+
+	logger.Info("Tutor profile updated successfully", "user_id", userID)
+	return nil
 }

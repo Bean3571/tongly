@@ -2,69 +2,54 @@ import React, { createContext, useContext, useState } from 'react';
 
 type NotificationType = 'success' | 'error' | 'info' | 'warning';
 
-interface Notification {
-    id: number;
-    type: NotificationType;
+interface NotificationState {
     message: string;
+    type: NotificationType;
 }
 
 interface NotificationContextType {
-    notifications: Notification[];
     showNotification: (type: NotificationType, message: string) => void;
-    removeNotification: (id: number) => void;
+    notification: NotificationState | null;
+    hideNotification: () => void;
 }
 
-const NotificationContext = createContext<NotificationContextType>({
-    notifications: [],
-    showNotification: () => {},
-    removeNotification: () => {},
-});
+const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
-export const useNotification = () => useContext(NotificationContext);
-
-export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [notifications, setNotifications] = useState<Notification[]>([]);
+export function NotificationProvider({ children }: { children: React.ReactNode }) {
+    const [notification, setNotification] = useState<NotificationState | null>(null);
 
     const showNotification = (type: NotificationType, message: string) => {
-        const id = Date.now();
-        setNotifications(prev => [...prev, { id, type, message }]);
-
-        // Auto remove after 5 seconds
+        setNotification({ type, message });
         setTimeout(() => {
-            removeNotification(id);
-        }, 5000);
+            setNotification(null);
+        }, 3000);
     };
 
-    const removeNotification = (id: number) => {
-        setNotifications(prev => prev.filter(notification => notification.id !== id));
+    const hideNotification = () => {
+        setNotification(null);
     };
 
     return (
-        <NotificationContext.Provider value={{ notifications, showNotification, removeNotification }}>
+        <NotificationContext.Provider value={{ showNotification, notification, hideNotification }}>
             {children}
-            {/* Notification Toast Container */}
-            <div className="fixed bottom-4 right-4 z-50 space-y-2">
-                {notifications.map(notification => (
-                    <div
-                        key={notification.id}
-                        className={`px-4 py-3 rounded-lg shadow-lg max-w-md transform transition-all duration-300 
-                                  ${notification.type === 'success' ? 'bg-green-500 text-white' :
-                                    notification.type === 'error' ? 'bg-red-500 text-white' :
-                                    notification.type === 'warning' ? 'bg-yellow-500 text-white' :
-                                    'bg-blue-500 text-white'}`}
-                    >
-                        <div className="flex justify-between items-center">
-                            <p className="font-medium">{notification.message}</p>
-                            <button
-                                onClick={() => removeNotification(notification.id)}
-                                className="ml-4 text-white hover:text-gray-200 transition-colors"
-                            >
-                                ×
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </div>
+            {notification && (
+                <div className={`fixed bottom-4 right-4 p-4 rounded-lg shadow-lg ${
+                    notification.type === 'success' ? 'bg-green-500' :
+                    notification.type === 'error' ? 'bg-red-500' :
+                    notification.type === 'warning' ? 'bg-yellow-500' :
+                    'bg-blue-500'
+                } text-white`}>
+                    {notification.message}
+                </div>
+            )}
         </NotificationContext.Provider>
     );
-}; 
+}
+
+export function useNotification() {
+    const context = useContext(NotificationContext);
+    if (context === undefined) {
+        throw new Error('useNotification must be used within a NotificationProvider');
+    }
+    return context;
+} 

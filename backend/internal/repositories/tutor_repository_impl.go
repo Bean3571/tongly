@@ -3,9 +3,12 @@ package repositories
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"strconv"
 	"tongly-backend/internal/entities"
 	"tongly-backend/internal/logger"
+
+	"github.com/lib/pq"
 )
 
 type TutorRepositoryImpl struct {
@@ -196,6 +199,150 @@ func (r *TutorRepositoryImpl) UpdateTutorApprovalStatus(ctx context.Context, tut
 
 	if rows == 0 {
 		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
+func (r *TutorRepositoryImpl) UpdateTutor(ctx context.Context, tutor *entities.Tutor) error {
+	query := `
+		UPDATE tutors 
+		SET education_degree = $1,
+			education_institution = $2,
+			hourly_rate = $3,
+			offers_trial = $4,
+			updated_at = CURRENT_TIMESTAMP
+		WHERE id = $5
+		RETURNING id`
+
+	var id int
+	err := r.DB.QueryRowContext(
+		ctx,
+		query,
+		tutor.EducationDegree,
+		tutor.EducationInstitution,
+		tutor.HourlyRate,
+		tutor.OffersTrial,
+		tutor.ID,
+	).Scan(&id)
+
+	if err != nil {
+		logger.Error("Failed to update tutor",
+			"error", err,
+			"tutor_id", tutor.ID)
+		return err
+	}
+
+	logger.Info("Tutor updated successfully", "tutor_id", tutor.ID)
+	return nil
+}
+
+func (r *TutorRepositoryImpl) CreateTutorProfile(ctx context.Context, profile *entities.TutorProfile) error {
+	query := `
+		INSERT INTO tutor_profiles (
+			tutor_id, native_languages, teaching_languages, bio, interests, profile_picture
+		) VALUES ($1, $2, $3, $4, $5, $6)
+		RETURNING id, created_at, updated_at`
+
+	teachingLanguagesJSON, err := json.Marshal(profile.TeachingLanguages)
+	if err != nil {
+		logger.Error("Failed to marshal teaching languages", "error", err)
+		return err
+	}
+
+	err = r.DB.QueryRowContext(
+		ctx,
+		query,
+		profile.TutorID,
+		pq.Array(profile.NativeLanguages),
+		teachingLanguagesJSON,
+		profile.Bio,
+		pq.Array(profile.Interests),
+		profile.ProfilePicture,
+	).Scan(&profile.ID, &profile.CreatedAt, &profile.UpdatedAt)
+
+	if err != nil {
+		logger.Error("Failed to create tutor profile", "error", err)
+		return err
+	}
+
+	return nil
+}
+
+func (r *TutorRepositoryImpl) GetTutorProfile(ctx context.Context, tutorID int) (*entities.TutorProfile, error) {
+	query := `
+		SELECT id, tutor_id, native_languages, teaching_languages, bio, interests, 
+			   profile_picture, created_at, updated_at
+		FROM tutor_profiles
+		WHERE tutor_id = $1`
+
+	profile := &entities.TutorProfile{}
+	var teachingLanguagesJSON []byte
+
+	err := r.DB.QueryRowContext(ctx, query, tutorID).Scan(
+		&profile.ID,
+		&profile.TutorID,
+		pq.Array(&profile.NativeLanguages),
+		&teachingLanguagesJSON,
+		&profile.Bio,
+		pq.Array(&profile.Interests),
+		&profile.ProfilePicture,
+		&profile.CreatedAt,
+		&profile.UpdatedAt,
+	)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		logger.Error("Failed to get tutor profile", "error", err)
+		return nil, err
+	}
+
+	if len(teachingLanguagesJSON) > 0 {
+		err = json.Unmarshal(teachingLanguagesJSON, &profile.TeachingLanguages)
+		if err != nil {
+			logger.Error("Failed to unmarshal teaching languages", "error", err)
+			return nil, err
+		}
+	}
+
+	return profile, nil
+}
+
+func (r *TutorRepositoryImpl) UpdateTutorProfile(ctx context.Context, profile *entities.TutorProfile) error {
+	query := `
+		UPDATE tutor_profiles 
+		SET native_languages = $1,
+			teaching_languages = $2,
+			bio = $3,
+			interests = $4,
+			profile_picture = COALESCE($5, profile_picture),
+			updated_at = CURRENT_TIMESTAMP
+		WHERE tutor_id = $6
+		RETURNING id`
+
+	teachingLanguagesJSON, err := json.Marshal(profile.TeachingLanguages)
+	if err != nil {
+		logger.Error("Failed to marshal teaching languages", "error", err)
+		return err
+	}
+
+	var id int
+	err = r.DB.QueryRowContext(
+		ctx,
+		query,
+		pq.Array(profile.NativeLanguages),
+		teachingLanguagesJSON,
+		profile.Bio,
+		pq.Array(profile.Interests),
+		profile.ProfilePicture,
+		profile.TutorID,
+	).Scan(&id)
+
+	if err != nil {
+		logger.Error("Failed to update tutor profile", "error", err)
+		return err
 	}
 
 	return nil

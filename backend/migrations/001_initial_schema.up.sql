@@ -9,7 +9,7 @@ CREATE TABLE users (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- User profiles table (user details)
+-- User profiles table (public student data)
 CREATE TABLE user_profiles (
     id SERIAL PRIMARY KEY,
     user_id INTEGER UNIQUE REFERENCES users(id) ON DELETE CASCADE,
@@ -36,18 +36,16 @@ CREATE TABLE languages (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tutors table (extends users)
+-- Tutors table (private tutor data)
 CREATE TABLE tutors (
     id SERIAL PRIMARY KEY,
     user_id INTEGER UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-    bio TEXT,
-    education_degree TEXT,
-    education_institution TEXT,
+    education_degree TEXT NOT NULL,
+    education_institution TEXT NOT NULL,
     education_year INTEGER,
     education_field TEXT,
-    education_language TEXT,
     education_documents TEXT[], -- URLs to uploaded documents
-    introduction_video TEXT, -- URL to intro video
+    introduction_video TEXT NOT NULL, -- URL to intro video
     hourly_rate DECIMAL(10,2) NOT NULL DEFAULT 25.00,
     offers_trial BOOLEAN DEFAULT true,
     trial_lesson_enabled BOOLEAN DEFAULT true,
@@ -58,14 +56,17 @@ CREATE TABLE tutors (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tutor languages (many-to-many relationship)
-CREATE TABLE tutor_languages (
+-- Tutor profiles table (public tutor data)
+CREATE TABLE tutor_profiles (
     id SERIAL PRIMARY KEY,
-    tutor_id INTEGER REFERENCES tutors(id) ON DELETE CASCADE,
-    language VARCHAR(50) NOT NULL,
-    proficiency_level VARCHAR(20) NOT NULL CHECK (proficiency_level IN ('native', 'C2', 'C1', 'B2', 'B1', 'A2', 'A1')),
-    can_teach BOOLEAN DEFAULT false,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    tutor_id INTEGER UNIQUE REFERENCES tutors(id) ON DELETE CASCADE,
+    native_languages TEXT[] DEFAULT ARRAY[]::TEXT[],
+    teaching_languages JSONB DEFAULT '[]'::jsonb,
+    bio TEXT,
+    interests TEXT[] DEFAULT ARRAY[]::TEXT[],
+    profile_picture TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Tutor availability
@@ -79,16 +80,6 @@ CREATE TABLE tutor_availability (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT valid_time_range CHECK (end_time > start_time)
-);
-
--- Availability slots
-CREATE TABLE availability_slots (
-    id SERIAL PRIMARY KEY,
-    tutor_id INTEGER REFERENCES tutors(id) ON DELETE CASCADE,
-    day_of_week INTEGER NOT NULL CHECK (day_of_week BETWEEN 0 AND 6),
-    start_time TIME NOT NULL,
-    end_time TIME NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Lessons
@@ -181,13 +172,13 @@ CREATE TRIGGER update_tutors_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_tutor_availability_updated_at
-    BEFORE UPDATE ON tutor_availability
+CREATE TRIGGER update_tutor_profiles_updated_at
+    BEFORE UPDATE ON tutor_profiles
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_tutor_reviews_updated_at
-    BEFORE UPDATE ON tutor_reviews
+CREATE TRIGGER update_tutor_availability_updated_at
+    BEFORE UPDATE ON tutor_availability
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
@@ -199,10 +190,11 @@ CREATE INDEX idx_user_profiles_user_id ON user_profiles(user_id);
 CREATE INDEX idx_user_profiles_native_language ON user_profiles(native_language);
 CREATE INDEX idx_tutors_user_id ON tutors(user_id);
 CREATE INDEX idx_tutors_approval_status ON tutors(approval_status);
-CREATE INDEX idx_tutor_languages_tutor_id ON tutor_languages(tutor_id);
-CREATE INDEX idx_tutor_languages_language ON tutor_languages(language);
+CREATE INDEX idx_tutor_profiles_tutor_id ON tutor_profiles(tutor_id);
 CREATE INDEX idx_tutor_availability_tutor_id ON tutor_availability(tutor_id);
 CREATE INDEX idx_tutor_availability_day_time ON tutor_availability(day_of_week, start_time, end_time);
+CREATE INDEX idx_lessons_student_id ON lessons(student_id);
+CREATE INDEX idx_lessons_tutor_id ON lessons(tutor_id);
 CREATE INDEX idx_tutor_reviews_tutor_id ON tutor_reviews(tutor_id);
 CREATE INDEX idx_tutor_reviews_student_id ON tutor_reviews(student_id);
 CREATE INDEX idx_tutor_reviews_lesson_id ON tutor_reviews(lesson_id); 

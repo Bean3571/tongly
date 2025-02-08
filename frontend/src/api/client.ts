@@ -2,6 +2,7 @@ import axios from 'axios';
 import type { AxiosRequestConfig } from 'axios/index';
 import type { LanguageLevel } from '../types';
 import { logger } from '../services/logger';
+import { TutorProfileUpdateRequest } from '../types/tutor';
 
 const baseURL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
@@ -75,7 +76,7 @@ interface LoginCredentials {
     password: string;
 }
 
-interface RegisterData {
+export interface RegisterData {
     username: string;
     email: string;
     password: string;
@@ -105,6 +106,21 @@ interface TutorRegistrationData {
     offers_trial: boolean;
 }
 
+export interface TutorProfileUpdateData {
+    teachingLanguages?: LanguageLevel[];
+    education?: {
+        degree: string;
+        institution: string;
+        fieldOfStudy: string;
+        graduationYear: string;
+        documentUrl: string;
+    };
+    bio?: string;
+    hourlyRate?: number;
+    offersTrial?: boolean;
+    introductionVideo?: string;
+}
+
 export const api = {
     auth: {
         login: async (credentials: LoginCredentials) => {
@@ -118,10 +134,18 @@ export const api = {
         },
         register: async (data: RegisterData) => {
             try {
+                logger.info('Making registration request', { 
+                    url: '/api/auth/register',
+                    data: { ...data, password: '[REDACTED]' }
+                });
                 const response = await apiClient.post('/api/auth/register', data);
                 return response.data;
-            } catch (error) {
-                console.error('Registration failed:', error);
+            } catch (error: any) {
+                logger.error('Registration request failed', {
+                    error: error.message,
+                    response: error.response?.data,
+                    status: error.response?.status
+                });
                 throw error;
             }
         },
@@ -178,6 +202,46 @@ export const api = {
                 return response.data;
             } catch (error) {
                 console.error('Failed to register as tutor:', error);
+                throw error;
+            }
+        },
+        updateProfile: async (data: TutorProfileUpdateData) => {
+            try {
+                const response = await apiClient.put('/api/tutors/profile', data);
+                return response.data;
+            } catch (error) {
+                console.error('Failed to update tutor profile:', error);
+                throw error;
+            }
+        },
+        getProfile: async () => {
+            try {
+                const response = await apiClient.get('/api/tutors/profile');
+                return response.data;
+            } catch (error) {
+                console.error('Failed to get tutor profile:', error);
+                throw error;
+            }
+        },
+        uploadVideo: async (formData: FormData) => {
+            try {
+                const response = await apiClient.post('/api/tutors/video', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+                return response.data;
+            } catch (error) {
+                console.error('Failed to upload video:', error);
+                throw error;
+            }
+        },
+        updateTutorProfile: async (data: TutorProfileUpdateRequest) => {
+            try {
+                const response = await apiClient.put('/api/tutors/profile', data);
+                return response.data;
+            } catch (error) {
+                console.error('Failed to update tutor profile:', error);
                 throw error;
             }
         },

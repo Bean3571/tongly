@@ -14,7 +14,7 @@ import { Survey } from './pages/Survey';
 import Dashboard from './pages/Dashboard';
 import { Tutors } from './pages/Tutors';
 import { TutorProfile } from './pages/TutorProfile';
-import { TutorRegistration } from './pages/TutorRegistration';
+import TutorDashboard from './pages/TutorDashboard';
 import { Lessons } from './pages/Lessons';
 import { Wallet } from './pages/Wallet';
 import { Challenges } from './pages/Challenges';
@@ -88,10 +88,10 @@ const AppRoutes = () => {
                         }
                     />
                     <Route
-                        path="/tutor/register"
+                        path="/tutor/dashboard"
                         element={
                             <PrivateRoute>
-                                <TutorRegistration />
+                                <TutorDashboard />
                             </PrivateRoute>
                         }
                     />
