@@ -40,13 +40,13 @@ CREATE TABLE languages (
 CREATE TABLE tutors (
     id SERIAL PRIMARY KEY,
     user_id INTEGER UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-    education_degree TEXT NOT NULL,
-    education_institution TEXT NOT NULL,
+    education_degree TEXT,
+    education_institution TEXT,
     education_year INTEGER,
     education_field TEXT,
     education_documents TEXT[], -- URLs to uploaded documents
-    introduction_video TEXT NOT NULL, -- URL to intro video
-    hourly_rate DECIMAL(10,2) NOT NULL DEFAULT 25.00,
+    introduction_video TEXT, -- URL to intro video
+    hourly_rate DECIMAL(10,2) DEFAULT 25.00,
     offers_trial BOOLEAN DEFAULT true,
     trial_lesson_enabled BOOLEAN DEFAULT true,
     approval_status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (approval_status IN ('pending', 'approved', 'rejected')),
@@ -65,6 +65,10 @@ CREATE TABLE tutor_profiles (
     bio TEXT,
     interests TEXT[] DEFAULT ARRAY[]::TEXT[],
     profile_picture TEXT,
+    hourly_rate DECIMAL(10,2),
+    offers_trial BOOLEAN,
+    introduction_video TEXT,
+    degrees JSONB DEFAULT '[]'::jsonb,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

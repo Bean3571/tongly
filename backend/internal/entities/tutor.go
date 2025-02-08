@@ -27,6 +27,10 @@ type TutorProfile struct {
 	Bio               string          `json:"bio"`
 	Interests         []string        `json:"interests"`
 	ProfilePicture    string          `json:"profile_picture"`
+	HourlyRate        float64         `json:"hourly_rate"`
+	OffersTrial       bool            `json:"offers_trial"`
+	IntroductionVideo string          `json:"introduction_video"`
+	Degrees           []Degree        `json:"degrees"`
 	CreatedAt         time.Time       `json:"created_at"`
 	UpdatedAt         time.Time       `json:"updated_at"`
 }
@@ -56,18 +60,33 @@ type TutorReview struct {
 
 // TutorRegistrationRequest represents the data needed to register as a tutor
 type TutorRegistrationRequest struct {
-	EducationDegree      string  `json:"education_degree" validate:"required"`
-	EducationInstitution string  `json:"education_institution" validate:"required"`
-	IntroductionVideo    string  `json:"introduction_video" validate:"required,url"`
-	HourlyRate           float64 `json:"hourly_rate" validate:"required,min=5"`
+	EducationDegree      string  `json:"education_degree"`
+	EducationInstitution string  `json:"education_institution"`
+	IntroductionVideo    string  `json:"introduction_video"`
+	HourlyRate           float64 `json:"hourly_rate" validate:"min=5"`
 	OffersTrial          bool    `json:"offers_trial"`
 }
 
 // TutorProfileUpdateRequest represents the data needed to update a tutor's profile
 type TutorProfileUpdateRequest struct {
-	NativeLanguages   []string        `json:"native_languages"`
-	TeachingLanguages []LanguageLevel `json:"teaching_languages"`
-	Bio               string          `json:"bio"`
-	Interests         []string        `json:"interests"`
-	ProfilePicture    string          `json:"profile_picture,omitempty"`
+	NativeLanguages      []string        `json:"native_languages"`
+	TeachingLanguages    []LanguageLevel `json:"teaching_languages"`
+	Bio                  string          `json:"bio"`
+	Interests            []string        `json:"interests"`
+	ProfilePicture       string          `json:"profile_picture,omitempty"`
+	HourlyRate           float64         `json:"hourly_rate"`
+	OffersTrial          bool            `json:"offers_trial"`
+	IntroductionVideo    string          `json:"introduction_video,omitempty"`
+	EducationDegree      string          `json:"education_degree,omitempty"`
+	EducationInstitution string          `json:"education_institution,omitempty"`
+	Degrees              []Degree        `json:"degrees"`
+}
+
+// Degree represents an educational degree
+type Degree struct {
+	Degree       string `json:"degree"`
+	Institution  string `json:"institution"`
+	FieldOfStudy string `json:"field_of_study"`
+	StartYear    string `json:"start_year"`
+	EndYear      string `json:"end_year"`
 }

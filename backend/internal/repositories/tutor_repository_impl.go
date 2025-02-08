@@ -240,13 +240,20 @@ func (r *TutorRepositoryImpl) UpdateTutor(ctx context.Context, tutor *entities.T
 func (r *TutorRepositoryImpl) CreateTutorProfile(ctx context.Context, profile *entities.TutorProfile) error {
 	query := `
 		INSERT INTO tutor_profiles (
-			tutor_id, native_languages, teaching_languages, bio, interests, profile_picture
-		) VALUES ($1, $2, $3, $4, $5, $6)
+			tutor_id, native_languages, teaching_languages, bio, interests, profile_picture,
+			hourly_rate, offers_trial, introduction_video, degrees
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 		RETURNING id, created_at, updated_at`
 
 	teachingLanguagesJSON, err := json.Marshal(profile.TeachingLanguages)
 	if err != nil {
 		logger.Error("Failed to marshal teaching languages", "error", err)
+		return err
+	}
+
+	degreesJSON, err := json.Marshal(profile.Degrees)
+	if err != nil {
+		logger.Error("Failed to marshal degrees", "error", err)
 		return err
 	}
 
@@ -259,6 +266,10 @@ func (r *TutorRepositoryImpl) CreateTutorProfile(ctx context.Context, profile *e
 		profile.Bio,
 		pq.Array(profile.Interests),
 		profile.ProfilePicture,
+		profile.HourlyRate,
+		profile.OffersTrial,
+		profile.IntroductionVideo,
+		degreesJSON,
 	).Scan(&profile.ID, &profile.CreatedAt, &profile.UpdatedAt)
 
 	if err != nil {
@@ -272,12 +283,14 @@ func (r *TutorRepositoryImpl) CreateTutorProfile(ctx context.Context, profile *e
 func (r *TutorRepositoryImpl) GetTutorProfile(ctx context.Context, tutorID int) (*entities.TutorProfile, error) {
 	query := `
 		SELECT id, tutor_id, native_languages, teaching_languages, bio, interests, 
-			   profile_picture, created_at, updated_at
+			   profile_picture, hourly_rate, offers_trial, introduction_video, degrees,
+			   created_at, updated_at
 		FROM tutor_profiles
 		WHERE tutor_id = $1`
 
 	profile := &entities.TutorProfile{}
 	var teachingLanguagesJSON []byte
+	var degreesJSON []byte
 
 	err := r.DB.QueryRowContext(ctx, query, tutorID).Scan(
 		&profile.ID,
@@ -287,6 +300,10 @@ func (r *TutorRepositoryImpl) GetTutorProfile(ctx context.Context, tutorID int) 
 		&profile.Bio,
 		pq.Array(&profile.Interests),
 		&profile.ProfilePicture,
+		&profile.HourlyRate,
+		&profile.OffersTrial,
+		&profile.IntroductionVideo,
+		&degreesJSON,
 		&profile.CreatedAt,
 		&profile.UpdatedAt,
 	)
@@ -307,6 +324,14 @@ func (r *TutorRepositoryImpl) GetTutorProfile(ctx context.Context, tutorID int) 
 		}
 	}
 
+	if len(degreesJSON) > 0 {
+		err = json.Unmarshal(degreesJSON, &profile.Degrees)
+		if err != nil {
+			logger.Error("Failed to unmarshal degrees", "error", err)
+			return nil, err
+		}
+	}
+
 	return profile, nil
 }
 
@@ -318,13 +343,23 @@ func (r *TutorRepositoryImpl) UpdateTutorProfile(ctx context.Context, profile *e
 			bio = $3,
 			interests = $4,
 			profile_picture = COALESCE($5, profile_picture),
+			hourly_rate = $6,
+			offers_trial = $7,
+			introduction_video = $8,
+			degrees = $9,
 			updated_at = CURRENT_TIMESTAMP
-		WHERE tutor_id = $6
+		WHERE tutor_id = $10
 		RETURNING id`
 
 	teachingLanguagesJSON, err := json.Marshal(profile.TeachingLanguages)
 	if err != nil {
 		logger.Error("Failed to marshal teaching languages", "error", err)
+		return err
+	}
+
+	degreesJSON, err := json.Marshal(profile.Degrees)
+	if err != nil {
+		logger.Error("Failed to marshal degrees", "error", err)
 		return err
 	}
 
@@ -337,6 +372,10 @@ func (r *TutorRepositoryImpl) UpdateTutorProfile(ctx context.Context, profile *e
 		profile.Bio,
 		pq.Array(profile.Interests),
 		profile.ProfilePicture,
+		profile.HourlyRate,
+		profile.OffersTrial,
+		profile.IntroductionVideo,
+		degreesJSON,
 		profile.TutorID,
 	).Scan(&id)
 

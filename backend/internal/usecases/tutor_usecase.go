@@ -77,6 +77,10 @@ func (uc *TutorUseCase) RegisterTutor(ctx context.Context, userID int, req entit
 		NativeLanguages:   []string{},
 		TeachingLanguages: []entities.LanguageLevel{},
 		Interests:         []string{},
+		HourlyRate:        req.HourlyRate,
+		OffersTrial:       req.OffersTrial,
+		IntroductionVideo: req.IntroductionVideo,
+		Degrees:           []entities.Degree{},
 	}
 
 	err = uc.TutorRepo.CreateTutorProfile(ctx, profile)
@@ -189,6 +193,32 @@ func (uc *TutorUseCase) UpdateTutorProfile(ctx context.Context, userID int, req 
 		return errors.New("tutor profile not found")
 	}
 
+	// Check if profile exists
+	existingProfile, err := uc.TutorRepo.GetTutorProfile(ctx, tutor.ID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		logger.Error("Failed to check existing profile", "error", err, "tutor_id", tutor.ID)
+		return err
+	}
+
+	// Create profile if it doesn't exist
+	if existingProfile == nil {
+		logger.Info("Creating new tutor profile", "tutor_id", tutor.ID)
+		profile := &entities.TutorProfile{
+			TutorID:           tutor.ID,
+			NativeLanguages:   []string{},
+			TeachingLanguages: []entities.LanguageLevel{},
+			Interests:         []string{},
+			HourlyRate:        25.0,
+			OffersTrial:       true,
+			Degrees:           []entities.Degree{},
+		}
+		err = uc.TutorRepo.CreateTutorProfile(ctx, profile)
+		if err != nil {
+			logger.Error("Failed to create tutor profile", "error", err, "tutor_id", tutor.ID)
+			return err
+		}
+	}
+
 	// Update profile
 	profile := &entities.TutorProfile{
 		TutorID:           tutor.ID,
@@ -197,6 +227,20 @@ func (uc *TutorUseCase) UpdateTutorProfile(ctx context.Context, userID int, req 
 		Bio:               req.Bio,
 		Interests:         req.Interests,
 		ProfilePicture:    req.ProfilePicture,
+		HourlyRate:        req.HourlyRate,
+		OffersTrial:       req.OffersTrial,
+		IntroductionVideo: req.IntroductionVideo,
+		Degrees:           req.Degrees,
+	}
+
+	// Also update the tutor record with relevant fields
+	tutor.HourlyRate = req.HourlyRate
+	tutor.OffersTrial = req.OffersTrial
+	tutor.IntroductionVideo = req.IntroductionVideo
+	err = uc.TutorRepo.UpdateTutor(ctx, tutor)
+	if err != nil {
+		logger.Error("Failed to update tutor", "error", err, "tutor_id", tutor.ID)
+		return err
 	}
 
 	err = uc.TutorRepo.UpdateTutorProfile(ctx, profile)

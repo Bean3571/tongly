@@ -30,6 +30,48 @@ const LANGUAGES = [
   'Korean'
 ];
 
+const INTERESTS = [
+  'music',       // 🎵 Music
+  'movies',      // 🎬 Movies & TV Shows
+  'books',       // 📚 Books & Literature
+  'sports',      // ⚽ Sports
+  'technology',  // 💻 Technology
+  'art',         // 🎨 Art
+  'cooking',     // 🍳 Cooking
+  'travel',      // ✈️ Travel
+  'photography', // 📷 Photography
+  'gaming',      // 🎮 Gaming
+  'nature',      // 🌿 Nature
+  'fashion',     // 👗 Fashion
+  'science',     // 🔬 Science
+  'history',     // 📜 History
+  'business',    // 💼 Business
+  'politics',    // 🏛️ Politics
+  'health',      // 🏥 Health & Wellness
+  'education'    // 🎓 Education
+];
+
+const interestEmojis: { [key: string]: string } = {
+  'music': '🎵',
+  'movies': '🎬',
+  'books': '📚',
+  'sports': '⚽',
+  'technology': '💻',
+  'art': '🎨',
+  'cooking': '🍳',
+  'travel': '✈️',
+  'photography': '📷',
+  'gaming': '🎮',
+  'nature': '🌿',
+  'fashion': '👗',
+  'science': '🔬',
+  'history': '📜',
+  'business': '💼',
+  'politics': '🏛️',
+  'health': '🏥',
+  'education': '🎓'
+};
+
 export default function TutorDashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -63,6 +105,8 @@ export default function TutorDashboard() {
   });
 
   const [newInterest, setNewInterest] = useState('');
+
+  const bioSaveTimeout = React.useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     loadTutorProfile();
@@ -130,15 +174,45 @@ export default function TutorDashboard() {
     video.src = URL.createObjectURL(file);
   };
 
+  const handleNativeLanguageChange = (language: string) => {
+    if (profile.nativeLanguages.length >= 3) {
+      showNotification('error', 'Maximum 3 native languages allowed');
+      return;
+    }
+    if (language) {
+      const newProfile = {
+        ...profile,
+        nativeLanguages: [...profile.nativeLanguages, language]
+      };
+      setProfile(newProfile);
+      handleAutoSave(newProfile);
+    }
+  };
+
+  const handleTeachingLanguageAdd = () => {
+    if (!newLanguage.language || !newLanguage.level) {
+      showNotification('error', 'Please select both language and level');
+      return;
+    }
+    const newProfile = {
+      ...profile,
+      teachingLanguages: [...profile.teachingLanguages, newLanguage]
+    };
+    setProfile(newProfile);
+    setNewLanguage({ language: '', level: '' });
+    handleAutoSave(newProfile);
+  };
+
   const handleAddDegree = () => {
     if (!newDegree.degree || !newDegree.institution || !newDegree.startYear || !newDegree.endYear || !newDegree.fieldOfStudy) {
       showNotification('error', 'Please fill in all degree fields');
       return;
     }
-    setProfile(prev => ({
-      ...prev,
-      degrees: [...prev.degrees, newDegree]
-    }));
+    const newProfile = {
+      ...profile,
+      degrees: [...profile.degrees, newDegree]
+    };
+    setProfile(newProfile);
     setNewDegree({
       degree: '',
       institution: '',
@@ -146,6 +220,39 @@ export default function TutorDashboard() {
       endYear: '',
       fieldOfStudy: '',
     });
+    handleAutoSave(newProfile);
+  };
+
+  const handleBioChange = (bio: string) => {
+    const newProfile = { ...profile, bio };
+    setProfile(newProfile);
+    // Debounce bio updates to avoid too many API calls
+    clearTimeout(bioSaveTimeout.current);
+    bioSaveTimeout.current = setTimeout(() => {
+      handleAutoSave(newProfile);
+    }, 1000);
+  };
+
+  const handlePricingChange = (hourlyRate: number) => {
+    const newProfile = { ...profile, hourlyRate };
+    setProfile(newProfile);
+    handleAutoSave(newProfile);
+  };
+
+  const handleTrialChange = (offersTrial: boolean) => {
+    const newProfile = { ...profile, offersTrial };
+    setProfile(newProfile);
+    handleAutoSave(newProfile);
+  };
+
+  // Auto-save function
+  const handleAutoSave = async (updatedProfile: TutorProfile) => {
+    try {
+      await api.tutors.updateProfile(updatedProfile);
+      showNotification('success', 'Changes saved successfully');
+    } catch (error) {
+      showNotification('error', 'Failed to save changes');
+    }
   };
 
   return (
@@ -215,7 +322,7 @@ export default function TutorDashboard() {
               className="w-full h-48 p-4 border rounded-lg resize-y bg-gray-50 dark:bg-gray-700"
               placeholder="Tell students about yourself, your background, teaching experience, and what makes your lessons unique..."
               value={profile.bio}
-              onChange={(e) => setProfile(prev => ({ ...prev, bio: e.target.value }))}
+              onChange={(e) => handleBioChange(e.target.value)}
             />
             <p className="text-sm text-gray-500">
               Pro tip: Include information about your teaching experience, methodology, and what students can expect from your lessons.
@@ -231,18 +338,7 @@ export default function TutorDashboard() {
               <select
                 className="form-select w-full p-2 border rounded bg-gray-50 dark:bg-gray-700"
                 value=""
-                onChange={(e) => {
-                  if (profile.nativeLanguages.length >= 3) {
-                    showNotification('error', 'Maximum 3 native languages allowed');
-                    return;
-                  }
-                  if (e.target.value) {
-                    setProfile(prev => ({
-                      ...prev,
-                      nativeLanguages: [...prev.nativeLanguages, e.target.value]
-                    }));
-                  }
-                }}
+                onChange={(e) => handleNativeLanguageChange(e.target.value)}
               >
                 <option value="">Select a language</option>
                 {LANGUAGES.filter(lang => !profile.nativeLanguages.includes(lang)).map(lang => (
@@ -297,17 +393,7 @@ export default function TutorDashboard() {
               </select>
             </div>
             <button
-              onClick={() => {
-                if (!newLanguage.language || !newLanguage.level) {
-                  showNotification('error', 'Please select both language and level');
-                  return;
-                }
-                setProfile(prev => ({
-                  ...prev,
-                  teachingLanguages: [...prev.teachingLanguages, newLanguage]
-                }));
-                setNewLanguage({ language: '', level: '' });
-              }}
+              onClick={handleTeachingLanguageAdd}
               className="w-full md:w-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
               Add Teaching Language
@@ -413,49 +499,30 @@ export default function TutorDashboard() {
         {/* Interests Section */}
         <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
           <h2 className="text-2xl font-semibold mb-4">Interests & Hobbies</h2>
-          <div className="space-y-4">
-            <div className="flex gap-4">
-              <input
-                type="text"
-                placeholder="Add an interest or hobby"
-                className="form-input flex-grow p-2 border rounded bg-gray-50 dark:bg-gray-700"
-                value={newInterest}
-                onChange={(e) => setNewInterest(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && newInterest && setProfile(prev => {
-                  setNewInterest('');
-                  return { ...prev, interests: [...prev.interests, newInterest] };
-                })}
-              />
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {INTERESTS.map(interest => (
               <button
+                key={interest}
                 onClick={() => {
-                  if (!newInterest) return;
-                  setProfile(prev => ({
-                    ...prev,
-                    interests: [...prev.interests, newInterest]
-                  }));
-                  setNewInterest('');
+                  const newProfile = {
+                    ...profile,
+                    interests: profile.interests.includes(interest)
+                      ? profile.interests.filter(i => i !== interest)
+                      : [...profile.interests, interest]
+                  };
+                  setProfile(newProfile);
+                  handleAutoSave(newProfile);
                 }}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                className={`p-4 rounded-lg border text-left transition-colors ${
+                  profile.interests.includes(interest)
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900 dark:border-blue-400'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400'
+                }`}
               >
-                Add
+                <span className="text-2xl mr-2">{interestEmojis[interest]}</span>
+                <span className="capitalize">{interest}</span>
               </button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {profile.interests.map((interest, index) => (
-                <div key={index} className="bg-gray-50 dark:bg-gray-700 px-3 py-1 rounded-full">
-                  {interest}
-                  <button
-                    onClick={() => setProfile(prev => ({
-                      ...prev,
-                      interests: prev.interests.filter((_, i) => i !== index)
-                    }))}
-                    className="ml-2 text-red-500 hover:text-red-700"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
+            ))}
           </div>
         </section>
 
@@ -473,7 +540,7 @@ export default function TutorDashboard() {
                   min="0"
                   step="0.01"
                   value={profile.hourlyRate}
-                  onChange={(e) => setProfile(prev => ({ ...prev, hourlyRate: parseFloat(e.target.value) }))}
+                  onChange={(e) => handlePricingChange(parseFloat(e.target.value))}
                   className="w-32 p-2 border rounded bg-gray-50 dark:bg-gray-700"
                 />
                 <span>USD per hour</span>
@@ -484,7 +551,7 @@ export default function TutorDashboard() {
                 <input
                   type="checkbox"
                   checked={profile.offersTrial}
-                  onChange={(e) => setProfile(prev => ({ ...prev, offersTrial: e.target.checked }))}
+                  onChange={(e) => handleTrialChange(e.target.checked)}
                   className="form-checkbox"
                 />
                 <span>Offer trial lessons (30 minutes)</span>
