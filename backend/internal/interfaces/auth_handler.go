@@ -66,6 +66,23 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
+	// If registering as a tutor, create tutor profile
+	if req.Role == "tutor" {
+		tutorReq := entities.TutorRegistrationRequest{
+			EducationDegree:      "", // These will be filled out later
+			EducationInstitution: "",
+			IntroductionVideo:    "",
+			HourlyRate:           25.0, // Default hourly rate
+			OffersTrial:          true, // Default to offering trial
+		}
+
+		if err := h.TutorUseCase.RegisterTutor(c.Request.Context(), registeredUser.ID, tutorReq); err != nil {
+			logger.Error("Failed to create tutor profile", "error", err)
+			// Continue with registration even if tutor profile creation fails
+			// The user can create it later through the tutor registration endpoint
+		}
+	}
+
 	// Generate token
 	token, err := jwt.GenerateToken(registeredUser.ID, registeredUser.Role)
 	if err != nil {

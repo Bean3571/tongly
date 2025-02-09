@@ -190,7 +190,18 @@ func (uc *TutorUseCase) UpdateTutorProfile(ctx context.Context, userID int, req 
 		return err
 	}
 	if tutor == nil {
-		return errors.New("tutor profile not found")
+		// Create tutor record if it doesn't exist
+		tutor = &entities.Tutor{
+			UserID:         userID,
+			HourlyRate:     req.HourlyRate,
+			OffersTrial:    req.OffersTrial,
+			ApprovalStatus: "pending",
+		}
+		err = uc.TutorRepo.CreateTutor(ctx, tutor)
+		if err != nil {
+			logger.Error("Failed to create tutor", "error", err, "user_id", userID)
+			return err
+		}
 	}
 
 	// Check if profile exists
@@ -205,18 +216,21 @@ func (uc *TutorUseCase) UpdateTutorProfile(ctx context.Context, userID int, req 
 		logger.Info("Creating new tutor profile", "tutor_id", tutor.ID)
 		profile := &entities.TutorProfile{
 			TutorID:           tutor.ID,
-			NativeLanguages:   []string{},
-			TeachingLanguages: []entities.LanguageLevel{},
-			Interests:         []string{},
-			HourlyRate:        25.0,
-			OffersTrial:       true,
-			Degrees:           []entities.Degree{},
+			NativeLanguages:   req.NativeLanguages,
+			TeachingLanguages: req.TeachingLanguages,
+			Bio:               req.Bio,
+			Interests:         req.Interests,
+			HourlyRate:        req.HourlyRate,
+			OffersTrial:       req.OffersTrial,
+			IntroductionVideo: req.IntroductionVideo,
+			Degrees:           req.Degrees,
 		}
 		err = uc.TutorRepo.CreateTutorProfile(ctx, profile)
 		if err != nil {
 			logger.Error("Failed to create tutor profile", "error", err, "tutor_id", tutor.ID)
 			return err
 		}
+		return nil
 	}
 
 	// Update profile
