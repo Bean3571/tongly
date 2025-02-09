@@ -4,6 +4,9 @@ import (
 	"tongly-backend/internal/interfaces"
 	"tongly-backend/pkg/middleware"
 
+	"time"
+
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -69,4 +72,59 @@ func SetupRouter(r *gin.Engine, authHandler *interfaces.AuthHandler, tutorHandle
 		protected.POST("/challenges/submit", gamificationHandler.SubmitChallenge)
 		protected.GET("/leaderboards", gamificationHandler.GetLeaderboard)
 	}
+}
+
+func NewRouter(
+	authHandler *interfaces.AuthHandler,
+	userHandler *interfaces.UserHandler,
+	tutorHandler *interfaces.TutorHandler,
+	gamificationHandler *interfaces.GamificationHandler,
+) *gin.Engine {
+	router := gin.Default()
+
+	// Enable CORS
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+
+	// Serve static files from uploads directory
+	router.Static("/uploads", "./uploads")
+
+	// Public routes
+	public := router.Group("/api")
+	{
+		// Auth routes
+		public.POST("/auth/register", authHandler.Register)
+		public.POST("/auth/login", authHandler.Login)
+	}
+
+	// Protected routes
+	protected := router.Group("/api")
+	protected.Use(middleware.AuthMiddleware())
+	{
+		// User profile routes
+		protected.GET("/profile", userHandler.GetProfile)
+		protected.PUT("/profile", userHandler.UpdateProfile)
+		protected.PUT("/profile/password", userHandler.UpdatePassword)
+		protected.POST("/profile/avatar", userHandler.UploadProfilePicture)
+
+		// Tutor routes
+		protected.POST("/tutors", tutorHandler.RegisterTutor)
+		protected.GET("/tutors", tutorHandler.ListTutors)
+		protected.PUT("/tutors/profile", tutorHandler.UpdateTutorProfile)
+		protected.GET("/tutors/profile", tutorHandler.GetTutorProfile)
+		protected.PUT("/tutors/:id/approval", tutorHandler.UpdateTutorApprovalStatus)
+		protected.POST("/tutors/video", tutorHandler.UploadVideo)
+
+		// Gamification routes
+		protected.POST("/challenges/submit", gamificationHandler.SubmitChallenge)
+		protected.GET("/leaderboards", gamificationHandler.GetLeaderboard)
+	}
+
+	return router
 }

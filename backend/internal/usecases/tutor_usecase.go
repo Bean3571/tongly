@@ -50,9 +50,8 @@ func (uc *TutorUseCase) RegisterTutor(ctx context.Context, userID int, req entit
 	details := &entities.TutorDetails{
 		UserID:            userID,
 		Bio:               req.Bio,
-		NativeLanguages:   req.NativeLanguages,
 		TeachingLanguages: req.TeachingLanguages,
-		Degrees:           req.Degrees,
+		Education:         req.Education,
 		HourlyRate:        req.HourlyRate,
 		IntroductionVideo: req.IntroductionVideo,
 		OffersTrial:       req.OffersTrial,
@@ -193,9 +192,8 @@ func (uc *TutorUseCase) UpdateTutorProfile(ctx context.Context, userID int, req 
 
 	// Update fields
 	details.Bio = req.Bio
-	details.NativeLanguages = req.NativeLanguages
 	details.TeachingLanguages = req.TeachingLanguages
-	details.Degrees = req.Degrees
+	details.Education = req.Education
 	details.Interests = req.Interests
 	details.HourlyRate = req.HourlyRate
 	details.IntroductionVideo = req.IntroductionVideo
@@ -214,5 +212,45 @@ func (uc *TutorUseCase) UpdateTutorProfile(ctx context.Context, userID int, req 
 	}
 
 	logger.Info("Tutor profile updated successfully", "user_id", userID)
+	return nil
+}
+
+// UpdateTutorVideo updates the introduction video URL for a tutor
+func (uc *TutorUseCase) UpdateTutorVideo(ctx context.Context, userID int, videoURL string) error {
+	logger.Info("Starting tutor video update", "user_id", userID)
+
+	// Get existing tutor details
+	details, err := uc.UserRepo.GetTutorDetails(ctx, userID)
+	if err != nil {
+		logger.Error("Failed to get tutor details", "error", err)
+		return err
+	}
+
+	// Create tutor details if they don't exist
+	if details == nil {
+		details = &entities.TutorDetails{
+			UserID:      userID,
+			HourlyRate:  25.0, // Default hourly rate
+			OffersTrial: true, // Default to offering trial
+			Approved:    false,
+		}
+	}
+
+	// Update video URL
+	details.IntroductionVideo = videoURL
+
+	// Create or update tutor details
+	if details.ID == 0 {
+		err = uc.UserRepo.CreateTutorDetails(ctx, details)
+	} else {
+		err = uc.UserRepo.UpdateTutorDetails(ctx, details)
+	}
+
+	if err != nil {
+		logger.Error("Failed to update tutor video", "error", err)
+		return err
+	}
+
+	logger.Info("Tutor video updated successfully", "user_id", userID)
 	return nil
 }

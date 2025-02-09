@@ -3,7 +3,7 @@ export interface Language {
   level: string;
 }
 
-export interface Degree {
+export interface Education {
   degree: string;
   institution: string;
   field_of_study: string;
@@ -13,12 +13,20 @@ export interface Degree {
 }
 
 export interface TutorProfileUpdateRequest {
-  nativeLanguages: string[];
   teachingLanguages: Language[];
-  degrees: Degree[];
+  education: Education[];
   interests: string[];
   hourlyRate: number;
   bio: string;
   offersTrial: boolean;
   introductionVideo: string;
-} 
+}
+
+export const LANGUAGE_LEVELS = [
+  'Upper Intermediate (B2)',
+  'Advanced (C1)',
+  'Mastery (C2)',
+  'Native'
+] as const;
+
+export type LanguageLevel = typeof LANGUAGE_LEVELS[number]; 

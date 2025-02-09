@@ -1,8 +1,11 @@
 package interfaces
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
+	"time"
 	"tongly-backend/internal/entities"
 	"tongly-backend/internal/logger"
 	"tongly-backend/internal/usecases"
@@ -157,10 +160,24 @@ func (h *TutorHandler) UpdateTutorProfile(c *gin.Context) {
 
 	var req entities.TutorUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		logger.Error("Invalid update tutor profile request", "error", err)
+		logger.Error("Invalid update tutor profile request",
+			"error", err,
+			"body", c.Request.Body)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
+
+	logger.Info("Received tutor profile update request",
+		"user_id", userID,
+		"request", map[string]interface{}{
+			"bio":                req.Bio,
+			"teaching_languages": req.TeachingLanguages,
+			"education":          req.Education,
+			"interests":          req.Interests,
+			"hourly_rate":        req.HourlyRate,
+			"introduction_video": req.IntroductionVideo,
+			"offers_trial":       req.OffersTrial,
+		})
 
 	if err := h.TutorUseCase.UpdateTutorProfile(c.Request.Context(), userID.(int), req); err != nil {
 		logger.Error("Failed to update tutor profile", "error", err)
@@ -171,6 +188,64 @@ func (h *TutorHandler) UpdateTutorProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Profile updated successfully"})
 }
 
+// UploadVideo handles POST /tutors/video
+func (h *TutorHandler) UploadVideo(c *gin.Context) {
+	logger.Info("Handling tutor video upload request", "path", c.Request.URL.Path)
+
+	// Get user ID from JWT token
+	userID, exists := c.Get("user_id")
+	if !exists {
+		logger.Error("No user ID found")
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// Get the file from the request
+	file, err := c.FormFile("video")
+	if err != nil {
+		logger.Error("Failed to get video file", "error", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No video file provided"})
+		return
+	}
+
+	// Check file size (5MB limit)
+	if file.Size > 5*1024*1024 {
+		logger.Error("Video file too large", "size", file.Size)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Video file must be smaller than 5MB"})
+		return
+	}
+
+	// Check file type
+	if !strings.HasPrefix(file.Header.Get("Content-Type"), "video/") {
+		logger.Error("Invalid file type", "content_type", file.Header.Get("Content-Type"))
+		c.JSON(http.StatusBadRequest, gin.H{"error": "File must be a video"})
+		return
+	}
+
+	// Generate a unique filename
+	filename := fmt.Sprintf("tutor_%d_%s_%s", userID.(int), time.Now().Format("20060102150405"), file.Filename)
+
+	// Save the file
+	if err := c.SaveUploadedFile(file, "./uploads/videos/"+filename); err != nil {
+		logger.Error("Failed to save video file", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save video"})
+		return
+	}
+
+	// Update the tutor's profile with the video URL
+	videoURL := "/uploads/videos/" + filename
+	if err := h.TutorUseCase.UpdateTutorVideo(c.Request.Context(), userID.(int), videoURL); err != nil {
+		logger.Error("Failed to update tutor video URL", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update video URL"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":  "Video uploaded successfully",
+		"videoUrl": videoURL,
+	})
+}
+
 func (h *TutorHandler) RegisterRoutes(r *gin.Engine) {
 	tutors := r.Group("/tutors")
 	{
@@ -178,5 +253,6 @@ func (h *TutorHandler) RegisterRoutes(r *gin.Engine) {
 		tutors.PUT("/:id/approval", middleware.AuthMiddleware(), h.UpdateTutorApprovalStatus)
 		tutors.GET("/profile", middleware.AuthMiddleware(), h.GetTutorProfile)
 		tutors.PUT("/profile", middleware.AuthMiddleware(), h.UpdateTutorProfile)
+		tutors.POST("/video", middleware.AuthMiddleware(), h.UploadVideo)
 	}
 }

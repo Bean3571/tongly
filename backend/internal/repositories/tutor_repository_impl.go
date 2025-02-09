@@ -19,30 +19,43 @@ type TutorRepositoryImpl struct {
 func (r *TutorRepositoryImpl) CreateTutorDetails(ctx context.Context, details *entities.TutorDetails) error {
 	query := `
 		INSERT INTO tutor_details (
-			user_id, bio, native_languages, teaching_languages, degrees,
+			user_id, bio, teaching_languages, education,
 			interests, hourly_rate, introduction_video, offers_trial, approved
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 		RETURNING id`
 
 	// Convert arrays to JSONB
 	teachingLanguagesJSON, err := json.Marshal(details.TeachingLanguages)
 	if err != nil {
+		logger.Error("Failed to marshal teaching languages",
+			"error", err,
+			"teaching_languages", details.TeachingLanguages)
 		return fmt.Errorf("failed to marshal teaching languages: %v", err)
 	}
 
-	degreesJSON, err := json.Marshal(details.Degrees)
+	educationJSON, err := json.Marshal(details.Education)
 	if err != nil {
-		return fmt.Errorf("failed to marshal degrees: %v", err)
+		logger.Error("Failed to marshal education",
+			"error", err,
+			"education", details.Education)
+		return fmt.Errorf("failed to marshal education: %v", err)
 	}
+
+	logger.Info("Creating tutor details",
+		"user_id", details.UserID,
+		"teaching_languages", string(teachingLanguagesJSON),
+		"education", string(educationJSON),
+		"hourly_rate", details.HourlyRate,
+		"offers_trial", details.OffersTrial,
+		"introduction_video", details.IntroductionVideo)
 
 	err = r.DB.QueryRowContext(
 		ctx,
 		query,
 		details.UserID,
 		details.Bio,
-		pq.Array(details.NativeLanguages),
 		teachingLanguagesJSON,
-		degreesJSON,
+		educationJSON,
 		pq.Array(details.Interests),
 		details.HourlyRate,
 		details.IntroductionVideo,
@@ -53,31 +66,52 @@ func (r *TutorRepositoryImpl) CreateTutorDetails(ctx context.Context, details *e
 	if err != nil {
 		logger.Error("Failed to create tutor details",
 			"error", err,
-			"user_id", details.UserID)
+			"user_id", details.UserID,
+			"query", query,
+			"params", map[string]interface{}{
+				"user_id":            details.UserID,
+				"bio":                details.Bio,
+				"teaching_languages": string(teachingLanguagesJSON),
+				"education":          string(educationJSON),
+				"interests":          details.Interests,
+				"hourly_rate":        details.HourlyRate,
+				"introduction_video": details.IntroductionVideo,
+				"offers_trial":       details.OffersTrial,
+				"approved":           details.Approved,
+			})
 		return fmt.Errorf("failed to create tutor details: %v", err)
 	}
 
+	logger.Info("Successfully created tutor details",
+		"id", details.ID,
+		"user_id", details.UserID)
 	return nil
 }
 
 func (r *TutorRepositoryImpl) GetTutorDetails(ctx context.Context, userID int) (*entities.TutorDetails, error) {
 	query := `
-		SELECT id, user_id, bio, native_languages, teaching_languages, degrees,
+		SELECT id, user_id, bio, teaching_languages, education,
 			   interests, hourly_rate, introduction_video, offers_trial, approved,
 			   created_at, updated_at
 		FROM tutor_details
 		WHERE user_id = $1`
 
+	logger.Info("Getting tutor details",
+		"user_id", userID,
+		"query", query,
+		"params", map[string]interface{}{
+			"user_id": userID,
+		})
+
 	var details entities.TutorDetails
-	var teachingLanguagesJSON, degreesJSON []byte
+	var teachingLanguagesJSON, educationJSON []byte
 
 	err := r.DB.QueryRowContext(ctx, query, userID).Scan(
 		&details.ID,
 		&details.UserID,
 		&details.Bio,
-		pq.Array(&details.NativeLanguages),
 		&teachingLanguagesJSON,
-		&degreesJSON,
+		&educationJSON,
 		pq.Array(&details.Interests),
 		&details.HourlyRate,
 		&details.IntroductionVideo,
@@ -88,6 +122,7 @@ func (r *TutorRepositoryImpl) GetTutorDetails(ctx context.Context, userID int) (
 	)
 
 	if err == sql.ErrNoRows {
+		logger.Info("No tutor details found", "user_id", userID)
 		return nil, nil
 	}
 	if err != nil {
@@ -99,11 +134,28 @@ func (r *TutorRepositoryImpl) GetTutorDetails(ctx context.Context, userID int) (
 
 	// Unmarshal JSON fields
 	if err := json.Unmarshal(teachingLanguagesJSON, &details.TeachingLanguages); err != nil {
+		logger.Error("Failed to unmarshal teaching languages",
+			"error", err,
+			"json", string(teachingLanguagesJSON))
 		return nil, fmt.Errorf("failed to unmarshal teaching languages: %v", err)
 	}
-	if err := json.Unmarshal(degreesJSON, &details.Degrees); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal degrees: %v", err)
+	if err := json.Unmarshal(educationJSON, &details.Education); err != nil {
+		logger.Error("Failed to unmarshal education",
+			"error", err,
+			"json", string(educationJSON))
+		return nil, fmt.Errorf("failed to unmarshal education: %v", err)
 	}
+
+	logger.Info("Successfully retrieved tutor details",
+		"user_id", userID,
+		"details", map[string]interface{}{
+			"id":                 details.ID,
+			"teaching_languages": details.TeachingLanguages,
+			"education":          details.Education,
+			"hourly_rate":        details.HourlyRate,
+			"offers_trial":       details.OffersTrial,
+			"introduction_video": details.IntroductionVideo,
+		})
 
 	return &details, nil
 }
@@ -112,34 +164,52 @@ func (r *TutorRepositoryImpl) UpdateTutorDetails(ctx context.Context, details *e
 	query := `
 		UPDATE tutor_details
 		SET bio = $1,
-			native_languages = $2,
-			teaching_languages = $3,
-			degrees = $4,
-			interests = $5,
-			hourly_rate = $6,
-			introduction_video = $7,
-			offers_trial = $8,
-			approved = $9
-		WHERE user_id = $10`
+			teaching_languages = $2,
+			education = $3,
+			interests = $4,
+			hourly_rate = $5,
+			introduction_video = $6,
+			offers_trial = $7,
+			approved = $8
+		WHERE user_id = $9`
 
 	// Convert arrays to JSONB
 	teachingLanguagesJSON, err := json.Marshal(details.TeachingLanguages)
 	if err != nil {
+		logger.Error("Failed to marshal teaching languages for update",
+			"error", err,
+			"teaching_languages", details.TeachingLanguages)
 		return fmt.Errorf("failed to marshal teaching languages: %v", err)
 	}
 
-	degreesJSON, err := json.Marshal(details.Degrees)
+	educationJSON, err := json.Marshal(details.Education)
 	if err != nil {
-		return fmt.Errorf("failed to marshal degrees: %v", err)
+		logger.Error("Failed to marshal education for update",
+			"error", err,
+			"education", details.Education)
+		return fmt.Errorf("failed to marshal education: %v", err)
 	}
+
+	logger.Info("Updating tutor details",
+		"user_id", details.UserID,
+		"query", query,
+		"params", map[string]interface{}{
+			"bio":                details.Bio,
+			"teaching_languages": string(teachingLanguagesJSON),
+			"education":          string(educationJSON),
+			"interests":          details.Interests,
+			"hourly_rate":        details.HourlyRate,
+			"introduction_video": details.IntroductionVideo,
+			"offers_trial":       details.OffersTrial,
+			"approved":           details.Approved,
+		})
 
 	result, err := r.DB.ExecContext(
 		ctx,
 		query,
 		details.Bio,
-		pq.Array(details.NativeLanguages),
 		teachingLanguagesJSON,
-		degreesJSON,
+		educationJSON,
 		pq.Array(details.Interests),
 		details.HourlyRate,
 		details.IntroductionVideo,
@@ -151,7 +221,18 @@ func (r *TutorRepositoryImpl) UpdateTutorDetails(ctx context.Context, details *e
 	if err != nil {
 		logger.Error("Failed to update tutor details",
 			"error", err,
-			"user_id", details.UserID)
+			"user_id", details.UserID,
+			"query", query,
+			"params", map[string]interface{}{
+				"bio":                details.Bio,
+				"teaching_languages": string(teachingLanguagesJSON),
+				"education":          string(educationJSON),
+				"interests":          details.Interests,
+				"hourly_rate":        details.HourlyRate,
+				"introduction_video": details.IntroductionVideo,
+				"offers_trial":       details.OffersTrial,
+				"approved":           details.Approved,
+			})
 		return fmt.Errorf("failed to update tutor details: %v", err)
 	}
 
@@ -163,6 +244,9 @@ func (r *TutorRepositoryImpl) UpdateTutorDetails(ctx context.Context, details *e
 		return fmt.Errorf("tutor details not found for user ID: %d", details.UserID)
 	}
 
+	logger.Info("Successfully updated tutor details",
+		"user_id", details.UserID,
+		"rows_affected", rows)
 	return nil
 }
 
@@ -178,9 +262,8 @@ func (r *TutorRepositoryImpl) ListTutors(ctx context.Context, limit, offset int,
 				up.last_name,
 				up.profile_picture,
 				td.bio,
-				td.native_languages,
 				td.teaching_languages,
-				td.degrees,
+				td.education,
 				td.interests,
 				td.hourly_rate,
 				td.introduction_video,
@@ -242,7 +325,7 @@ func (r *TutorRepositoryImpl) ListTutors(ctx context.Context, limit, offset int,
 			personal         entities.UserPersonal
 			details          entities.TutorDetails
 			teachingLangJSON []byte
-			degreesJSON      []byte
+			educationJSON    []byte
 		)
 
 		err := rows.Scan(
@@ -254,39 +337,32 @@ func (r *TutorRepositoryImpl) ListTutors(ctx context.Context, limit, offset int,
 			&personal.LastName,
 			&personal.ProfilePicture,
 			&details.Bio,
-			pq.Array(&details.NativeLanguages),
 			&teachingLangJSON,
-			&degreesJSON,
+			&educationJSON,
 			pq.Array(&details.Interests),
 			&details.HourlyRate,
 			&details.IntroductionVideo,
 			&details.OffersTrial,
 			&details.Approved,
 		)
+
 		if err != nil {
 			logger.Error("Failed to scan tutor row", "error", err)
 			return nil, fmt.Errorf("failed to scan tutor row: %v", err)
 		}
 
-		// Unmarshal JSON fields
 		if err := json.Unmarshal(teachingLangJSON, &details.TeachingLanguages); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal teaching languages: %v", err)
 		}
-		if err := json.Unmarshal(degreesJSON, &details.Degrees); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal degrees: %v", err)
+
+		if err := json.Unmarshal(educationJSON, &details.Education); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal education: %v", err)
 		}
 
-		details.UserID = creds.ID
 		user.Credentials = &creds
 		user.Personal = &personal
 		user.Tutor = &details
-
 		tutors = append(tutors, &user)
-	}
-
-	if err = rows.Err(); err != nil {
-		logger.Error("Error iterating tutor rows", "error", err)
-		return nil, fmt.Errorf("error iterating tutor rows: %v", err)
 	}
 
 	return tutors, nil

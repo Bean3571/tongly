@@ -57,9 +57,8 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	if req.Role == "tutor" {
 		tutorReq := entities.TutorRegistrationRequest{
 			Bio:               "", // These will be filled out later
-			NativeLanguages:   []string{},
-			TeachingLanguages: []entities.LanguageLevel{},
-			Degrees:           []entities.Degree{},
+			TeachingLanguages: []entities.Language{},
+			Education:         []entities.Education{},
 			HourlyRate:        25.0, // Default hourly rate
 			OffersTrial:       true, // Default to offering trial
 		}

@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"strconv"
 	"tongly-backend/internal/entities"
 	"tongly-backend/internal/logger"
 
@@ -323,20 +325,20 @@ func (r *UserRepositoryImpl) UpdateStudentDetails(ctx context.Context, details e
 func (r *UserRepositoryImpl) CreateTutorDetails(ctx context.Context, details *entities.TutorDetails) error {
 	query := `
         INSERT INTO tutor_details (
-            user_id, bio, native_languages, teaching_languages, degrees,
+            user_id, bio, teaching_languages, education,
             interests, hourly_rate, introduction_video, offers_trial, approved
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         RETURNING id`
 
+	// Convert arrays to JSONB
 	teachingLanguagesJSON, err := json.Marshal(details.TeachingLanguages)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to marshal teaching languages: %v", err)
 	}
 
-	degreesJSON, err := json.Marshal(details.Degrees)
+	educationJSON, err := json.Marshal(details.Education)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to marshal education: %v", err)
 	}
 
 	err = r.DB.QueryRowContext(
@@ -344,9 +346,8 @@ func (r *UserRepositoryImpl) CreateTutorDetails(ctx context.Context, details *en
 		query,
 		details.UserID,
 		details.Bio,
-		pq.Array(details.NativeLanguages),
 		teachingLanguagesJSON,
-		degreesJSON,
+		educationJSON,
 		pq.Array(details.Interests),
 		details.HourlyRate,
 		details.IntroductionVideo,
@@ -356,7 +357,7 @@ func (r *UserRepositoryImpl) CreateTutorDetails(ctx context.Context, details *en
 
 	if err != nil {
 		logger.Error("Failed to create tutor details", "error", err)
-		return err
+		return fmt.Errorf("failed to create tutor details: %v", err)
 	}
 
 	return nil
@@ -364,23 +365,22 @@ func (r *UserRepositoryImpl) CreateTutorDetails(ctx context.Context, details *en
 
 // GetTutorDetails retrieves tutor details for a user
 func (r *UserRepositoryImpl) GetTutorDetails(ctx context.Context, userID int) (*entities.TutorDetails, error) {
-	details := &entities.TutorDetails{}
-	var teachingLanguagesJSON, degreesJSON []byte
-
 	query := `
-        SELECT id, user_id, bio, native_languages, teaching_languages, degrees,
+        SELECT id, user_id, bio, teaching_languages, education,
                interests, hourly_rate, introduction_video, offers_trial, approved,
                created_at, updated_at
         FROM tutor_details
         WHERE user_id = $1`
 
+	var details entities.TutorDetails
+	var teachingLanguagesJSON, educationJSON []byte
+
 	err := r.DB.QueryRowContext(ctx, query, userID).Scan(
 		&details.ID,
 		&details.UserID,
 		&details.Bio,
-		pq.Array(&details.NativeLanguages),
 		&teachingLanguagesJSON,
-		&degreesJSON,
+		&educationJSON,
 		pq.Array(&details.Interests),
 		&details.HourlyRate,
 		&details.IntroductionVideo,
@@ -394,63 +394,71 @@ func (r *UserRepositoryImpl) GetTutorDetails(ctx context.Context, userID int) (*
 		return nil, nil
 	}
 	if err != nil {
-		return nil, err
+		logger.Error("Failed to get tutor details", "error", err)
+		return nil, fmt.Errorf("failed to get tutor details: %v", err)
 	}
 
-	err = json.Unmarshal(teachingLanguagesJSON, &details.TeachingLanguages)
-	if err != nil {
-		return nil, err
+	// Unmarshal JSON fields
+	if err := json.Unmarshal(teachingLanguagesJSON, &details.TeachingLanguages); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal teaching languages: %v", err)
+	}
+	if err := json.Unmarshal(educationJSON, &details.Education); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal education: %v", err)
 	}
 
-	err = json.Unmarshal(degreesJSON, &details.Degrees)
-	if err != nil {
-		return nil, err
-	}
-
-	return details, nil
+	return &details, nil
 }
 
 // UpdateTutorDetails updates tutor details for a user
 func (r *UserRepositoryImpl) UpdateTutorDetails(ctx context.Context, details *entities.TutorDetails) error {
 	query := `
-        UPDATE tutor_details 
-        SET bio = $1, native_languages = $2, teaching_languages = $3, degrees = $4,
-            interests = $5, hourly_rate = $6, introduction_video = $7, offers_trial = $8
+        UPDATE tutor_details
+        SET bio = $1,
+            teaching_languages = $2,
+            education = $3,
+            interests = $4,
+            hourly_rate = $5,
+            introduction_video = $6,
+            offers_trial = $7,
+            approved = $8
         WHERE user_id = $9`
 
+	// Convert arrays to JSONB
 	teachingLanguagesJSON, err := json.Marshal(details.TeachingLanguages)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to marshal teaching languages: %v", err)
 	}
 
-	degreesJSON, err := json.Marshal(details.Degrees)
+	educationJSON, err := json.Marshal(details.Education)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to marshal education: %v", err)
 	}
 
 	result, err := r.DB.ExecContext(
 		ctx,
 		query,
 		details.Bio,
-		pq.Array(details.NativeLanguages),
 		teachingLanguagesJSON,
-		degreesJSON,
+		educationJSON,
 		pq.Array(details.Interests),
 		details.HourlyRate,
 		details.IntroductionVideo,
 		details.OffersTrial,
+		details.Approved,
 		details.UserID,
 	)
+
 	if err != nil {
-		return err
+		logger.Error("Failed to update tutor details", "error", err)
+		return fmt.Errorf("failed to update tutor details: %v", err)
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get rows affected: %v", err)
 	}
 	if rows == 0 {
-		return errors.New("tutor details not found")
+		return fmt.Errorf("tutor details not found for user ID: %d", details.UserID)
 	}
 
 	return nil
@@ -459,94 +467,117 @@ func (r *UserRepositoryImpl) UpdateTutorDetails(ctx context.Context, details *en
 // ListTutors retrieves a list of tutors with optional filtering
 func (r *UserRepositoryImpl) ListTutors(ctx context.Context, limit, offset int, filters map[string]interface{}) ([]*entities.User, error) {
 	query := `
-        SELECT c.id, c.username, c.email, c.role,
-               t.bio, t.native_languages, t.teaching_languages, t.degrees,
-               t.interests, t.hourly_rate, t.introduction_video, t.offers_trial, t.approved,
-               t.created_at, t.updated_at
-        FROM user_credentials c
-        JOIN tutor_details t ON c.id = t.user_id
-        WHERE c.role = 'tutor'`
+        WITH tutor_data AS (
+            SELECT 
+                uc.id as user_id,
+                uc.username,
+                uc.email,
+                uc.role,
+                up.first_name,
+                up.last_name,
+                up.profile_picture,
+                td.bio,
+                td.teaching_languages,
+                td.education,
+                td.interests,
+                td.hourly_rate,
+                td.introduction_video,
+                td.offers_trial,
+                td.approved
+            FROM user_credentials uc
+            LEFT JOIN user_personal up ON uc.id = up.user_id
+            LEFT JOIN tutor_details td ON uc.id = td.user_id
+            WHERE uc.role = 'tutor'
+        )
+        SELECT * FROM tutor_data WHERE 1=1`
+
+	args := []interface{}{}
+	argPosition := 1
 
 	// Add filters
-	args := []interface{}{limit, offset}
-	argCount := 3
-
-	if v, ok := filters["approved"]; ok {
-		query += ` AND t.approved = $` + string(argCount)
-		args = append(args, v)
-		argCount++
+	if language, ok := filters["language"].(string); ok && language != "" {
+		query += ` AND teaching_languages @> $` + strconv.Itoa(argPosition) + `::jsonb`
+		languageFilter := fmt.Sprintf(`[{"language":"%s"}]`, language)
+		args = append(args, languageFilter)
+		argPosition++
 	}
 
-	if v, ok := filters["min_hourly_rate"]; ok {
-		query += ` AND t.hourly_rate >= $` + string(argCount)
-		args = append(args, v)
-		argCount++
+	if minRate, ok := filters["min_hourly_rate"].(float64); ok && minRate > 0 {
+		query += ` AND hourly_rate >= $` + strconv.Itoa(argPosition)
+		args = append(args, minRate)
+		argPosition++
 	}
 
-	if v, ok := filters["max_hourly_rate"]; ok {
-		query += ` AND t.hourly_rate <= $` + string(argCount)
-		args = append(args, v)
-		argCount++
+	if maxRate, ok := filters["max_hourly_rate"].(float64); ok && maxRate > 0 {
+		query += ` AND hourly_rate <= $` + strconv.Itoa(argPosition)
+		args = append(args, maxRate)
+		argPosition++
 	}
 
-	if v, ok := filters["offers_trial"]; ok {
-		query += ` AND t.offers_trial = $` + string(argCount)
-		args = append(args, v)
-		argCount++
+	if offersTrial, ok := filters["offers_trial"].(bool); ok {
+		query += ` AND offers_trial = $` + strconv.Itoa(argPosition)
+		args = append(args, offersTrial)
+		argPosition++
 	}
 
-	query += ` ORDER BY t.created_at DESC LIMIT $1 OFFSET $2`
+	// Add pagination
+	query += ` ORDER BY user_id DESC LIMIT $` + strconv.Itoa(argPosition) +
+		` OFFSET $` + strconv.Itoa(argPosition+1)
+	args = append(args, limit, offset)
 
 	rows, err := r.DB.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, err
+		logger.Error("Failed to list tutors", "error", err)
+		return nil, fmt.Errorf("failed to list tutors: %v", err)
 	}
 	defer rows.Close()
 
 	var tutors []*entities.User
 	for rows.Next() {
-		user := &entities.User{
-			Credentials: &entities.UserCredentials{},
-			Tutor:       &entities.TutorDetails{},
-		}
-
-		var teachingLanguagesJSON, degreesJSON []byte
+		var (
+			user             entities.User
+			creds            entities.UserCredentials
+			personal         entities.UserPersonal
+			details          entities.TutorDetails
+			teachingLangJSON []byte
+			educationJSON    []byte
+		)
 
 		err := rows.Scan(
-			&user.Credentials.ID,
-			&user.Credentials.Username,
-			&user.Credentials.Email,
-			&user.Credentials.Role,
-			&user.Tutor.Bio,
-			pq.Array(&user.Tutor.NativeLanguages),
-			&teachingLanguagesJSON,
-			&degreesJSON,
-			pq.Array(&user.Tutor.Interests),
-			&user.Tutor.HourlyRate,
-			&user.Tutor.IntroductionVideo,
-			&user.Tutor.OffersTrial,
-			&user.Tutor.Approved,
-			&user.Tutor.CreatedAt,
-			&user.Tutor.UpdatedAt,
+			&creds.ID,
+			&creds.Username,
+			&creds.Email,
+			&creds.Role,
+			&personal.FirstName,
+			&personal.LastName,
+			&personal.ProfilePicture,
+			&details.Bio,
+			&teachingLangJSON,
+			&educationJSON,
+			pq.Array(&details.Interests),
+			&details.HourlyRate,
+			&details.IntroductionVideo,
+			&details.OffersTrial,
+			&details.Approved,
 		)
+
 		if err != nil {
-			return nil, err
+			logger.Error("Failed to scan tutor row", "error", err)
+			return nil, fmt.Errorf("failed to scan tutor row: %v", err)
 		}
 
-		err = json.Unmarshal(teachingLanguagesJSON, &user.Tutor.TeachingLanguages)
-		if err != nil {
-			return nil, err
+		if err := json.Unmarshal(teachingLangJSON, &details.TeachingLanguages); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal teaching languages: %v", err)
 		}
 
-		err = json.Unmarshal(degreesJSON, &user.Tutor.Degrees)
-		if err != nil {
-			return nil, err
+		if err := json.Unmarshal(educationJSON, &details.Education); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal education: %v", err)
 		}
 
-		// Get personal info
-		user.Personal, _ = r.GetPersonalInfo(ctx, user.Credentials.ID)
-
-		tutors = append(tutors, user)
+		user.Credentials = &creds
+		user.Personal = &personal
+		user.Tutor = &details
+		tutors = append(tutors, &user)
 	}
 
 	return tutors, nil

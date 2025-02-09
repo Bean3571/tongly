@@ -117,6 +117,11 @@ export interface TutorProfileUpdateData {
     introductionVideo?: string;
 }
 
+export interface VideoUploadResponse {
+    message: string;
+    videoUrl: string;
+}
+
 export const api = {
     auth: {
         login: async (credentials: LoginCredentials) => {
@@ -219,29 +224,61 @@ export const api = {
                 throw error;
             }
         },
-        uploadVideo: async (formData: FormData) => {
+        uploadVideo: async (formData: FormData): Promise<VideoUploadResponse> => {
             try {
+                logger.info('Uploading video:', {
+                    url: '/api/tutors/video',
+                    formData: '[FORM DATA]'
+                });
                 const response = await apiClient.post('/api/tutors/video', formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data',
                     },
                 });
+                logger.info('Video upload successful:', {
+                    status: response.status,
+                    data: response.data
+                });
                 return response.data;
             } catch (error: any) {
-                logger.error('Failed to upload video:', error);
+                logger.error('Failed to upload video:', {
+                    error: error.message,
+                    response: error.response?.data,
+                    status: error.response?.status
+                });
                 throw error;
             }
         },
         updateTutorProfile: async (data: TutorProfileUpdateRequest) => {
             try {
-                const response = await apiClient.put('/api/tutors/profile', data);
+                logger.info('Updating tutor profile:', {
+                    url: '/api/tutors/profile',
+                    data: {
+                        ...data,
+                        // Redact any sensitive information
+                        introductionVideo: data.introductionVideo ? '[VIDEO URL]' : null
+                    }
+                });
+
+                // Convert hourlyRate to number if it's a string
+                const requestData = {
+                    ...data,
+                    hourlyRate: typeof data.hourlyRate === 'string' ? parseFloat(data.hourlyRate) : data.hourlyRate,
+                };
+
+                const response = await apiClient.put('/api/tutors/profile', requestData);
+                
+                logger.info('Tutor profile update successful:', {
+                    status: response.status,
+                    data: response.data
+                });
                 return response.data;
             } catch (error: any) {
-                if (error.response?.status === 403) {
-                    logger.error('User is not authorized to update tutor profile');
-                    throw new Error('Only tutors can update tutor profiles');
-                }
-                logger.error('Failed to update tutor profile:', error);
+                logger.error('Failed to update tutor profile:', {
+                    error: error.message,
+                    response: error.response?.data,
+                    status: error.response?.status
+                });
                 throw error;
             }
         },
