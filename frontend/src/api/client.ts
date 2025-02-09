@@ -1,6 +1,6 @@
 import axios from 'axios';
 import type { AxiosRequestConfig } from 'axios/index';
-import type { LanguageLevel } from '../types';
+import type { LanguageLevel, Degree } from '../types';
 import { logger } from '../services/logger';
 import { TutorProfileUpdateRequest } from '../types/tutor';
 
@@ -107,15 +107,11 @@ interface TutorRegistrationData {
 }
 
 export interface TutorProfileUpdateData {
+    nativeLanguages?: string[];
     teachingLanguages?: LanguageLevel[];
-    education?: {
-        degree: string;
-        institution: string;
-        fieldOfStudy: string;
-        graduationYear: string;
-        documentUrl: string;
-    };
+    degrees?: Degree[];
     bio?: string;
+    interests?: string[];
     hourlyRate?: number;
     offersTrial?: boolean;
     introductionVideo?: string;

@@ -13,7 +13,7 @@ func SetupRouter(r *gin.Engine, authHandler *interfaces.AuthHandler, tutorHandle
 		// Skip logging for health check and options requests
 		SkipPaths: []string{"/health", "/metrics"},
 		// Skip logging for 304 Not Modified responses
-		SkipStatusCodes: []int{304},
+		//SkipStatusCodes: []int{304},
 	}))
 
 	// Add CORS middleware

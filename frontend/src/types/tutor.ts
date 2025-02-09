@@ -6,9 +6,9 @@ export interface Language {
 export interface Degree {
   degree: string;
   institution: string;
-  startYear: string;
-  endYear: string;
-  fieldOfStudy: string;
+  field_of_study: string;
+  start_year: string;
+  end_year: string;
   documentUrl?: string;
 }
 

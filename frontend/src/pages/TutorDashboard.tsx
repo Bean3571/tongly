@@ -100,9 +100,10 @@ export default function TutorDashboard() {
   const [newDegree, setNewDegree] = useState<Degree>({
     degree: '',
     institution: '',
-    startYear: '',
-    endYear: '',
-    fieldOfStudy: '',
+    start_year: '',
+    end_year: '',
+    field_of_study: '',
+
   });
 
   const [newInterest, setNewInterest] = useState('');
@@ -190,14 +191,15 @@ export default function TutorDashboard() {
 
   const handleNativeLanguageChange = (language: string) => {
     if (!profile) return;
-    if (profile.nativeLanguages.length >= 3) {
+    const currentNativeLanguages = profile.nativeLanguages || [];
+    if (currentNativeLanguages.length >= 3) {
       showNotification('error', 'Maximum 3 native languages allowed');
       return;
     }
     if (language) {
       const newProfile = {
         ...profile,
-        nativeLanguages: [...(profile.nativeLanguages || []), language]
+        nativeLanguages: [...currentNativeLanguages, language]
       };
       setProfile(newProfile);
       handleAutoSave(newProfile);
@@ -221,10 +223,11 @@ export default function TutorDashboard() {
 
   const handleAddDegree = () => {
     if (!profile) return;
-    if (!newDegree.degree || !newDegree.institution || !newDegree.startYear || !newDegree.endYear || !newDegree.fieldOfStudy) {
+    if (!newDegree.degree || !newDegree.institution || !newDegree.start_year || !newDegree.end_year || !newDegree.field_of_study) {
       showNotification('error', 'Please fill in all degree fields');
       return;
     }
+
     const newProfile = {
       ...profile,
       degrees: [...(profile.degrees || []), newDegree]
@@ -233,9 +236,10 @@ export default function TutorDashboard() {
     setNewDegree({
       degree: '',
       institution: '',
-      startYear: '',
-      endYear: '',
-      fieldOfStudy: '',
+      start_year: '',
+      end_year: '',
+      field_of_study: '',
+
     });
     handleAutoSave(newProfile);
   };
@@ -269,7 +273,16 @@ export default function TutorDashboard() {
   const handleAutoSave = async (updatedProfile: TutorProfile) => {
     if (!updatedProfile) return;
     try {
-      await api.tutors.updateProfile(updatedProfile);
+      await api.tutors.updateProfile({
+        nativeLanguages: updatedProfile.nativeLanguages,
+        teachingLanguages: updatedProfile.teachingLanguages,
+        bio: updatedProfile.bio,
+        interests: updatedProfile.interests,
+        hourlyRate: updatedProfile.hourlyRate,
+        offersTrial: updatedProfile.offersTrial,
+        degrees: updatedProfile.degrees,
+        introductionVideo: updatedProfile.introductionVideo
+      });
       showNotification('success', 'Changes saved successfully');
     } catch (error) {
       showNotification('error', 'Failed to save changes');
@@ -475,25 +488,28 @@ export default function TutorDashboard() {
                 type="text"
                 placeholder="Field of Study"
                 className="form-input p-2 border rounded bg-gray-50 dark:bg-gray-700"
-                value={newDegree.fieldOfStudy}
-                onChange={(e) => setNewDegree(prev => ({ ...prev, fieldOfStudy: e.target.value }))}
+                value={newDegree.field_of_study}
+                onChange={(e) => setNewDegree(prev => ({ ...prev, field_of_study: e.target.value }))}
               />
               <div className="grid grid-cols-2 gap-4">
+
                 <input
                   type="number"
                   placeholder="Start Year"
                   className="form-input p-2 border rounded bg-gray-50 dark:bg-gray-700"
-                  value={newDegree.startYear}
-                  onChange={(e) => setNewDegree(prev => ({ ...prev, startYear: e.target.value }))}
+                  value={newDegree.start_year}
+                  onChange={(e) => setNewDegree(prev => ({ ...prev, start_year: e.target.value }))}
                 />
                 <input
+
                   type="number"
                   placeholder="End Year"
                   className="form-input p-2 border rounded bg-gray-50 dark:bg-gray-700"
-                  value={newDegree.endYear}
-                  onChange={(e) => setNewDegree(prev => ({ ...prev, endYear: e.target.value }))}
+                  value={newDegree.end_year}
+                  onChange={(e) => setNewDegree(prev => ({ ...prev, end_year: e.target.value }))}
                 />
               </div>
+
             </div>
             <button
               onClick={handleAddDegree}
@@ -508,10 +524,11 @@ export default function TutorDashboard() {
                     <div>
                       <h3 className="font-semibold">{degree.degree}</h3>
                       <p className="text-gray-600 dark:text-gray-300">{degree.institution}</p>
-                      <p className="text-gray-500 dark:text-gray-400">{degree.fieldOfStudy}</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{degree.startYear} - {degree.endYear}</p>
+                      <p className="text-gray-500 dark:text-gray-400">{degree.field_of_study}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{degree.start_year} - {degree.end_year}</p>
                     </div>
                     <button
+
                       onClick={() => setProfile(prev => ({
                         ...prev,
                         degrees: (prev?.degrees || []).filter((_, i) => i !== index)
@@ -602,6 +619,61 @@ export default function TutorDashboard() {
                 Set your weekly availability and manage lesson times
               </p>
             </div>
+          </div>
+        </section>
+
+        {/* Introduction Video Section */}
+        <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+          <h2 className="text-2xl font-semibold mb-4">Introduction Video</h2>
+          <div className="space-y-4">
+            {profile.introductionVideo ? (
+              <div>
+                <video
+                  src={profile.introductionVideo}
+                  controls
+                  className="w-full rounded-lg"
+                />
+                <button
+                  onClick={() => {
+                    const newProfile = { ...profile, introductionVideo: '' };
+                    setProfile(newProfile);
+                    handleAutoSave(newProfile);
+                  }}
+                  className="mt-2 text-red-500 hover:text-red-700"
+                >
+                  Remove Video
+                </button>
+              </div>
+            ) : (
+              <div>
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={handleVideoUpload}
+                  className="w-full"
+                />
+                <p className="text-sm text-gray-500 mt-2">
+                  Upload a short video (max 5 minutes) introducing yourself to potential students.
+                  Maximum file size: 5MB
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Apply for Approval Section */}
+        <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+          <h2 className="text-2xl font-semibold mb-4">Apply for Approval</h2>
+          <div className="space-y-4">
+            <p className="text-gray-600 dark:text-gray-300">
+              Ready to start teaching? Submit your profile for approval to begin accepting students.
+            </p>
+            <button
+              onClick={() => navigate('/apply')}
+              className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
+            >
+              Apply Now
+            </button>
           </div>
         </section>
 
