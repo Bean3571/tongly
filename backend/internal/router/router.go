@@ -61,8 +61,9 @@ func SetupRouter(r *gin.Engine, authHandler *interfaces.AuthHandler, tutorHandle
 		// Tutor routes
 		protected.POST("/tutors", tutorHandler.RegisterTutor)
 		protected.GET("/tutors", tutorHandler.ListTutors)
-		protected.PUT("/tutors/profile", tutorHandler.UpdateProfile)
-		protected.GET("/tutors/:id", tutorHandler.GetTutor)
+		protected.PUT("/tutors/profile", tutorHandler.UpdateTutorProfile)
+		protected.GET("/tutors/profile", tutorHandler.GetTutorProfile)
+		protected.PUT("/tutors/:id/approval", tutorHandler.UpdateTutorApprovalStatus)
 
 		// Gamification routes
 		protected.POST("/challenges/submit", gamificationHandler.SubmitChallenge)

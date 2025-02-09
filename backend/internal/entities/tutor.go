@@ -2,20 +2,21 @@ package entities
 
 import "time"
 
-// Tutor represents a user who can teach languages (private data)
-type Tutor struct {
-	ID                   int           `json:"id"`
-	UserID               int           `json:"user_id"`
-	EducationDegree      string        `json:"education_degree"`
-	EducationInstitution string        `json:"education_institution"`
-	IntroductionVideo    string        `json:"introduction_video"`
-	HourlyRate           float64       `json:"hourly_rate"`
-	OffersTrial          bool          `json:"offers_trial"`
-	ApprovalStatus       string        `json:"approval_status"`
-	CreatedAt            time.Time     `json:"created_at"`
-	UpdatedAt            time.Time     `json:"updated_at"`
-	User                 *User         `json:"user,omitempty"`
-	Profile              *TutorProfile `json:"profile,omitempty"`
+// TutorDetails represents tutor-specific data
+type TutorDetails struct {
+	ID                int             `json:"id"`
+	UserID            int             `json:"user_id"`
+	Bio               string          `json:"bio"`
+	NativeLanguages   []string        `json:"native_languages"`
+	TeachingLanguages []LanguageLevel `json:"teaching_languages"`
+	Degrees           []Degree        `json:"degrees"`
+	Interests         []string        `json:"interests"`
+	HourlyRate        float64         `json:"hourly_rate"`
+	IntroductionVideo string          `json:"introduction_video"`
+	OffersTrial       bool            `json:"offers_trial"`
+	Approved          bool            `json:"approved"`
+	CreatedAt         time.Time       `json:"created_at"`
+	UpdatedAt         time.Time       `json:"updated_at"`
 }
 
 // TutorProfile represents public tutor information
@@ -60,26 +61,25 @@ type TutorReview struct {
 
 // TutorRegistrationRequest represents the data needed to register as a tutor
 type TutorRegistrationRequest struct {
-	EducationDegree      string  `json:"education_degree"`
-	EducationInstitution string  `json:"education_institution"`
-	IntroductionVideo    string  `json:"introduction_video"`
-	HourlyRate           float64 `json:"hourly_rate" validate:"min=5"`
-	OffersTrial          bool    `json:"offers_trial"`
+	Bio               string          `json:"bio"`
+	NativeLanguages   []string        `json:"native_languages"`
+	TeachingLanguages []LanguageLevel `json:"teaching_languages"`
+	Degrees           []Degree        `json:"degrees"`
+	HourlyRate        float64         `json:"hourly_rate" validate:"min=5"`
+	IntroductionVideo string          `json:"introduction_video"`
+	OffersTrial       bool            `json:"offers_trial"`
 }
 
-// TutorProfileUpdateRequest represents the data needed to update a tutor's profile
-type TutorProfileUpdateRequest struct {
-	NativeLanguages      []string        `json:"native_languages"`
-	TeachingLanguages    []LanguageLevel `json:"teaching_languages"`
-	Bio                  string          `json:"bio"`
-	Interests            []string        `json:"interests"`
-	ProfilePicture       string          `json:"profile_picture,omitempty"`
-	HourlyRate           float64         `json:"hourly_rate"`
-	OffersTrial          bool            `json:"offers_trial"`
-	IntroductionVideo    string          `json:"introduction_video,omitempty"`
-	EducationDegree      string          `json:"education_degree,omitempty"`
-	EducationInstitution string          `json:"education_institution,omitempty"`
-	Degrees              []Degree        `json:"degrees"`
+// TutorUpdateRequest represents the data needed to update a tutor's profile
+type TutorUpdateRequest struct {
+	Bio               string          `json:"bio"`
+	NativeLanguages   []string        `json:"native_languages"`
+	TeachingLanguages []LanguageLevel `json:"teaching_languages"`
+	Degrees           []Degree        `json:"degrees"`
+	Interests         []string        `json:"interests"`
+	HourlyRate        float64         `json:"hourly_rate"`
+	IntroductionVideo string          `json:"introduction_video"`
+	OffersTrial       bool            `json:"offers_trial"`
 }
 
 // Degree represents an educational degree

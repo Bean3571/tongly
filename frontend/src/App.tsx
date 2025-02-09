@@ -10,7 +10,6 @@ import { Home } from './pages/Home';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Profile } from './pages/Profile';
-import { Survey } from './pages/Survey';
 import Dashboard from './pages/Dashboard';
 import { Tutors } from './pages/Tutors';
 import { TutorProfile } from './pages/TutorProfile';
@@ -23,16 +22,12 @@ import { useAuth } from './contexts/AuthContext';
 
 const queryClient = new QueryClient();
 
-const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
+const PrivateRoute = ({ children, role }: { children: React.ReactNode, role?: string }) => {
     const { user } = useAuth();
     if (!user) return <Navigate to="/login" />;
-    return <>{children}</>;
-};
-
-const SurveyRoute = ({ children }: { children: React.ReactNode }) => {
-    const { user } = useAuth();
-    if (!user) return <Navigate to="/login" />;
-    if (user.profile?.survey_complete === false) return <Navigate to="/survey" />;
+    if (role && user.credentials.role !== role) {
+        return <Navigate to={`/${user.credentials.role}/dashboard`} />;
+    }
     return <>{children}</>;
 };
 
@@ -48,14 +43,6 @@ const AppRoutes = () => {
                     
                     {/* Protected Routes */}
                     <Route
-                        path="/survey"
-                        element={
-                            <PrivateRoute>
-                                <Survey />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route
                         path="/profile"
                         element={
                             <PrivateRoute>
@@ -64,17 +51,17 @@ const AppRoutes = () => {
                         }
                     />
                     <Route
-                        path="/dashboard"
+                        path="/student/dashboard"
                         element={
-                            <SurveyRoute>
+                            <PrivateRoute role="student">
                                 <Dashboard />
-                            </SurveyRoute>
+                            </PrivateRoute>
                         }
                     />
                     <Route
                         path="/tutors"
                         element={
-                            <PrivateRoute>
+                            <PrivateRoute role="student">
                                 <Tutors />
                             </PrivateRoute>
                         }
@@ -82,7 +69,7 @@ const AppRoutes = () => {
                     <Route
                         path="/tutors/:id"
                         element={
-                            <PrivateRoute>
+                            <PrivateRoute role="student">
                                 <TutorProfile />
                             </PrivateRoute>
                         }
@@ -90,7 +77,7 @@ const AppRoutes = () => {
                     <Route
                         path="/tutor/dashboard"
                         element={
-                            <PrivateRoute>
+                            <PrivateRoute role="tutor">
                                 <TutorDashboard />
                             </PrivateRoute>
                         }
@@ -114,7 +101,7 @@ const AppRoutes = () => {
                     <Route
                         path="/challenges"
                         element={
-                            <PrivateRoute>
+                            <PrivateRoute role="student">
                                 <Challenges />
                             </PrivateRoute>
                         }
@@ -122,7 +109,7 @@ const AppRoutes = () => {
                     <Route
                         path="/leaderboard"
                         element={
-                            <PrivateRoute>
+                            <PrivateRoute role="student">
                                 <Leaderboard />
                             </PrivateRoute>
                         }

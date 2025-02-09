@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const Navbar = () => {
     const { user, logout } = useAuth();
+    const DEFAULT_AVATAR = 'https://via.placeholder.com/32';
 
     return (
         <nav className="bg-white dark:bg-gray-800 shadow-md">
@@ -37,12 +38,12 @@ const Navbar = () => {
                                 <div className="relative group">
                                     <div className="flex items-center cursor-pointer">
                                         <img
-                                            src={user.profile?.profile_picture || 'https://via.placeholder.com/32'}
-                                            alt={user.username}
+                                            src={user.personal?.profile_picture || DEFAULT_AVATAR}
+                                            alt={user.credentials?.username}
                                             className="w-8 h-8 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700"
                                             onError={(e) => {
                                                 const target = e.target as HTMLImageElement;
-                                                target.src = 'https://via.placeholder.com/32';
+                                                target.src = DEFAULT_AVATAR;
                                             }}
                                         />
                                     </div>

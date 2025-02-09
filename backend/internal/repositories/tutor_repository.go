@@ -7,13 +7,12 @@ import (
 
 // TutorRepository defines the interface for tutor-related database operations
 type TutorRepository interface {
-	// Tutor operations
-	CreateTutor(ctx context.Context, tutor *entities.Tutor) error
-	GetTutorByID(ctx context.Context, id int) (*entities.Tutor, error)
-	GetTutorByUserID(ctx context.Context, userID int) (*entities.Tutor, error)
-	ListTutors(ctx context.Context, limit, offset int, filters map[string]interface{}) ([]*entities.Tutor, error)
-	UpdateTutorApprovalStatus(ctx context.Context, tutorID int, status string) error
-	UpdateTutor(ctx context.Context, tutor *entities.Tutor) error
+	// Tutor Details operations
+	CreateTutorDetails(ctx context.Context, details *entities.TutorDetails) error
+	GetTutorDetails(ctx context.Context, userID int) (*entities.TutorDetails, error)
+	UpdateTutorDetails(ctx context.Context, details *entities.TutorDetails) error
+	ListTutors(ctx context.Context, limit, offset int, filters map[string]interface{}) ([]*entities.User, error)
+	UpdateTutorApprovalStatus(ctx context.Context, userID int, approved bool) error
 
 	// Profile operations
 	CreateTutorProfile(ctx context.Context, profile *entities.TutorProfile) error

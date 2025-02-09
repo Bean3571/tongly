@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { api } from '../api/client';
-import type { LanguageLevel, LearningGoal, User } from '../types';
+import type { LanguageLevel, User } from '../types';
 
 const languageEmojis: { [key: string]: string } = {
     'English': '🇬🇧',
@@ -67,106 +67,98 @@ const Dashboard: React.FC = () => {
     const [isEditingGoals, setIsEditingGoals] = useState(false);
     const [isEditingInterests, setIsEditingInterests] = useState(false);
     const [isEditingNativeLanguage, setIsEditingNativeLanguage] = useState(false);
-    const [editedLanguages, setEditedLanguages] = useState<LanguageLevel[]>(user?.profile?.languages || []);
-    const [editedGoals, setEditedGoals] = useState<string[]>(user?.profile?.learning_goals || []);
-    const [editedInterests, setEditedInterests] = useState<string[]>(user?.profile?.interests || []);
-    const [editedNativeLanguage, setEditedNativeLanguage] = useState<string>(user?.profile?.native_language || '');
+    const [editedLanguages, setEditedLanguages] = useState<LanguageLevel[]>(user?.student?.learning_languages || []);
+    const [editedGoals, setEditedGoals] = useState<string[]>(user?.student?.learning_goals || []);
+    const [editedInterests, setEditedInterests] = useState<string[]>(user?.student?.interests || []);
+    const [editedNativeLanguage, setEditedNativeLanguage] = useState<string>(user?.student?.native_languages[0] || '');
 
     useEffect(() => {
-        if (user?.profile) {
-            setEditedLanguages(user.profile.languages || []);
-            setEditedInterests(user.profile.interests || []);
-            setEditedGoals(user.profile.learning_goals || []);
-            setEditedNativeLanguage(user.profile.native_language || '');
+        if (user?.student) {
+            setEditedLanguages(user.student.learning_languages || []);
+            setEditedInterests(user.student.interests || []);
+            setEditedGoals(user.student.learning_goals || []);
+            setEditedNativeLanguage(user.student.native_languages[0] || '');
         }
     }, [user]);
 
-    const handleSaveLanguages = async () => {
+    const handleLanguagesSubmit = async () => {
         try {
-            await api.user.updateProfile({
-                languages: editedLanguages,
-                interests: user?.profile?.interests || [],
-                learning_goals: user?.profile?.learning_goals || [],
-                first_name: user?.profile?.first_name || null,
-                last_name: user?.profile?.last_name || null,
-                profile_picture: user?.profile?.profile_picture || null,
-                age: user?.profile?.age || null,
-                sex: user?.profile?.sex || null,
-                native_language: user?.profile?.native_language || null,
-                survey_complete: user?.profile?.survey_complete || false
+            await api.user.updateProfile({  
+                languages: editedLanguages, 
+                interests: user?.student?.interests || [],
+                learning_goals: user?.student?.learning_goals || [],
+                first_name: user?.personal?.first_name || null,
+                last_name: user?.personal?.last_name || null,
+                profile_picture: user?.personal?.profile_picture || null,
+                age: user?.personal?.age || null,
+                sex: user?.personal?.sex || null,
+                native_language: user?.student?.native_languages[0] || null
             });
             await refreshUser();
-            setIsEditingLanguages(false);
-            showNotification('success', 'Languages updated successfully');
+            setIsEditingLanguages(false);   
         } catch (error) {
             console.error('Failed to update languages:', error);
             showNotification('error', 'Failed to update languages');
         }
     };
 
-    const handleSaveGoals = async () => {
+    const handleGoalsSubmit = async () => {
         try {
-            await api.user.updateProfile({
+            await api.user.updateProfile({ 
                 learning_goals: editedGoals,
-                languages: user?.profile?.languages || [],
-                interests: user?.profile?.interests || [],
-                first_name: user?.profile?.first_name || null,
-                last_name: user?.profile?.last_name || null,
-                profile_picture: user?.profile?.profile_picture || null,
-                age: user?.profile?.age || null,
-                sex: user?.profile?.sex || null,
-                native_language: user?.profile?.native_language || null,
-                survey_complete: user?.profile?.survey_complete || false
+                languages: user?.student?.learning_languages || [],
+                interests: user?.student?.interests || [],
+                first_name: user?.personal?.first_name || null,
+                last_name: user?.personal?.last_name || null,
+                profile_picture: user?.personal?.profile_picture || null,
+                age: user?.personal?.age || null,
+                sex: user?.personal?.sex || null,
+                native_language: user?.student?.native_languages[0] || null
             });
             await refreshUser();
-            setIsEditingGoals(false);
-            showNotification('success', 'Learning goals updated successfully');
+            setIsEditingGoals(false);      
         } catch (error) {
-            console.error('Failed to update learning goals:', error);
+            console.error('Failed to update goals:', error);
             showNotification('error', 'Failed to update learning goals');
         }
     };
 
-    const handleSaveInterests = async () => {
+    const handleInterestsSubmit = async () => {
         try {
-            await api.user.updateProfile({
+            await api.user.updateProfile({ 
                 interests: editedInterests,
-                languages: user?.profile?.languages || [],
-                learning_goals: user?.profile?.learning_goals || [],
-                first_name: user?.profile?.first_name || null,
-                last_name: user?.profile?.last_name || null,
-                profile_picture: user?.profile?.profile_picture || null,
-                age: user?.profile?.age || null,
-                sex: user?.profile?.sex || null,
-                native_language: user?.profile?.native_language || null,
-                survey_complete: user?.profile?.survey_complete || false
+                languages: user?.student?.learning_languages || [],
+                learning_goals: user?.student?.learning_goals || [],
+                first_name: user?.personal?.first_name || null,
+                last_name: user?.personal?.last_name || null,
+                profile_picture: user?.personal?.profile_picture || null,
+                age: user?.personal?.age || null,
+                sex: user?.personal?.sex || null,
+                native_language: user?.student?.native_languages[0] || null
             });
             await refreshUser();
-            setIsEditingInterests(false);
-            showNotification('success', 'Interests updated successfully');
+            setIsEditingInterests(false);  
         } catch (error) {
             console.error('Failed to update interests:', error);
             showNotification('error', 'Failed to update interests');
         }
     };
 
-    const handleSaveNativeLanguage = async () => {
+    const handleNativeLanguageSubmit = async () => {
         try {
-            await api.user.updateProfile({
+            await api.user.updateProfile({ 
                 native_language: editedNativeLanguage,
-                languages: user?.profile?.languages || [],
-                interests: user?.profile?.interests || [],
-                learning_goals: user?.profile?.learning_goals || [],
-                first_name: user?.profile?.first_name || null,
-                last_name: user?.profile?.last_name || null,
-                profile_picture: user?.profile?.profile_picture || null,
-                age: user?.profile?.age || null,
-                sex: user?.profile?.sex || null,
-                survey_complete: user?.profile?.survey_complete || false
+                languages: user?.student?.learning_languages || [],
+                interests: user?.student?.interests || [],
+                learning_goals: user?.student?.learning_goals || [],
+                first_name: user?.personal?.first_name || null,
+                last_name: user?.personal?.last_name || null,
+                profile_picture: user?.personal?.profile_picture || null,
+                age: user?.personal?.age || null,
+                sex: user?.personal?.sex || null
             });
             await refreshUser();
             setIsEditingNativeLanguage(false);
-            showNotification('success', 'Native language updated successfully');
         } catch (error) {
             console.error('Failed to update native language:', error);
             showNotification('error', 'Failed to update native language');
@@ -180,7 +172,7 @@ const Dashboard: React.FC = () => {
     return (
         <div className="container mx-auto px-4 py-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
-                Welcome back, {user.profile?.first_name || user.username}! 👋
+                Welcome back, {user?.personal?.first_name || user?.credentials?.username}! 
             </h1>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -191,10 +183,10 @@ const Dashboard: React.FC = () => {
                             Native Language 🌍
                         </h2>
                         <button
-                            onClick={() => setIsEditingNativeLanguage(!isEditingNativeLanguage)}
+                            onClick={() => setIsEditingNativeLanguage(true)}
                             className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
                         >
-                            {isEditingNativeLanguage ? 'Cancel' : 'Edit'}
+                            Edit
                         </button>
                     </div>
                     {isEditingNativeLanguage ? (
@@ -212,19 +204,26 @@ const Dashboard: React.FC = () => {
                                     </option>
                                 ))}
                             </select>
-                            <button
-                                onClick={handleSaveNativeLanguage}
-                                className="w-full mt-4 bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 
-                                         transition-colors"
-                            >
-                                Save Changes
-                            </button>
+                            <div className="flex justify-end space-x-2">
+                                <button
+                                    onClick={() => setIsEditingNativeLanguage(false)}
+                                    className="px-4 py-2 text-gray-600 dark:text-gray-400"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleNativeLanguageSubmit}
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                >
+                                    Save
+                                </button>
+                            </div>
                         </div>
                     ) : (
                         <div className="text-gray-700 dark:text-gray-300">
-                            {user?.profile?.native_language ? (
+                            {user?.student?.native_languages[0] ? (
                                 <span className="text-lg">
-                                    {languageEmojis[user.profile.native_language]} {user.profile.native_language}
+                                    {languageEmojis[user.student.native_languages[0]]} {user.student.native_languages[0]}
                                 </span>
                             ) : (
                                 <span className="text-gray-500 dark:text-gray-400 italic">
@@ -242,10 +241,10 @@ const Dashboard: React.FC = () => {
                             Your Language Progress 📚
                         </h2>
                         <button
-                            onClick={() => setIsEditingLanguages(!isEditingLanguages)}
+                            onClick={() => setIsEditingLanguages(true)}
                             className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
                         >
-                            {isEditingLanguages ? 'Cancel' : 'Edit'}
+                            Edit
                         </button>
                     </div>
                     {isEditingLanguages ? (
@@ -257,7 +256,7 @@ const Dashboard: React.FC = () => {
                                             value={lang.language}
                                             onChange={(e) => {
                                                 const newLanguages = [...editedLanguages];
-                                                newLanguages[index] = { ...lang, language: e.target.value };
+                                                newLanguages[index].language = e.target.value;
                                                 setEditedLanguages(newLanguages);
                                             }}
                                             className="flex-1 p-2 rounded-lg border border-gray-300 dark:border-gray-600 
@@ -273,7 +272,7 @@ const Dashboard: React.FC = () => {
                                             value={lang.level}
                                             onChange={(e) => {
                                                 const newLanguages = [...editedLanguages];
-                                                newLanguages[index] = { ...lang, level: e.target.value };
+                                                newLanguages[index].level = e.target.value;
                                                 setEditedLanguages(newLanguages);
                                             }}
                                             className="flex-1 p-2 rounded-lg border border-gray-300 dark:border-gray-600 
@@ -292,7 +291,7 @@ const Dashboard: React.FC = () => {
                                             }}
                                             className="text-red-600 hover:text-red-700"
                                         >
-                                            ✕
+                                            Remove
                                         </button>
                                     </div>
                                 ))}
@@ -303,19 +302,26 @@ const Dashboard: React.FC = () => {
                                          rounded-lg text-gray-600 dark:text-gray-300 hover:border-blue-500 
                                          hover:text-blue-500 transition-colors"
                             >
-                                + Add Language
+                                Add Language
                             </button>
-                            <button
-                                onClick={handleSaveLanguages}
-                                className="w-full mt-4 bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 
-                                         transition-colors"
-                            >
-                                Save Changes
-                            </button>
+                            <div className="flex justify-end space-x-2">
+                                <button
+                                    onClick={() => setIsEditingLanguages(false)}
+                                    className="px-4 py-2 text-gray-600 dark:text-gray-400"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleLanguagesSubmit}
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                >
+                                    Save
+                                </button>
+                            </div>
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            {(user.profile?.languages || []).map((lang: LanguageLevel) => (
+                            {(user.student?.learning_languages || []).map((lang: LanguageLevel) => (
                                 <div key={lang.language} className="mb-4">
                                     <div className="flex justify-between items-center mb-2">
                                         <span className="text-gray-700 dark:text-gray-300">
@@ -341,10 +347,10 @@ const Dashboard: React.FC = () => {
                             Your Goals 🎯
                         </h2>
                         <button
-                            onClick={() => setIsEditingGoals(!isEditingGoals)}
+                            onClick={() => setIsEditingGoals(true)}
                             className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
                         >
-                            {isEditingGoals ? 'Cancel' : 'Edit'}
+                            Edit
                         </button>
                     </div>
                     {isEditingGoals ? (
@@ -370,7 +376,7 @@ const Dashboard: React.FC = () => {
                                 ))}
                             </div>
                             <button
-                                onClick={handleSaveGoals}
+                                onClick={handleGoalsSubmit}
                                 className="w-full mt-4 bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 
                                          transition-colors"
                             >
@@ -379,7 +385,7 @@ const Dashboard: React.FC = () => {
                         </div>
                     ) : (
                         <div className="space-y-3">
-                            {(user.profile?.learning_goals || []).map((goal: string) => (
+                            {(user.student?.learning_goals || []).map((goal: string) => (
                                 <div
                                     key={goal}
                                     className="flex items-center text-gray-700 dark:text-gray-300"
@@ -398,10 +404,10 @@ const Dashboard: React.FC = () => {
                             Your Interests 💡
                         </h2>
                         <button
-                            onClick={() => setIsEditingInterests(!isEditingInterests)}
+                            onClick={() => setIsEditingInterests(true)}
                             className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
                         >
-                            {isEditingInterests ? 'Cancel' : 'Edit'}
+                            Edit
                         </button>
                     </div>
                     {isEditingInterests ? (
@@ -428,7 +434,7 @@ const Dashboard: React.FC = () => {
                                 ))}
                             </div>
                             <button
-                                onClick={handleSaveInterests}
+                                onClick={handleInterestsSubmit}
                                 className="w-full mt-4 bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 
                                          transition-colors"
                             >
@@ -437,7 +443,7 @@ const Dashboard: React.FC = () => {
                         </div>
                     ) : (
                         <div className="flex flex-wrap gap-2">
-                            {(user.profile?.interests || []).map((interest: string) => (
+                            {(user.student?.interests || []).map((interest: string) => (
                                 <span
                                     key={interest}
                                     className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full 

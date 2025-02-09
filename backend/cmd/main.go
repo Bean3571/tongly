@@ -60,15 +60,11 @@ func main() {
 
 	// Initialize repositories
 	userRepo := &repositories.UserRepositoryImpl{DB: db}
-	tutorRepo := &repositories.TutorRepositoryImpl{DB: db}
 	challengeRepo := &repositories.ChallengeRepositoryImpl{DB: db}
 
 	// Initialize use cases
 	authUseCase := usecases.AuthUseCase{UserRepo: userRepo}
-	tutorUseCase := &usecases.TutorUseCase{
-		TutorRepo: tutorRepo,
-		UserRepo:  userRepo,
-	}
+	tutorUseCase := &usecases.TutorUseCase{UserRepo: userRepo}
 	gamificationUseCase := usecases.GamificationUseCase{ChallengeRepo: challengeRepo}
 	userUseCase := usecases.UserUseCase{UserRepo: userRepo}
 

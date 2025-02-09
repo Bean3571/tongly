@@ -76,6 +76,7 @@ export default function TutorDashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { showNotification } = useNotification();
+  const [isLoading, setIsLoading] = useState(true);
   const [profile, setProfile] = useState<TutorProfile>({
     nativeLanguages: [],
     teachingLanguages: [],
@@ -115,10 +116,22 @@ export default function TutorDashboard() {
 
   const loadTutorProfile = async () => {
     try {
+      setIsLoading(true);
       const response = await api.tutors.getProfile();
-      setProfile(response);
+      setProfile(response || {
+        nativeLanguages: [],
+        teachingLanguages: [],
+        bio: '',
+        interests: [],
+        hourlyRate: 25,
+        offersTrial: true,
+        degrees: [],
+        introductionVideo: ''
+      });
     } catch (error) {
       showNotification('error', 'Failed to load tutor profile');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -133,6 +146,7 @@ export default function TutorDashboard() {
   };
 
   const handleSave = async () => {
+    if (!profile) return;
     try {
       if (videoFile) {
         const formData = new FormData();
@@ -175,6 +189,7 @@ export default function TutorDashboard() {
   };
 
   const handleNativeLanguageChange = (language: string) => {
+    if (!profile) return;
     if (profile.nativeLanguages.length >= 3) {
       showNotification('error', 'Maximum 3 native languages allowed');
       return;
@@ -182,7 +197,7 @@ export default function TutorDashboard() {
     if (language) {
       const newProfile = {
         ...profile,
-        nativeLanguages: [...profile.nativeLanguages, language]
+        nativeLanguages: [...(profile.nativeLanguages || []), language]
       };
       setProfile(newProfile);
       handleAutoSave(newProfile);
@@ -190,13 +205,14 @@ export default function TutorDashboard() {
   };
 
   const handleTeachingLanguageAdd = () => {
+    if (!profile) return;
     if (!newLanguage.language || !newLanguage.level) {
       showNotification('error', 'Please select both language and level');
       return;
     }
     const newProfile = {
       ...profile,
-      teachingLanguages: [...profile.teachingLanguages, newLanguage]
+      teachingLanguages: [...(profile.teachingLanguages || []), newLanguage]
     };
     setProfile(newProfile);
     setNewLanguage({ language: '', level: '' });
@@ -204,13 +220,14 @@ export default function TutorDashboard() {
   };
 
   const handleAddDegree = () => {
+    if (!profile) return;
     if (!newDegree.degree || !newDegree.institution || !newDegree.startYear || !newDegree.endYear || !newDegree.fieldOfStudy) {
       showNotification('error', 'Please fill in all degree fields');
       return;
     }
     const newProfile = {
       ...profile,
-      degrees: [...profile.degrees, newDegree]
+      degrees: [...(profile.degrees || []), newDegree]
     };
     setProfile(newProfile);
     setNewDegree({
@@ -224,6 +241,7 @@ export default function TutorDashboard() {
   };
 
   const handleBioChange = (bio: string) => {
+    if (!profile) return;
     const newProfile = { ...profile, bio };
     setProfile(newProfile);
     // Debounce bio updates to avoid too many API calls
@@ -234,12 +252,14 @@ export default function TutorDashboard() {
   };
 
   const handlePricingChange = (hourlyRate: number) => {
+    if (!profile) return;
     const newProfile = { ...profile, hourlyRate };
     setProfile(newProfile);
     handleAutoSave(newProfile);
   };
 
   const handleTrialChange = (offersTrial: boolean) => {
+    if (!profile) return;
     const newProfile = { ...profile, offersTrial };
     setProfile(newProfile);
     handleAutoSave(newProfile);
@@ -247,6 +267,7 @@ export default function TutorDashboard() {
 
   // Auto-save function
   const handleAutoSave = async (updatedProfile: TutorProfile) => {
+    if (!updatedProfile) return;
     try {
       await api.tutors.updateProfile(updatedProfile);
       showNotification('success', 'Changes saved successfully');
@@ -255,10 +276,20 @@ export default function TutorDashboard() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-center items-center h-64">
+          <div className="text-gray-500">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Welcome back, {user?.profile?.first_name || user?.username}!</h1>
+        <h1 className="text-3xl font-bold">Welcome back, {user?.personal?.first_name || user?.credentials?.username}!</h1>
         <button
           onClick={() => navigate('/schedule')}
           className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
@@ -341,13 +372,13 @@ export default function TutorDashboard() {
                 onChange={(e) => handleNativeLanguageChange(e.target.value)}
               >
                 <option value="">Select a language</option>
-                {LANGUAGES.filter(lang => !profile.nativeLanguages.includes(lang)).map(lang => (
+                {LANGUAGES.filter(lang => !profile?.nativeLanguages?.includes(lang)).map(lang => (
                   <option key={lang} value={lang}>{lang}</option>
                 ))}
               </select>
             </div>
             <div className="flex flex-wrap gap-2">
-              {profile.nativeLanguages.map((lang, index) => (
+              {profile?.nativeLanguages?.map((lang, index) => (
                 <div key={index} className="flex items-center bg-gray-50 dark:bg-gray-700 px-3 py-1 rounded-full">
                   <span>{lang}</span>
                   <button
@@ -398,8 +429,8 @@ export default function TutorDashboard() {
             >
               Add Teaching Language
             </button>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              {profile.teachingLanguages.map((lang, index) => (
+            <div className="space-y-2">
+              {profile?.teachingLanguages?.map((lang, index) => (
                 <div key={index} className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                   <div>
                     <span className="font-medium">{lang.language}</span>
@@ -407,7 +438,7 @@ export default function TutorDashboard() {
                   </div>
                   <button
                     onClick={() => {
-                      const newLanguages = [...profile.teachingLanguages];
+                      const newLanguages = [...(profile?.teachingLanguages || [])];
                       newLanguages.splice(index, 1);
                       setProfile(prev => ({ ...prev, teachingLanguages: newLanguages }));
                     }}
@@ -470,8 +501,8 @@ export default function TutorDashboard() {
             >
               Add Degree
             </button>
-            <div className="space-y-4 mt-4">
-              {profile.degrees.map((degree, index) => (
+            <div className="space-y-4">
+              {profile?.degrees?.map((degree, index) => (
                 <div key={index} className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
                   <div className="flex justify-between">
                     <div>
@@ -483,7 +514,7 @@ export default function TutorDashboard() {
                     <button
                       onClick={() => setProfile(prev => ({
                         ...prev,
-                        degrees: prev.degrees.filter((_, i) => i !== index)
+                        degrees: (prev?.degrees || []).filter((_, i) => i !== index)
                       }))}
                       className="text-red-500 hover:text-red-700"
                     >
@@ -506,15 +537,15 @@ export default function TutorDashboard() {
                 onClick={() => {
                   const newProfile = {
                     ...profile,
-                    interests: profile.interests.includes(interest)
-                      ? profile.interests.filter(i => i !== interest)
-                      : [...profile.interests, interest]
+                    interests: profile?.interests?.includes(interest)
+                      ? (profile?.interests || []).filter(i => i !== interest)
+                      : [...(profile?.interests || []), interest]
                   };
                   setProfile(newProfile);
                   handleAutoSave(newProfile);
                 }}
                 className={`p-4 rounded-lg border text-left transition-colors ${
-                  profile.interests.includes(interest)
+                  profile?.interests?.includes(interest)
                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-900 dark:border-blue-400'
                     : 'border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400'
                 }`}

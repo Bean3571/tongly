@@ -36,7 +36,7 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 		return
 	}
 
-	user, err := h.UserUseCase.GetUserByID(userIDInt)
+	user, err := h.UserUseCase.GetUserByID(c.Request.Context(), userIDInt)
 	if err != nil {
 		logger.Error("Failed to get user profile", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get profile"})
@@ -81,7 +81,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 		"user_id", userIDInt,
 		"data", updateData)
 
-	if err := h.UserUseCase.UpdateUser(userIDInt, updateData); err != nil {
+	if err := h.UserUseCase.UpdateUser(c.Request.Context(), userIDInt, updateData); err != nil {
 		logger.Error("Failed to update user profile",
 			"error", err,
 			"error_type", fmt.Sprintf("%T", err),
@@ -124,7 +124,7 @@ func (h *UserHandler) UpdatePassword(c *gin.Context) {
 		return
 	}
 
-	if err := h.UserUseCase.UpdatePassword(userIDInt, passwordData.CurrentPassword, passwordData.NewPassword); err != nil {
+	if err := h.UserUseCase.UpdatePassword(c.Request.Context(), userIDInt, passwordData.CurrentPassword, passwordData.NewPassword); err != nil {
 		logger.Error("Failed to update password", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update password"})
 		return
@@ -174,7 +174,7 @@ func (h *UserHandler) UploadProfilePicture(c *gin.Context) {
 		ProfilePicture: &fileURL,
 	}
 
-	if err := h.UserUseCase.UpdateUser(userID.(int), updateData); err != nil {
+	if err := h.UserUseCase.UpdateUser(c.Request.Context(), userID.(int), updateData); err != nil {
 		logger.Error("Failed to update profile picture",
 			"error", err,
 			"user_id", userID)

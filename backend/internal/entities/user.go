@@ -38,36 +38,47 @@ var Interests = []string{
 	"education",   // 🎓 Education
 }
 
-// User represents the authentication data
-type User struct {
-	ID           int          `json:"id"`
-	Username     string       `json:"username"`
-	Password     string       `json:"password,omitempty"`
-	PasswordHash string       `json:"-"`
-	Email        string       `json:"email"`
-	Role         string       `json:"role"`
-	Profile      *UserProfile `json:"profile,omitempty"`
+// UserCredentials represents the authentication data
+type UserCredentials struct {
+	ID           int    `json:"id"`
+	Username     string `json:"username"`
+	Password     string `json:"password,omitempty"`
+	PasswordHash string `json:"-"`
+	Email        string `json:"email"`
+	Role         string `json:"role"`
 }
 
-// UserProfile represents user's personal and preference data
-type UserProfile struct {
-	ID             int             `json:"id"`
-	UserID         int             `json:"user_id"`
-	FirstName      *string         `json:"first_name,omitempty"`
-	LastName       *string         `json:"last_name,omitempty"`
-	ProfilePicture *string         `json:"profile_picture,omitempty"`
-	Age            *int            `json:"age,omitempty"`
-	Sex            *string         `json:"sex,omitempty"`
-	NativeLanguage *string         `json:"native_language,omitempty"`
-	Languages      []LanguageLevel `json:"languages,omitempty"`
-	Interests      []string        `json:"interests,omitempty"`
-	LearningGoals  []string        `json:"learning_goals,omitempty"`
-	SurveyComplete bool            `json:"survey_complete"`
-	IsTutor        bool            `json:"is_tutor"`
+// UserPersonal represents user's personal information
+type UserPersonal struct {
+	ID             int     `json:"id"`
+	UserID         int     `json:"user_id"`
+	FirstName      *string `json:"first_name,omitempty"`
+	LastName       *string `json:"last_name,omitempty"`
+	ProfilePicture *string `json:"profile_picture,omitempty"`
+	Age            *int    `json:"age,omitempty"`
+	Sex            *string `json:"sex,omitempty"`
+}
+
+// StudentDetails represents student-specific data
+type StudentDetails struct {
+	ID                int             `json:"id"`
+	UserID            int             `json:"user_id"`
+	NativeLanguages   []string        `json:"native_languages"`
+	LearningLanguages []LanguageLevel `json:"learning_languages"`
+	LearningGoals     []string        `json:"learning_goals"`
+	Interests         []string        `json:"interests"`
+}
+
+// User represents the complete user data
+type User struct {
+	Credentials *UserCredentials `json:"credentials"`
+	Personal    *UserPersonal    `json:"personal,omitempty"`
+	Student     *StudentDetails  `json:"student,omitempty"`
+	Tutor       *TutorDetails    `json:"tutor,omitempty"`
 }
 
 // HashPassword hashes the user's password using bcrypt
-func (u *User) HashPassword(password string) error {
+func (u *UserCredentials) HashPassword(password string) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
@@ -77,7 +88,7 @@ func (u *User) HashPassword(password string) error {
 }
 
 // ValidatePassword checks if the provided password matches the hashed password
-func (u *User) ValidatePassword(password string) bool {
+func (u *UserCredentials) ValidatePassword(password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password))
 	return err == nil
 }

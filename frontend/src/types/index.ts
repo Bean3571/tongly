@@ -1,14 +1,18 @@
 export interface User {
+    credentials: UserCredentials;
+    personal?: UserPersonal;
+    student?: StudentDetails;
+    tutor?: TutorDetails;
+}
+
+export interface UserCredentials {
     id: number;
     username: string;
     email: string;
     role: string;
-    profile?: UserProfile;
-    created_at: string;
-    updated_at: string;
 }
 
-export interface UserProfile {
+export interface UserPersonal {
     id: number;
     user_id: number;
     first_name?: string | null;
@@ -16,24 +20,66 @@ export interface UserProfile {
     profile_picture?: string | null;
     age?: number | null;
     sex?: 'male' | 'female' | 'other' | null;
-    native_language?: string | null;
-    languages: LanguageLevel[];
-    interests: string[];
-    learning_goals: string[];
-    survey_complete: boolean;
-    is_tutor: boolean;
 }
 
-export type LearningGoal = 
-    | 'business'
-    | 'job'
-    | 'study'
-    | 'trip'
-    | 'migration'
-    | 'exams'
-    | 'culture'
-    | 'friends'
-    | 'hobby';
+export interface StudentDetails {
+    id: number;
+    user_id: number;
+    native_languages: string[];
+    learning_languages: LanguageLevel[];
+    learning_goals: string[];
+    interests: string[];
+}
+
+export interface TutorDetails {
+    id: number;
+    user_id: number;
+    bio: string;
+    native_languages: string[];
+    teaching_languages: LanguageLevel[];
+    degrees: Degree[];
+    interests: string[];
+    hourly_rate: number;
+    introduction_video: string;
+    offers_trial: boolean;
+    approved: boolean;
+}
+
+export interface LanguageLevel {
+    language: string;
+    level: string;
+}
+
+export interface Degree {
+    degree: string;
+    institution: string;
+    field_of_study: string;
+    start_year: string;
+    end_year: string;
+}
+
+export const Languages = [
+    'English',
+    'Spanish',
+    'French',
+    'German',
+    'Chinese',
+    'Japanese',
+    'Korean',
+    'Russian',
+    'Arabic',
+    'Portuguese',
+    'Italian',
+] as const;
+
+export const LanguageLevels = [
+    'A1',
+    'A2',
+    'B1',
+    'B2',
+    'C1',
+    'C2',
+] as const;
 
 export interface AuthResponse {
     token: string;
@@ -52,34 +98,6 @@ export interface RegisterData {
     role: string;
 }
 
-export interface LanguageLevel {
-    language: string;
-    level: string;
-}
-
-export const Languages = [
-    'English',
-    'Spanish',
-    'French',
-    'German',
-    'Chinese',
-    'Japanese',
-    'Korean',
-    'Russian',
-    'Arabic',
-    'Portuguese',
-    'Italian',
-] as const;
-
-export const LanguageLevels = [
-    'Beginner (A1)',
-    'Elementary (A2)',
-    'Intermediate (B1)',
-    'Upper Intermediate (B2)',
-    'Advanced (C1)',
-    'Mastery (C2)',
-] as const;
-
 export interface ProfileUpdateData {
     email?: string;
     first_name?: string | null;
@@ -91,5 +109,4 @@ export interface ProfileUpdateData {
     languages?: LanguageLevel[];
     interests?: string[];
     learning_goals?: string[];
-    survey_complete?: boolean;
 } 

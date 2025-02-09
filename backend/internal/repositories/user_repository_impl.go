@@ -1,8 +1,10 @@
 package repositories
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"tongly-backend/internal/entities"
 	"tongly-backend/internal/logger"
 
@@ -13,358 +15,539 @@ type UserRepositoryImpl struct {
 	DB *sql.DB
 }
 
-func (r *UserRepositoryImpl) CreateUser(user entities.User) error {
-	query := `INSERT INTO users (username, password_hash, role, email) 
-              VALUES ($1, $2, $3, $4) RETURNING id`
+// CreateUserCredentials creates a new user's credentials
+func (r *UserRepositoryImpl) CreateUserCredentials(ctx context.Context, creds entities.UserCredentials) error {
+	query := `
+        INSERT INTO user_credentials (username, email, password_hash, role)
+        VALUES ($1, $2, $3, $4)
+        RETURNING id`
 
-	err := r.DB.QueryRow(query, user.Username, user.PasswordHash, user.Role, user.Email).Scan(&user.ID)
-	if err != nil {
-		logger.Error("Failed to create user", "error", err, "username", user.Username)
-		return err
-	}
-
-	logger.Info("User created successfully", "username", user.Username, "id", user.ID)
-	return nil
-}
-
-func (r *UserRepositoryImpl) GetUserByUsername(username string) (*entities.User, error) {
-	query := `SELECT u.id, u.username, u.password_hash, u.role, u.email 
-              FROM users u WHERE u.username = $1`
-
-	var user entities.User
-	err := r.DB.QueryRow(query, username).Scan(
-		&user.ID,
-		&user.Username,
-		&user.PasswordHash,
-		&user.Role,
-		&user.Email,
-	)
-
-	if err == sql.ErrNoRows {
-		logger.Info("User not found", "username", username)
-		return nil, nil
-	}
-	if err != nil {
-		logger.Error("Failed to fetch user", "error", err, "username", username)
-		return nil, err
-	}
-
-	// Get user profile
-	profile, err := r.GetProfileByUserID(user.ID)
-	if err != nil {
-		logger.Error("Failed to fetch user profile", "error", err, "user_id", user.ID)
-		return nil, err
-	}
-	user.Profile = profile
-
-	logger.Info("User fetched successfully", "username", username)
-	return &user, nil
-}
-
-func (r *UserRepositoryImpl) GetUserByID(id int) (*entities.User, error) {
-	logger.Info("Getting user by ID", "id", id)
-
-	query := `SELECT id, username, password_hash, role, email FROM users WHERE id = $1`
-
-	var user entities.User
-	err := r.DB.QueryRow(query, id).Scan(
-		&user.ID,
-		&user.Username,
-		&user.PasswordHash,
-		&user.Role,
-		&user.Email,
-	)
-
-	if err == sql.ErrNoRows {
-		logger.Error("User not found", "id", id)
-		return nil, nil
-	}
-	if err != nil {
-		logger.Error("Failed to get user by ID", "error", err, "id", id)
-		return nil, err
-	}
-
-	// Get user profile
-	profile, err := r.GetProfileByUserID(id)
-	if err != nil {
-		logger.Error("Failed to fetch user profile", "error", err, "user_id", id)
-		return nil, err
-	}
-	user.Profile = profile
-
-	logger.Info("User retrieved successfully", "id", id)
-	return &user, nil
-}
-
-func (r *UserRepositoryImpl) UpdateUser(user entities.User) error {
-	query := `UPDATE users 
-             SET email = COALESCE(NULLIF($1, ''), email),
-                 role = COALESCE(NULLIF($2, ''), role),
-                 updated_at = CURRENT_TIMESTAMP
-             WHERE id = $3
-             RETURNING id`
-
-	var id int
-	err := r.DB.QueryRow(query, user.Email, user.Role, user.ID).Scan(&id)
-	if err != nil {
-		logger.Error("Failed to update user", "error", err, "user_id", user.ID)
-		return err
-	}
-
-	logger.Info("User updated successfully", "user_id", user.ID)
-	return nil
-}
-
-func (r *UserRepositoryImpl) CreateProfile(profile entities.UserProfile) error {
-	query := `INSERT INTO user_profiles (
-                user_id, first_name, last_name, profile_picture, age, sex,
-                native_language, languages, interests, learning_goals, survey_complete
-             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-             RETURNING id`
-
-	languagesJSON, err := json.Marshal(profile.Languages)
-	if err != nil {
-		logger.Error("Failed to marshal languages", "error", err)
-		return err
-	}
-
-	err = r.DB.QueryRow(
+	err := r.DB.QueryRowContext(
+		ctx,
 		query,
-		profile.UserID,
-		profile.FirstName,
-		profile.LastName,
-		profile.ProfilePicture,
-		profile.Age,
-		profile.Sex,
-		profile.NativeLanguage,
-		languagesJSON,
-		pq.Array(profile.Interests),
-		pq.Array(profile.LearningGoals),
-		profile.SurveyComplete,
-	).Scan(&profile.ID)
+		creds.Username,
+		creds.Email,
+		creds.PasswordHash,
+		creds.Role,
+	).Scan(&creds.ID)
 
 	if err != nil {
-		logger.Error("Failed to create profile", "error", err, "user_id", profile.UserID)
+		logger.Error("Failed to create user credentials", "error", err)
 		return err
 	}
 
-	logger.Info("Profile created successfully", "user_id", profile.UserID)
 	return nil
 }
 
-func (r *UserRepositoryImpl) GetProfileByUserID(userID int) (*entities.UserProfile, error) {
-	query := `SELECT id, user_id, first_name, last_name, profile_picture,
-                    age, sex, native_language, languages, interests,
-                    learning_goals, survey_complete
-             FROM user_profiles
-             WHERE user_id = $1`
+// GetUserByUsername retrieves a complete user by username
+func (r *UserRepositoryImpl) GetUserByUsername(ctx context.Context, username string) (*entities.User, error) {
+	user := &entities.User{
+		Credentials: &entities.UserCredentials{},
+	}
 
-	var profile entities.UserProfile
-	var firstName, lastName, profilePicture, nativeLanguage, sex sql.NullString
-	var age sql.NullInt64
-	var languagesJSON []byte
-
-	err := r.DB.QueryRow(query, userID).Scan(
-		&profile.ID,
-		&profile.UserID,
-		&firstName,
-		&lastName,
-		&profilePicture,
-		&age,
-		&sex,
-		&nativeLanguage,
-		&languagesJSON,
-		pq.Array(&profile.Interests),
-		pq.Array(&profile.LearningGoals),
-		&profile.SurveyComplete,
+	query := `SELECT id, username, email, password_hash, role FROM user_credentials WHERE username = $1`
+	err := r.DB.QueryRowContext(ctx, query, username).Scan(
+		&user.Credentials.ID,
+		&user.Credentials.Username,
+		&user.Credentials.Email,
+		&user.Credentials.PasswordHash,
+		&user.Credentials.Role,
 	)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
 	if err != nil {
-		logger.Error("Failed to get profile", "error", err, "user_id", userID)
 		return nil, err
 	}
 
-	// Convert nullable fields
-	if firstName.Valid {
-		profile.FirstName = &firstName.String
-	}
-	if lastName.Valid {
-		profile.LastName = &lastName.String
-	}
-	if profilePicture.Valid {
-		profile.ProfilePicture = &profilePicture.String
-	}
-	if age.Valid {
-		ageInt := int(age.Int64)
-		profile.Age = &ageInt
-	}
-	if sex.Valid {
-		profile.Sex = &sex.String
-	}
-	if nativeLanguage.Valid {
-		profile.NativeLanguage = &nativeLanguage.String
+	// Get personal info
+	user.Personal, _ = r.GetPersonalInfo(ctx, user.Credentials.ID)
+
+	// Get role-specific details
+	if user.Credentials.Role == "student" {
+		user.Student, _ = r.GetStudentDetails(ctx, user.Credentials.ID)
+	} else if user.Credentials.Role == "tutor" {
+		user.Tutor, _ = r.GetTutorDetails(ctx, user.Credentials.ID)
 	}
 
-	// Initialize arrays if nil
-	if profile.Languages == nil {
-		profile.Languages = make([]entities.LanguageLevel, 0)
-	}
-	if profile.Interests == nil {
-		profile.Interests = make([]string, 0)
-	}
-	if profile.LearningGoals == nil {
-		profile.LearningGoals = make([]string, 0)
+	return user, nil
+}
+
+// GetUserByID retrieves a complete user by ID
+func (r *UserRepositoryImpl) GetUserByID(ctx context.Context, id int) (*entities.User, error) {
+	user := &entities.User{
+		Credentials: &entities.UserCredentials{},
 	}
 
-	// Decode languages JSON
-	if len(languagesJSON) > 0 {
-		err = json.Unmarshal(languagesJSON, &profile.Languages)
+	query := `SELECT id, username, email, password_hash, role FROM user_credentials WHERE id = $1`
+	err := r.DB.QueryRowContext(ctx, query, id).Scan(
+		&user.Credentials.ID,
+		&user.Credentials.Username,
+		&user.Credentials.Email,
+		&user.Credentials.PasswordHash,
+		&user.Credentials.Role,
+	)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	// Get personal info
+	user.Personal, _ = r.GetPersonalInfo(ctx, id)
+
+	// Get role-specific details
+	if user.Credentials.Role == "student" {
+		user.Student, _ = r.GetStudentDetails(ctx, id)
+	} else if user.Credentials.Role == "tutor" {
+		user.Tutor, _ = r.GetTutorDetails(ctx, id)
+	}
+
+	return user, nil
+}
+
+// UpdateUserCredentials updates a user's credentials
+func (r *UserRepositoryImpl) UpdateUserCredentials(ctx context.Context, creds entities.UserCredentials) error {
+	query := `
+        UPDATE user_credentials 
+        SET email = $1, password_hash = $2
+        WHERE id = $3`
+
+	result, err := r.DB.ExecContext(ctx, query, creds.Email, creds.PasswordHash, creds.ID)
+	if err != nil {
+		return err
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return errors.New("user not found")
+	}
+
+	return nil
+}
+
+// CreatePersonalInfo creates personal information for a user
+func (r *UserRepositoryImpl) CreatePersonalInfo(ctx context.Context, info entities.UserPersonal) error {
+	query := `
+        INSERT INTO user_personal (user_id, first_name, last_name, profile_picture, age, sex)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING id`
+
+	err := r.DB.QueryRowContext(
+		ctx,
+		query,
+		info.UserID,
+		info.FirstName,
+		info.LastName,
+		info.ProfilePicture,
+		info.Age,
+		info.Sex,
+	).Scan(&info.ID)
+
+	if err != nil {
+		logger.Error("Failed to create personal info", "error", err)
+		return err
+	}
+
+	return nil
+}
+
+// GetPersonalInfo retrieves personal information for a user
+func (r *UserRepositoryImpl) GetPersonalInfo(ctx context.Context, userID int) (*entities.UserPersonal, error) {
+	info := &entities.UserPersonal{}
+
+	query := `
+        SELECT id, user_id, first_name, last_name, profile_picture, age, sex
+        FROM user_personal
+        WHERE user_id = $1`
+
+	err := r.DB.QueryRowContext(ctx, query, userID).Scan(
+		&info.ID,
+		&info.UserID,
+		&info.FirstName,
+		&info.LastName,
+		&info.ProfilePicture,
+		&info.Age,
+		&info.Sex,
+	)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return info, nil
+}
+
+// UpdatePersonalInfo updates personal information for a user
+func (r *UserRepositoryImpl) UpdatePersonalInfo(ctx context.Context, info entities.UserPersonal) error {
+	query := `
+        UPDATE user_personal 
+        SET first_name = $1, last_name = $2, profile_picture = $3, age = $4, sex = $5
+        WHERE user_id = $6`
+
+	result, err := r.DB.ExecContext(
+		ctx,
+		query,
+		info.FirstName,
+		info.LastName,
+		info.ProfilePicture,
+		info.Age,
+		info.Sex,
+		info.UserID,
+	)
+	if err != nil {
+		return err
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return errors.New("personal info not found")
+	}
+
+	return nil
+}
+
+// CreateStudentDetails creates student details for a user
+func (r *UserRepositoryImpl) CreateStudentDetails(ctx context.Context, details entities.StudentDetails) error {
+	query := `
+        INSERT INTO student_details (user_id, native_languages, learning_languages, learning_goals, interests)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING id`
+
+	learningLanguagesJSON, err := json.Marshal(details.LearningLanguages)
+	if err != nil {
+		return err
+	}
+
+	err = r.DB.QueryRowContext(
+		ctx,
+		query,
+		details.UserID,
+		pq.Array(details.NativeLanguages),
+		learningLanguagesJSON,
+		pq.Array(details.LearningGoals),
+		pq.Array(details.Interests),
+	).Scan(&details.ID)
+
+	if err != nil {
+		logger.Error("Failed to create student details", "error", err)
+		return err
+	}
+
+	return nil
+}
+
+// GetStudentDetails retrieves student details for a user
+func (r *UserRepositoryImpl) GetStudentDetails(ctx context.Context, userID int) (*entities.StudentDetails, error) {
+	details := &entities.StudentDetails{}
+	var learningLanguagesJSON []byte
+
+	query := `
+        SELECT id, user_id, native_languages, learning_languages, learning_goals, interests
+        FROM student_details
+        WHERE user_id = $1`
+
+	err := r.DB.QueryRowContext(ctx, query, userID).Scan(
+		&details.ID,
+		&details.UserID,
+		pq.Array(&details.NativeLanguages),
+		&learningLanguagesJSON,
+		pq.Array(&details.LearningGoals),
+		pq.Array(&details.Interests),
+	)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(learningLanguagesJSON, &details.LearningLanguages)
+	if err != nil {
+		return nil, err
+	}
+
+	return details, nil
+}
+
+// UpdateStudentDetails updates student details for a user
+func (r *UserRepositoryImpl) UpdateStudentDetails(ctx context.Context, details entities.StudentDetails) error {
+	query := `
+        UPDATE student_details 
+        SET native_languages = $1, learning_languages = $2, learning_goals = $3, interests = $4
+        WHERE user_id = $5`
+
+	learningLanguagesJSON, err := json.Marshal(details.LearningLanguages)
+	if err != nil {
+		return err
+	}
+
+	result, err := r.DB.ExecContext(
+		ctx,
+		query,
+		pq.Array(details.NativeLanguages),
+		learningLanguagesJSON,
+		pq.Array(details.LearningGoals),
+		pq.Array(details.Interests),
+		details.UserID,
+	)
+	if err != nil {
+		return err
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return errors.New("student details not found")
+	}
+
+	return nil
+}
+
+// CreateTutorDetails creates tutor details for a user
+func (r *UserRepositoryImpl) CreateTutorDetails(ctx context.Context, details *entities.TutorDetails) error {
+	query := `
+        INSERT INTO tutor_details (
+            user_id, bio, native_languages, teaching_languages, degrees,
+            interests, hourly_rate, introduction_video, offers_trial, approved
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        RETURNING id`
+
+	teachingLanguagesJSON, err := json.Marshal(details.TeachingLanguages)
+	if err != nil {
+		return err
+	}
+
+	degreesJSON, err := json.Marshal(details.Degrees)
+	if err != nil {
+		return err
+	}
+
+	err = r.DB.QueryRowContext(
+		ctx,
+		query,
+		details.UserID,
+		details.Bio,
+		pq.Array(details.NativeLanguages),
+		teachingLanguagesJSON,
+		degreesJSON,
+		pq.Array(details.Interests),
+		details.HourlyRate,
+		details.IntroductionVideo,
+		details.OffersTrial,
+		details.Approved,
+	).Scan(&details.ID)
+
+	if err != nil {
+		logger.Error("Failed to create tutor details", "error", err)
+		return err
+	}
+
+	return nil
+}
+
+// GetTutorDetails retrieves tutor details for a user
+func (r *UserRepositoryImpl) GetTutorDetails(ctx context.Context, userID int) (*entities.TutorDetails, error) {
+	details := &entities.TutorDetails{}
+	var teachingLanguagesJSON, degreesJSON []byte
+
+	query := `
+        SELECT id, user_id, bio, native_languages, teaching_languages, degrees,
+               interests, hourly_rate, introduction_video, offers_trial, approved,
+               created_at, updated_at
+        FROM tutor_details
+        WHERE user_id = $1`
+
+	err := r.DB.QueryRowContext(ctx, query, userID).Scan(
+		&details.ID,
+		&details.UserID,
+		&details.Bio,
+		pq.Array(&details.NativeLanguages),
+		&teachingLanguagesJSON,
+		&degreesJSON,
+		pq.Array(&details.Interests),
+		&details.HourlyRate,
+		&details.IntroductionVideo,
+		&details.OffersTrial,
+		&details.Approved,
+		&details.CreatedAt,
+		&details.UpdatedAt,
+	)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(teachingLanguagesJSON, &details.TeachingLanguages)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(degreesJSON, &details.Degrees)
+	if err != nil {
+		return nil, err
+	}
+
+	return details, nil
+}
+
+// UpdateTutorDetails updates tutor details for a user
+func (r *UserRepositoryImpl) UpdateTutorDetails(ctx context.Context, details *entities.TutorDetails) error {
+	query := `
+        UPDATE tutor_details 
+        SET bio = $1, native_languages = $2, teaching_languages = $3, degrees = $4,
+            interests = $5, hourly_rate = $6, introduction_video = $7, offers_trial = $8
+        WHERE user_id = $9`
+
+	teachingLanguagesJSON, err := json.Marshal(details.TeachingLanguages)
+	if err != nil {
+		return err
+	}
+
+	degreesJSON, err := json.Marshal(details.Degrees)
+	if err != nil {
+		return err
+	}
+
+	result, err := r.DB.ExecContext(
+		ctx,
+		query,
+		details.Bio,
+		pq.Array(details.NativeLanguages),
+		teachingLanguagesJSON,
+		degreesJSON,
+		pq.Array(details.Interests),
+		details.HourlyRate,
+		details.IntroductionVideo,
+		details.OffersTrial,
+		details.UserID,
+	)
+	if err != nil {
+		return err
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return errors.New("tutor details not found")
+	}
+
+	return nil
+}
+
+// ListTutors retrieves a list of tutors with optional filtering
+func (r *UserRepositoryImpl) ListTutors(ctx context.Context, limit, offset int, filters map[string]interface{}) ([]*entities.User, error) {
+	query := `
+        SELECT c.id, c.username, c.email, c.role,
+               t.bio, t.native_languages, t.teaching_languages, t.degrees,
+               t.interests, t.hourly_rate, t.introduction_video, t.offers_trial, t.approved,
+               t.created_at, t.updated_at
+        FROM user_credentials c
+        JOIN tutor_details t ON c.id = t.user_id
+        WHERE c.role = 'tutor'`
+
+	// Add filters
+	args := []interface{}{limit, offset}
+	argCount := 3
+
+	if v, ok := filters["approved"]; ok {
+		query += ` AND t.approved = $` + string(argCount)
+		args = append(args, v)
+		argCount++
+	}
+
+	if v, ok := filters["min_hourly_rate"]; ok {
+		query += ` AND t.hourly_rate >= $` + string(argCount)
+		args = append(args, v)
+		argCount++
+	}
+
+	if v, ok := filters["max_hourly_rate"]; ok {
+		query += ` AND t.hourly_rate <= $` + string(argCount)
+		args = append(args, v)
+		argCount++
+	}
+
+	if v, ok := filters["offers_trial"]; ok {
+		query += ` AND t.offers_trial = $` + string(argCount)
+		args = append(args, v)
+		argCount++
+	}
+
+	query += ` ORDER BY t.created_at DESC LIMIT $1 OFFSET $2`
+
+	rows, err := r.DB.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tutors []*entities.User
+	for rows.Next() {
+		user := &entities.User{
+			Credentials: &entities.UserCredentials{},
+			Tutor:       &entities.TutorDetails{},
+		}
+
+		var teachingLanguagesJSON, degreesJSON []byte
+
+		err := rows.Scan(
+			&user.Credentials.ID,
+			&user.Credentials.Username,
+			&user.Credentials.Email,
+			&user.Credentials.Role,
+			&user.Tutor.Bio,
+			pq.Array(&user.Tutor.NativeLanguages),
+			&teachingLanguagesJSON,
+			&degreesJSON,
+			pq.Array(&user.Tutor.Interests),
+			&user.Tutor.HourlyRate,
+			&user.Tutor.IntroductionVideo,
+			&user.Tutor.OffersTrial,
+			&user.Tutor.Approved,
+			&user.Tutor.CreatedAt,
+			&user.Tutor.UpdatedAt,
+		)
 		if err != nil {
-			logger.Error("Failed to unmarshal languages JSON",
-				"error", err,
-				"json", string(languagesJSON),
-				"user_id", userID)
 			return nil, err
 		}
-	}
 
-	logger.Info("Profile retrieved successfully", "user_id", userID)
-	return &profile, nil
-}
-
-func (r *UserRepositoryImpl) UpdateProfile(profile entities.UserProfile) error {
-	query := `UPDATE user_profiles 
-             SET first_name = COALESCE($1, first_name),
-                 last_name = COALESCE($2, last_name),
-                 profile_picture = COALESCE($3, profile_picture),
-                 age = COALESCE($4, age),
-                 sex = COALESCE($5, sex),
-                 native_language = COALESCE($6, native_language),
-                 languages = COALESCE($7::jsonb, languages),
-                 interests = COALESCE($8::text[], interests),
-                 learning_goals = COALESCE($9::text[], learning_goals),
-                 survey_complete = COALESCE($10, survey_complete),
-                 updated_at = CURRENT_TIMESTAMP
-             WHERE user_id = $11
-             RETURNING id`
-
-	languagesJSON, err := json.Marshal(profile.Languages)
-	if err != nil {
-		logger.Error("Failed to marshal languages", "error", err)
-		return err
-	}
-
-	var id int
-	err = r.DB.QueryRow(
-		query,
-		profile.FirstName,
-		profile.LastName,
-		profile.ProfilePicture,
-		profile.Age,
-		profile.Sex,
-		profile.NativeLanguage,
-		languagesJSON,
-		pq.Array(profile.Interests),
-		pq.Array(profile.LearningGoals),
-		profile.SurveyComplete,
-		profile.UserID,
-	).Scan(&id)
-
-	if err != nil {
-		logger.Error("Failed to update profile",
-			"error", err,
-			"user_id", profile.UserID)
-		return err
-	}
-
-	logger.Info("Profile updated successfully", "user_id", profile.UserID)
-	return nil
-}
-
-func (r *UserRepositoryImpl) UpdateSurvey(userID int, nativeLanguage string, languages []entities.LanguageLevel, interests []string, learningGoals []string) error {
-	logger.Info("Updating user survey data",
-		"user_id", userID,
-		"native_language", nativeLanguage,
-		"languages", languages,
-		"interests", interests,
-		"learning_goals", learningGoals)
-
-	// First, check if profile exists
-	profile, err := r.GetProfileByUserID(userID)
-	if err != nil {
-		logger.Error("Failed to check existing profile", "error", err)
-		return err
-	}
-
-	// Marshal languages to JSON
-	languagesJSON, err := json.Marshal(languages)
-	if err != nil {
-		logger.Error("Failed to marshal languages", "error", err)
-		return err
-	}
-
-	if profile == nil {
-		// Create new profile
-		logger.Info("Creating new profile for survey", "user_id", userID)
-		query := `
-			INSERT INTO user_profiles (
-				user_id, native_language, languages, interests, learning_goals, survey_complete
-			) VALUES ($1, $2, $3, $4, $5, true)
-			RETURNING id`
-
-		var id int
-		err = r.DB.QueryRow(
-			query,
-			userID,
-			nativeLanguage,
-			languagesJSON,
-			pq.Array(interests),
-			pq.Array(learningGoals),
-		).Scan(&id)
-
+		err = json.Unmarshal(teachingLanguagesJSON, &user.Tutor.TeachingLanguages)
 		if err != nil {
-			logger.Error("Failed to create profile for survey",
-				"error", err,
-				"user_id", userID)
-			return err
+			return nil, err
 		}
 
-		logger.Info("Created new profile for survey", "user_id", userID, "profile_id", id)
-		return nil
+		err = json.Unmarshal(degreesJSON, &user.Tutor.Degrees)
+		if err != nil {
+			return nil, err
+		}
+
+		// Get personal info
+		user.Personal, _ = r.GetPersonalInfo(ctx, user.Credentials.ID)
+
+		tutors = append(tutors, user)
 	}
 
-	// Update existing profile
-	query := `
-		UPDATE user_profiles 
-		SET native_language = $1,
-			languages = $2::jsonb,
-			interests = $3::text[],
-			learning_goals = $4::text[],
-			survey_complete = true,
-			updated_at = CURRENT_TIMESTAMP
-		WHERE user_id = $5
-		RETURNING id`
-
-	var id int
-	err = r.DB.QueryRow(
-		query,
-		nativeLanguage,
-		languagesJSON,
-		pq.Array(interests),
-		pq.Array(learningGoals),
-		userID,
-	).Scan(&id)
-
-	if err != nil {
-		logger.Error("Failed to update survey",
-			"error", err,
-			"user_id", userID)
-		return err
-	}
-
-	logger.Info("Survey updated successfully", "user_id", userID, "profile_id", id)
-	return nil
+	return tutors, nil
 }

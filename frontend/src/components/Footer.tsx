@@ -17,15 +17,6 @@ export const Footer = () => {
                         <p className="text-gray-600 dark:text-gray-400 mb-4">
                             Connect with native speakers and learn languages naturally.
                         </p>
-                        {!user?.profile?.is_tutor && (
-                            <Link
-                                to="/tutor/register"
-                                className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg 
-                                         hover:bg-blue-700 transition-colors font-medium"
-                            >
-                                Become a Tutor
-                            </Link>
-                        )}
                     </div>
 
                     {/* Quick Links */}

@@ -49,14 +49,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const response = await api.auth.login({ username, password });
             localStorage.setItem('token', response.token);
             setUser(response.user);
-            logger.info('Login successful', { userId: response.user.id });
+            logger.info('Login successful', { userId: response.user.credentials.id });
             showNotification('success', 'Welcome back!');
             
-            // Check if user is a tutor and needs to complete their profile
-            if (response.user.role === 'tutor') {
+            // Check if user is a tutor
+            if (response.user.credentials.role === 'tutor') {
                 navigate('/tutor/dashboard');
-            } else if (!response.user.profile?.survey_complete) {
-                navigate('/survey');
             } else {
                 navigate('/dashboard');
             }
@@ -73,14 +71,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const response = await api.auth.register(data);
             localStorage.setItem('token', response.token);
             setUser(response.user);
-            logger.info('Registration successful', { userId: response.user.id });
-            showNotification('success', 'Registration successful! Let\'s set up your profile.');
+            logger.info('Registration successful', { userId: response.user.credentials.id });
+            showNotification('success', 'Registration successful! Welcome to Tongly.');
             
             // Redirect based on role
             if (data.role === 'tutor') {
                 navigate('/tutor/dashboard');
             } else {
-                navigate('/survey');
+                navigate('/dashboard');
             }
         } catch (error: any) {
             logger.error('Registration failed', { 
@@ -94,7 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const logout = () => {
-        logger.info('User logging out', { userId: user?.id });
+        logger.info('User logging out', { userId: user?.credentials.id });
         localStorage.removeItem('token');
         setUser(null);
         showNotification('info', 'You have been logged out');
@@ -106,7 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             logger.debug('Refreshing user data');
             const userData = await api.user.getProfile();
             setUser(userData);
-            logger.debug('User data refreshed successfully', { userId: userData.id });
+            logger.debug('User data refreshed successfully', { userId: userData.credentials.id });
         } catch (error) {
             logger.error('Failed to refresh user data', { error });
             throw error;

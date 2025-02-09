@@ -1,7 +1,9 @@
 package usecases
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"tongly-backend/internal/entities"
 	"tongly-backend/internal/logger"
 	"tongly-backend/internal/repositories"
@@ -11,16 +13,16 @@ type UserUseCase struct {
 	UserRepo repositories.UserRepository
 }
 
-func (uc *UserUseCase) GetUserByID(userID int) (*entities.User, error) {
-	return uc.UserRepo.GetUserByID(userID)
+func (uc *UserUseCase) GetUserByID(ctx context.Context, userID int) (*entities.User, error) {
+	return uc.UserRepo.GetUserByID(ctx, userID)
 }
 
-func (uc *UserUseCase) UpdateUser(userID int, updateData entities.UserUpdateRequest) error {
+func (uc *UserUseCase) UpdateUser(ctx context.Context, userID int, updateData entities.UserUpdateRequest) error {
 	logger.Info("Starting user update process",
 		"user_id", userID,
 		"update_data", updateData)
 
-	user, err := uc.UserRepo.GetUserByID(userID)
+	user, err := uc.UserRepo.GetUserByID(ctx, userID)
 	if err != nil {
 		logger.Error("Failed to get user for update",
 			"error", err,
@@ -33,113 +35,136 @@ func (uc *UserUseCase) UpdateUser(userID int, updateData entities.UserUpdateRequ
 		return errors.New("user not found")
 	}
 
-	// Check if this is a survey update
-	if updateData.NativeLanguage != nil || len(updateData.Languages) > 0 ||
-		len(updateData.Interests) > 0 || len(updateData.LearningGoals) > 0 {
-		nativeLanguage := ""
-		if updateData.NativeLanguage != nil {
-			nativeLanguage = *updateData.NativeLanguage
-		}
-		return uc.UserRepo.UpdateSurvey(
-			userID,
-			nativeLanguage,
-			updateData.Languages,
-			updateData.Interests,
-			updateData.LearningGoals,
-		)
-	}
-
-	// Update user data if email is provided
+	// Update user credentials if email is provided
 	if updateData.Email != "" {
-		user.Email = updateData.Email
-		if err := uc.UserRepo.UpdateUser(*user); err != nil {
-			logger.Error("Failed to update user data",
+		user.Credentials.Email = updateData.Email
+		if err := uc.UserRepo.UpdateUserCredentials(ctx, *user.Credentials); err != nil {
+			logger.Error("Failed to update user credentials",
 				"error", err,
 				"user_id", userID)
 			return err
 		}
 	}
 
-	// Get or create profile
-	profile, err := uc.UserRepo.GetProfileByUserID(userID)
+	// Get or create personal info
+	personal, err := uc.UserRepo.GetPersonalInfo(ctx, userID)
 	if err != nil {
-		logger.Error("Failed to get user profile",
+		logger.Error("Failed to get user personal info",
 			"error", err,
 			"user_id", userID)
 		return err
 	}
 
-	if profile == nil {
-		// Create new profile
-		profile = &entities.UserProfile{
+	if personal == nil {
+		// Create new personal info
+		personal = &entities.UserPersonal{
 			UserID: userID,
 		}
 	}
 
-	// Update profile fields
+	// Update personal info fields
 	if updateData.FirstName != nil {
-		profile.FirstName = updateData.FirstName
+		personal.FirstName = updateData.FirstName
 	}
 	if updateData.LastName != nil {
-		profile.LastName = updateData.LastName
+		personal.LastName = updateData.LastName
 	}
 	if updateData.ProfilePicture != nil {
-		profile.ProfilePicture = updateData.ProfilePicture
+		personal.ProfilePicture = updateData.ProfilePicture
 	}
 	if updateData.Age != nil {
-		profile.Age = updateData.Age
+		personal.Age = updateData.Age
 	}
 	if updateData.Sex != nil {
-		profile.Sex = updateData.Sex
-	}
-	if updateData.NativeLanguage != nil {
-		profile.NativeLanguage = updateData.NativeLanguage
-	}
-	if len(updateData.Languages) > 0 {
-		profile.Languages = updateData.Languages
-	}
-	if len(updateData.Interests) > 0 {
-		profile.Interests = updateData.Interests
-	}
-	if len(updateData.LearningGoals) > 0 {
-		profile.LearningGoals = updateData.LearningGoals
-	}
-	if updateData.SurveyComplete != nil {
-		profile.SurveyComplete = *updateData.SurveyComplete
+		// Validate sex value against allowed values
+		switch *updateData.Sex {
+		case "male", "female", "other", "":
+			personal.Sex = updateData.Sex
+		default:
+			return fmt.Errorf("invalid sex value: must be 'male', 'female', or 'other'")
+		}
 	}
 
-	// Create or update profile
-	if profile.ID == 0 {
-		err = uc.UserRepo.CreateProfile(*profile)
+	// Create or update personal info
+	if personal.ID == 0 {
+		err = uc.UserRepo.CreatePersonalInfo(ctx, *personal)
 	} else {
-		err = uc.UserRepo.UpdateProfile(*profile)
+		err = uc.UserRepo.UpdatePersonalInfo(ctx, *personal)
 	}
 
 	if err != nil {
-		logger.Error("Failed to update profile",
+		logger.Error("Failed to update personal info",
 			"error", err,
 			"user_id", userID)
 		return err
 	}
 
-	logger.Info("User and profile update completed successfully",
+	// Handle student details if language or interests are updated
+	if updateData.NativeLanguage != nil || len(updateData.Languages) > 0 ||
+		len(updateData.Interests) > 0 || len(updateData.LearningGoals) > 0 {
+
+		// Get or create student details
+		student, err := uc.UserRepo.GetStudentDetails(ctx, userID)
+		if err != nil {
+			logger.Error("Failed to get student details",
+				"error", err,
+				"user_id", userID)
+			return err
+		}
+
+		if student == nil {
+			student = &entities.StudentDetails{
+				UserID: userID,
+			}
+		}
+
+		// Update student details
+		if updateData.NativeLanguage != nil {
+			student.NativeLanguages = []string{*updateData.NativeLanguage}
+		}
+		if len(updateData.Languages) > 0 {
+			student.LearningLanguages = updateData.Languages
+		}
+		if len(updateData.Interests) > 0 {
+			student.Interests = updateData.Interests
+		}
+		if len(updateData.LearningGoals) > 0 {
+			student.LearningGoals = updateData.LearningGoals
+		}
+
+		// Create or update student details
+		if student.ID == 0 {
+			err = uc.UserRepo.CreateStudentDetails(ctx, *student)
+		} else {
+			err = uc.UserRepo.UpdateStudentDetails(ctx, *student)
+		}
+
+		if err != nil {
+			logger.Error("Failed to update student details",
+				"error", err,
+				"user_id", userID)
+			return err
+		}
+	}
+
+	logger.Info("User update completed successfully",
 		"user_id", userID)
 	return nil
 }
 
-func (uc *UserUseCase) UpdatePassword(userID int, currentPassword, newPassword string) error {
-	user, err := uc.UserRepo.GetUserByID(userID)
+func (uc *UserUseCase) UpdatePassword(ctx context.Context, userID int, currentPassword, newPassword string) error {
+	user, err := uc.UserRepo.GetUserByID(ctx, userID)
 	if err != nil {
 		return err
 	}
 
-	if !user.ValidatePassword(currentPassword) {
+	if !user.Credentials.ValidatePassword(currentPassword) {
 		return errors.New("current password is incorrect")
 	}
 
-	if err := user.HashPassword(newPassword); err != nil {
+	if err := user.Credentials.HashPassword(newPassword); err != nil {
 		return err
 	}
 
-	return uc.UserRepo.UpdateUser(*user)
+	return uc.UserRepo.UpdateUserCredentials(ctx, *user.Credentials)
 }

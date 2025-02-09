@@ -13,30 +13,24 @@ export const Navbar = () => {
     const renderNavLinks = () => {
         if (!user) return null;
 
-        if (user.role === 'tutor') {
+        if (user.credentials?.role === 'tutor') {
             return (
                 <>
                     <Link
                         to="/tutor/dashboard"
-                        className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                        className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
                     >
                         Dashboard
                     </Link>
                     <Link
-                        to="/schedule"
-                        className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                    >
-                        My Schedule
-                    </Link>
-                    <Link
                         to="/lessons"
-                        className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                        className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
                     >
                         My Lessons
                     </Link>
                     <Link
                         to="/wallet"
-                        className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                        className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
                     >
                         Earnings
                     </Link>
@@ -47,32 +41,32 @@ export const Navbar = () => {
         return (
             <>
                 <Link
-                    to="/dashboard"
-                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    to="/student/dashboard"
+                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
                 >
                     Dashboard
                 </Link>
                 <Link
                     to="/tutors"
-                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
                 >
                     Find Tutors
                 </Link>
                 <Link
                     to="/lessons"
-                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
                 >
                     My Lessons
                 </Link>
                 <Link
                     to="/challenges"
-                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
                 >
                     Challenges
                 </Link>
                 <Link
                     to="/leaderboard"
-                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
                 >
                     Leaderboard
                 </Link>
@@ -81,11 +75,11 @@ export const Navbar = () => {
     };
 
     return (
-        <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <nav className="bg-white dark:bg-gray-800 shadow-lg border-b border-gray-200 dark:border-gray-700">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16">
                     <div className="flex items-center">
-                        <Link to="/" className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                        <Link to="/" className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                             Tongly
                         </Link>
                         
@@ -109,7 +103,7 @@ export const Navbar = () => {
 
                         {user ? (
                             <div className="flex items-center space-x-4">
-                                {user.role === 'tutor' ? (
+                                {user.credentials?.role === 'tutor' ? (
                                     <span className="text-gray-700 dark:text-gray-300">
                                         <span className="font-medium">Earnings:</span> $250.00
                                     </span>
@@ -122,21 +116,21 @@ export const Navbar = () => {
                                     </Link>
                                 )}
                                 <div className="relative group">
-                                    <button className="flex items-center space-x-2">
+                                    <button className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                                         <img
-                                            src={user.profile?.profile_picture || DEFAULT_AVATAR}
-                                            alt={user.username}
-                                            className="h-8 w-8 rounded-full"
+                                            src={user.personal?.profile_picture || DEFAULT_AVATAR}
+                                            alt={user.credentials?.username}
+                                            className="h-8 w-8 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700"
                                             onError={(e) => {
                                                 const target = e.target as HTMLImageElement;
                                                 target.src = DEFAULT_AVATAR;
                                             }}
                                         />
-                                        <span className="text-gray-700 dark:text-gray-300">
-                                            {user.username}
+                                        <span className="text-gray-700 dark:text-gray-300 font-medium">
+                                            {user.credentials?.username}
                                         </span>
                                     </button>
-                                    <div className="absolute right-0 w-48 mt-2 py-2 bg-white dark:bg-gray-800 rounded-md shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
+                                    <div className="absolute right-0 w-48 mt-2 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                                         <Link
                                             to="/profile"
                                             className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
@@ -162,7 +156,7 @@ export const Navbar = () => {
                                 </Link>
                                 <Link
                                     to="/register"
-                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-md font-medium transition-colors"
+                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
                                 >
                                     Sign Up
                                 </Link>

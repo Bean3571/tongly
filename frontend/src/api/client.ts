@@ -200,8 +200,8 @@ export const api = {
             try {
                 const response = await apiClient.post('/api/tutors', data);
                 return response.data;
-            } catch (error) {
-                console.error('Failed to register as tutor:', error);
+            } catch (error: any) {
+                logger.error('Failed to register as tutor:', error);
                 throw error;
             }
         },
@@ -209,8 +209,8 @@ export const api = {
             try {
                 const response = await apiClient.put('/api/tutors/profile', data);
                 return response.data;
-            } catch (error) {
-                console.error('Failed to update tutor profile:', error);
+            } catch (error: any) {
+                logger.error('Failed to update tutor profile:', error);
                 throw error;
             }
         },
@@ -218,8 +218,8 @@ export const api = {
             try {
                 const response = await apiClient.get('/api/tutors/profile');
                 return response.data;
-            } catch (error) {
-                console.error('Failed to get tutor profile:', error);
+            } catch (error: any) {
+                logger.error('Failed to get tutor profile:', error);
                 throw error;
             }
         },
@@ -231,8 +231,8 @@ export const api = {
                     },
                 });
                 return response.data;
-            } catch (error) {
-                console.error('Failed to upload video:', error);
+            } catch (error: any) {
+                logger.error('Failed to upload video:', error);
                 throw error;
             }
         },
@@ -240,8 +240,12 @@ export const api = {
             try {
                 const response = await apiClient.put('/api/tutors/profile', data);
                 return response.data;
-            } catch (error) {
-                console.error('Failed to update tutor profile:', error);
+            } catch (error: any) {
+                if (error.response?.status === 403) {
+                    logger.error('User is not authorized to update tutor profile');
+                    throw new Error('Only tutors can update tutor profiles');
+                }
+                logger.error('Failed to update tutor profile:', error);
                 throw error;
             }
         },
