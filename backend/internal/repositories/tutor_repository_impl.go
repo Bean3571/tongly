@@ -171,7 +171,8 @@ func (r *TutorRepositoryImpl) UpdateTutorDetails(ctx context.Context, details *e
 			introduction_video = $6,
 			offers_trial = $7,
 			approved = $8
-		WHERE user_id = $9`
+		WHERE user_id = $9
+		RETURNING id, teaching_languages, education, hourly_rate, offers_trial`
 
 	// Convert arrays to JSONB
 	teachingLanguagesJSON, err := json.Marshal(details.TeachingLanguages)
@@ -190,10 +191,9 @@ func (r *TutorRepositoryImpl) UpdateTutorDetails(ctx context.Context, details *e
 		return fmt.Errorf("failed to marshal education: %v", err)
 	}
 
-	logger.Info("Updating tutor details",
+	logger.Info("Executing tutor details update",
 		"user_id", details.UserID,
-		"query", query,
-		"params", map[string]interface{}{
+		"query_params", map[string]interface{}{
 			"bio":                details.Bio,
 			"teaching_languages": string(teachingLanguagesJSON),
 			"education":          string(educationJSON),
@@ -204,7 +204,15 @@ func (r *TutorRepositoryImpl) UpdateTutorDetails(ctx context.Context, details *e
 			"approved":           details.Approved,
 		})
 
-	result, err := r.DB.ExecContext(
+	var (
+		updatedID                int
+		updatedTeachingLangsJSON []byte
+		updatedEducationJSON     []byte
+		updatedHourlyRate        float64
+		updatedOffersTrial       bool
+	)
+
+	err = r.DB.QueryRowContext(
 		ctx,
 		query,
 		details.Bio,
@@ -216,37 +224,26 @@ func (r *TutorRepositoryImpl) UpdateTutorDetails(ctx context.Context, details *e
 		details.OffersTrial,
 		details.Approved,
 		details.UserID,
-	)
+	).Scan(&updatedID, &updatedTeachingLangsJSON, &updatedEducationJSON, &updatedHourlyRate, &updatedOffersTrial)
 
 	if err != nil {
-		logger.Error("Failed to update tutor details",
+		logger.Error("Failed to execute update query",
 			"error", err,
 			"user_id", details.UserID,
-			"query", query,
-			"params", map[string]interface{}{
-				"bio":                details.Bio,
-				"teaching_languages": string(teachingLanguagesJSON),
-				"education":          string(educationJSON),
-				"interests":          details.Interests,
-				"hourly_rate":        details.HourlyRate,
-				"introduction_video": details.IntroductionVideo,
-				"offers_trial":       details.OffersTrial,
-				"approved":           details.Approved,
-			})
+			"query", query)
 		return fmt.Errorf("failed to update tutor details: %v", err)
-	}
-
-	rows, err := result.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %v", err)
-	}
-	if rows == 0 {
-		return fmt.Errorf("tutor details not found for user ID: %d", details.UserID)
 	}
 
 	logger.Info("Successfully updated tutor details",
 		"user_id", details.UserID,
-		"rows_affected", rows)
+		"updated_values", map[string]interface{}{
+			"id":                      updatedID,
+			"teaching_languages_json": string(updatedTeachingLangsJSON),
+			"education_json":          string(updatedEducationJSON),
+			"hourly_rate":             updatedHourlyRate,
+			"offers_trial":            updatedOffersTrial,
+		})
+
 	return nil
 }
 

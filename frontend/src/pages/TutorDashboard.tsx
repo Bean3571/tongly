@@ -193,14 +193,23 @@ export default function TutorDashboard() {
 
   const handlePricingChange = (hourlyRate: number | string) => {
     if (!profile) return;
-    const parsedRate = typeof hourlyRate === 'string' ? parseFloat(hourlyRate) : hourlyRate;
-    if (isNaN(parsedRate)) return;
+    
+    // Parse and validate the hourly rate
+    let parsedRate = typeof hourlyRate === 'string' ? parseFloat(hourlyRate) : hourlyRate;
+    
+    // Ensure it's a valid number and not negative
+    if (isNaN(parsedRate) || parsedRate < 0) {
+      parsedRate = 25.0;
+    }
+    
+    console.log('Setting hourly rate:', parsedRate);
     
     const newProfile = { 
       ...profile, 
       hourlyRate: parsedRate,
       showNotification: true 
     };
+    
     setProfile(newProfile);
     handleAutoSave(newProfile);
   };
@@ -291,48 +300,48 @@ export default function TutorDashboard() {
 
   // Auto-save function
   const handleAutoSave = async (updatedProfile: TutorProfile) => {
-    if (!updatedProfile) return;
     try {
-        console.log('Saving profile update:', {
-            teachingLanguages: updatedProfile.teachingLanguages,
-            hourlyRate: updatedProfile.hourlyRate,
-            offersTrial: updatedProfile.offersTrial,
-            introductionVideo: updatedProfile.introductionVideo
-        });
-        
-        // Ensure all required fields are included with proper types
-        const requestData: TutorProfileUpdateRequest = {
-            teachingLanguages: Array.isArray(updatedProfile.teachingLanguages) ? updatedProfile.teachingLanguages : [],
-            bio: updatedProfile.bio || '',
-            interests: Array.isArray(updatedProfile.interests) ? updatedProfile.interests : [],
-            hourlyRate: typeof updatedProfile.hourlyRate === 'string' 
-                ? parseFloat(updatedProfile.hourlyRate) 
-                : (updatedProfile.hourlyRate || 25.0),
-            offersTrial: updatedProfile.offersTrial === undefined ? true : Boolean(updatedProfile.offersTrial),
-            education: Array.isArray(updatedProfile.education) ? updatedProfile.education : [],
-            introductionVideo: updatedProfile.introductionVideo || ''
-        };
+      console.log('Saving profile update:', updatedProfile);
 
-        // Validate hourlyRate is a valid number
-        if (isNaN(requestData.hourlyRate)) {
-            requestData.hourlyRate = 25.0;
+      // Parse hourlyRate first to handle it properly
+      let hourlyRate = 25.0; // Default value
+      if (updatedProfile.hourlyRate !== undefined && updatedProfile.hourlyRate !== null) {
+        const parsed = typeof updatedProfile.hourlyRate === 'string' 
+          ? parseFloat(updatedProfile.hourlyRate)
+          : updatedProfile.hourlyRate;
+        if (!isNaN(parsed) && parsed > 0) {
+          hourlyRate = parsed;
         }
+      }
 
-        await api.tutors.updateTutorProfile(requestData);
-        console.log('Profile update successful');
-        
-        if (updatedProfile.showNotification) {
-            showNotification('success', 'Changes saved successfully');
-        }
-    } catch (error: any) {
-        console.error('Failed to save profile:', error);
-        const errorMessage = error.response?.data?.error || error.message || 'Failed to save changes';
-        console.error('Error details:', {
-            status: error.response?.status,
-            data: error.response?.data,
-            message: error.message
-        });
-        showNotification('error', errorMessage);
+      // Ensure all required fields are present with proper types
+      const profileToSave = {
+        teachingLanguages: Array.isArray(updatedProfile.teachingLanguages) 
+          ? updatedProfile.teachingLanguages 
+          : (profile.teachingLanguages || []), // Use existing value if available
+        bio: updatedProfile.bio || '',
+        interests: Array.isArray(updatedProfile.interests) 
+          ? updatedProfile.interests 
+          : (profile.interests || []), // Use existing value if available
+        hourlyRate: hourlyRate,
+        offersTrial: updatedProfile.offersTrial !== undefined 
+          ? Boolean(updatedProfile.offersTrial)
+          : true, // Default to true if undefined
+        education: Array.isArray(updatedProfile.education) 
+          ? updatedProfile.education 
+          : (profile.education || []), // Use existing value if available
+        introductionVideo: updatedProfile.introductionVideo || ''
+      };
+
+      // Log the actual data being sent
+      console.log('Sending profile data:', JSON.stringify(profileToSave, null, 2));
+
+      await api.tutors.updateTutorProfile(profileToSave);
+      console.log('Profile update successful');
+      showNotification('success', 'Profile updated successfully');
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+      showNotification('error', 'Failed to update profile');
     }
   };
 

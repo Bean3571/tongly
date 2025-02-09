@@ -167,25 +167,50 @@ func (h *TutorHandler) UpdateTutorProfile(c *gin.Context) {
 		return
 	}
 
+	// Log the complete request data
 	logger.Info("Received tutor profile update request",
 		"user_id", userID,
 		"request", map[string]interface{}{
-			"bio":                req.Bio,
-			"teaching_languages": req.TeachingLanguages,
-			"education":          req.Education,
-			"interests":          req.Interests,
-			"hourly_rate":        req.HourlyRate,
-			"introduction_video": req.IntroductionVideo,
-			"offers_trial":       req.OffersTrial,
+			"bio":                     req.Bio,
+			"teaching_languages_full": req.TeachingLanguages,
+			"education_full":          req.Education,
+			"interests_full":          req.Interests,
+			"hourly_rate":             req.HourlyRate,
+			"introduction_video":      req.IntroductionVideo,
+			"offers_trial":            req.OffersTrial,
 		})
 
 	if err := h.TutorUseCase.UpdateTutorProfile(c.Request.Context(), userID.(int), req); err != nil {
-		logger.Error("Failed to update tutor profile", "error", err)
+		logger.Error("Failed to update tutor profile",
+			"error", err,
+			"user_id", userID,
+			"request_data", req)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update tutor profile"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Profile updated successfully"})
+	// Get updated profile to verify changes
+	updatedProfile, err := h.TutorUseCase.GetTutorDetails(c.Request.Context(), userID.(int))
+	if err != nil {
+		logger.Error("Failed to get updated profile", "error", err)
+	} else {
+		logger.Info("Profile after update",
+			"user_id", userID,
+			"profile", map[string]interface{}{
+				"bio":                updatedProfile.Bio,
+				"teaching_languages": updatedProfile.TeachingLanguages,
+				"education":          updatedProfile.Education,
+				"interests":          updatedProfile.Interests,
+				"hourly_rate":        updatedProfile.HourlyRate,
+				"introduction_video": updatedProfile.IntroductionVideo,
+				"offers_trial":       updatedProfile.OffersTrial,
+			})
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Profile updated successfully",
+		"profile": updatedProfile,
+	})
 }
 
 // UploadVideo handles POST /tutors/video
