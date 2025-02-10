@@ -6,15 +6,15 @@ import { message, notification } from 'antd';
 
 interface Lesson {
     id: number;
-    studentId: number;
-    tutorId: number;
-    startTime: string;
-    endTime: string;
+    student_id: number;
+    tutor_id: number;
+    start_time: string;
+    end_time: string;
     status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
     language: string;
     price: number;
-    tutorName?: string;
-    studentName?: string;
+    tutor_name?: string;
+    student_name?: string;
 }
 
 export const Lessons: React.FC = () => {
@@ -116,8 +116,8 @@ export const Lessons: React.FC = () => {
     const isLessonJoinable = (lesson: Lesson) => {
         try {
             const now = new Date();
-            const startTime = new Date(lesson.startTime);
-            const endTime = new Date(lesson.endTime);
+            const startTime = new Date(lesson.start_time);
+            const endTime = new Date(lesson.end_time);
             
             if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
                 return false;
@@ -208,8 +208,8 @@ export const Lessons: React.FC = () => {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm font-medium text-gray-900 dark:text-white">
                                             {user?.credentials.role === 'student'
-                                                ? lesson.tutorName
-                                                : lesson.studentName}
+                                                ? lesson.tutor_name
+                                                : lesson.student_name}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
@@ -219,7 +219,7 @@ export const Lessons: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm text-gray-700 dark:text-gray-300">
-                                            {formatDateTime(lesson.startTime)}
+                                            {formatDateTime(lesson.start_time)}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
@@ -240,7 +240,7 @@ export const Lessons: React.FC = () => {
                                             </button>
                                         ) : lesson.status === 'scheduled' ? (
                                             <div className="text-sm text-gray-500 dark:text-gray-400">
-                                                Starts in {formatTime(lesson.startTime)}
+                                                Starts in {formatTime(lesson.start_time)}
                                             </div>
                                         ) : null}
                                     </td>
