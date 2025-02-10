@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { FaSun, FaMoon } from 'react-icons/fa';
@@ -9,69 +9,36 @@ const DEFAULT_AVATAR = 'https://secure.gravatar.com/avatar/default?s=200&d=mp';
 export const Navbar = () => {
     const { user, logout } = useAuth();
     const { isDarkMode, toggleTheme } = useTheme();
+    const location = useLocation();
 
-    const renderNavLinks = () => {
-        if (!user) return null;
+    const getNavLinks = () => {
+        if (!user) return [];
 
-        if (user.credentials?.role === 'tutor') {
-            return (
-                <>
-                    <Link
-                        to="/tutor/dashboard"
-                        className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
-                    >
-                        Dashboard
-                    </Link>
-                    <Link
-                        to="/lessons"
-                        className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
-                    >
-                        My Lessons
-                    </Link>
-                    <Link
-                        to="/wallet"
-                        className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
-                    >
-                        Earnings
-                    </Link>
-                </>
-            );
+        const commonLinks = [
+            { to: '/lessons', label: 'My Lessons' },
+            { to: '/wallet', label: 'Wallet' }
+        ];
+
+        if (user.credentials.role === 'student') {
+            return [
+                { to: '/student/dashboard', label: 'Dashboard' },
+                { to: '/tutors', label: 'Find Tutors' },
+                ...commonLinks
+            ];
         }
 
-        return (
-            <>
-                <Link
-                    to="/student/dashboard"
-                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
-                >
-                    Dashboard
-                </Link>
-                <Link
-                    to="/tutors"
-                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
-                >
-                    Find Tutors
-                </Link>
-                <Link
-                    to="/lessons"
-                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
-                >
-                    My Lessons
-                </Link>
-                <Link
-                    to="/challenges"
-                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
-                >
-                    Challenges
-                </Link>
-                <Link
-                    to="/leaderboard"
-                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
-                >
-                    Leaderboard
-                </Link>
-            </>
-        );
+        if (user.credentials.role === 'tutor') {
+            return [
+                { to: '/tutor/dashboard', label: 'Dashboard' },
+                ...commonLinks
+            ];
+        }
+
+        return commonLinks;
+    };
+
+    const isActive = (path: string) => {
+        return location.pathname.startsWith(path);
     };
 
     return (
@@ -84,7 +51,16 @@ export const Navbar = () => {
                         </Link>
                         
                         <div className="hidden md:flex ml-10 space-x-8">
-                            {renderNavLinks()}
+                            {getNavLinks().map(link => (
+                                <Link
+                                    key={link.to}
+                                    to={link.to}
+                                    className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors
+                                              ${isActive(link.to) ? 'text-blue-600 dark:text-blue-400 font-medium' : ''}`}
+                                >
+                                    {link.label}
+                                </Link>
+                            ))}
                         </div>
                     </div>
 

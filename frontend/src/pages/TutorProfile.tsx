@@ -1,118 +1,367 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import styled from 'styled-components';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
 
-export const TutorProfile = () => {
+interface TutorProfile {
+  id: string;
+  name: string;
+  bio: string;
+  education: string;
+  languages: string[];
+  hourlyRate: number;
+  rating: number;
+  totalLessons: number;
+  avatarUrl: string;
+}
+
+interface TimeSlot {
+  id: string;
+  startTime: string;
+  endTime: string;
+  isAvailable: boolean;
+}
+
+const TutorProfilePage: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [tutor, setTutor] = useState<TutorProfile | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadTutorProfile = async () => {
+      try {
+        const response = await fetch(`/api/tutors/${id}`);
+        const data = await response.json();
+        setTutor(data);
+        setSelectedLanguage(data.languages[0]);
+      } catch (error) {
+        console.error('Error loading tutor profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTutorProfile();
+  }, [id]);
+
+  useEffect(() => {
+    const loadAvailableTimeSlots = async () => {
+      try {
+        const response = await fetch(
+          `/api/tutors/${id}/availability?date=${selectedDate.toISOString()}`
+        );
+        const data = await response.json();
+        setTimeSlots(data);
+      } catch (error) {
+        console.error('Error loading time slots:', error);
+      }
+    };
+
+    if (selectedDate) {
+      loadAvailableTimeSlots();
+    }
+  }, [id, selectedDate]);
+
+  const handleBookLesson = async () => {
+    if (!selectedTimeSlot || !selectedLanguage) return;
+
+    try {
+      const response = await fetch('/api/lessons', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tutorId: id,
+          timeSlotId: selectedTimeSlot,
+          language: selectedLanguage,
+        }),
+      });
+
+      if (response.ok) {
+        const lesson = await response.json();
+        navigate(`/lessons/${lesson.id}`);
+      }
+    } catch (error) {
+      console.error('Error booking lesson:', error);
+    }
+  };
+
+  if (loading) {
+    return <LoadingContainer>Loading...</LoadingContainer>;
+  }
+
+  if (!tutor) {
+    return <ErrorContainer>Tutor not found</ErrorContainer>;
+  }
+
     return (
-        <div className="container mx-auto px-4 py-8">
-            {/* Tutor Header */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
-                <div className="flex flex-col md:flex-row items-center md:items-start">
-                    <img
-                        src="https://via.placeholder.com/200"
-                        alt="Tutor"
-                        className="w-48 h-48 rounded-full mb-4 md:mb-0 md:mr-8"
-                    />
-                    <div className="flex-1 text-center md:text-left">
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                            Sarah Johnson
-                        </h1>
-                        <p className="text-xl text-gray-600 dark:text-gray-300 mb-4">
-                            English & Spanish Tutor
-                        </p>
-                        <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4">
-                            <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm">
-                                Native English
-                            </span>
-                            <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm">
-                                Fluent Spanish
-                            </span>
-                        </div>
-                        <p className="text-gray-600 dark:text-gray-300 mb-6">
-                            ⭐ 4.9 (124 reviews) • 🎓 TEFL Certified • 📚 3 years experience
-                        </p>
-                        <button className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                            Book a Lesson
-                        </button>
-                    </div>
-                </div>
-            </div>
+    <Container>
+      <ProfileSection>
+        <AvatarSection>
+          <Avatar src={tutor.avatarUrl} alt={tutor.name} />
+          <Rating>⭐ {tutor.rating.toFixed(1)}</Rating>
+          <TotalLessons>{tutor.totalLessons} lessons</TotalLessons>
+        </AvatarSection>
 
-            {/* About & Availability */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {/* About Section */}
-                <div className="md:col-span-2">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                            About Me
-                        </h2>
-                        <p className="text-gray-600 dark:text-gray-300 mb-4">
-                            Hello! I'm a passionate language teacher with over 3 years of experience.
-                            I specialize in conversational English and Spanish, focusing on practical,
-                            real-world communication skills.
-                        </p>
-                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                            Teaching Style
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-300 mb-4">
-                            My lessons are interactive and tailored to each student's needs.
-                            I use a combination of conversation practice, grammar exercises,
-                            and cultural discussions.
-                        </p>
-                    </div>
+        <InfoSection>
+          <Name>{tutor.name}</Name>
+          <HourlyRate>${tutor.hourlyRate}/hour</HourlyRate>
+          <Languages>
+            {tutor.languages.map(lang => (
+              <LanguageTag key={lang}>{lang}</LanguageTag>
+            ))}
+          </Languages>
+          <Bio>{tutor.bio}</Bio>
+          <Education>
+            <h3>Education</h3>
+            <p>{tutor.education}</p>
+          </Education>
+        </InfoSection>
+      </ProfileSection>
 
-                    {/* Reviews Section */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                            Reviews
-                        </h2>
-                        {/* Placeholder Reviews */}
-                        {[1, 2, 3].map((i) => (
-                            <div key={i} className="border-b dark:border-gray-700 last:border-0 py-4">
-                                <div className="flex items-center mb-2">
-                                    <span className="text-yellow-400">⭐⭐⭐⭐⭐</span>
-                                    <span className="ml-2 text-gray-600 dark:text-gray-300">
-                                        Student {i}
-                                    </span>
-                                </div>
-                                <p className="text-gray-600 dark:text-gray-300">
-                                    Great teacher! Very patient and knowledgeable.
-                                    The lessons are well-structured and fun.
-                                </p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+      <BookingSection>
+        <h2>Book a Lesson</h2>
+        <LanguageSelect
+          value={selectedLanguage}
+          onChange={(e) => setSelectedLanguage(e.target.value)}
+        >
+          {tutor.languages.map(lang => (
+            <option key={lang} value={lang}>{lang}</option>
+          ))}
+        </LanguageSelect>
 
-                {/* Availability & Booking */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 h-fit">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                        Availability
-                    </h2>
-                    <div className="mb-4">
-                        <p className="text-gray-600 dark:text-gray-300 mb-2">
-                            Hourly Rate:
-                            <span className="text-blue-600 dark:text-blue-400 font-semibold ml-2">
-                                $25/hour
-                            </span>
-                        </p>
-                    </div>
-                    <div className="space-y-2">
-                        <p className="text-gray-600 dark:text-gray-300">
-                            Monday: 9:00 AM - 5:00 PM
-                        </p>
-                        <p className="text-gray-600 dark:text-gray-300">
-                            Wednesday: 9:00 AM - 5:00 PM
-                        </p>
-                        <p className="text-gray-600 dark:text-gray-300">
-                            Friday: 9:00 AM - 5:00 PM
-                        </p>
-                    </div>
-                    <button className="w-full mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                        Check Available Times
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
+        <CalendarWrapper>
+          <Calendar
+            onChange={(value, event) => {
+              if (value instanceof Date) {
+                setSelectedDate(value);
+              }
+            }}
+            value={selectedDate}
+            minDate={new Date()}
+          />
+        </CalendarWrapper>
+
+        <TimeSlotGrid>
+          {timeSlots.map(slot => (
+            <TimeSlotButton
+              key={slot.id}
+              disabled={!slot.isAvailable}
+              selected={selectedTimeSlot === slot.id}
+              onClick={() => setSelectedTimeSlot(slot.id)}
+            >
+              {new Date(slot.startTime).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </TimeSlotButton>
+          ))}
+        </TimeSlotGrid>
+
+        <BookButton
+          disabled={!selectedTimeSlot || !selectedLanguage}
+          onClick={handleBookLesson}
+        >
+          Book Lesson
+        </BookButton>
+      </BookingSection>
+    </Container>
+  );
 };
 
-export default TutorProfile; 
+const Container = styled.div`
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 2rem;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const LoadingContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
+  font-size: 1.2rem;
+  color: #666;
+`;
+
+const ErrorContainer = styled(LoadingContainer)`
+  color: #dc3545;
+`;
+
+const ProfileSection = styled.div`
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+
+  @media (max-width: 576px) {
+    flex-direction: column;
+  }
+`;
+
+const AvatarSection = styled.div`
+  text-align: center;
+`;
+
+const Avatar = styled.img`
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 1rem;
+`;
+
+const Rating = styled.div`
+  font-size: 1.2rem;
+  color: #ffc107;
+  margin-bottom: 0.5rem;
+`;
+
+const TotalLessons = styled.div`
+  color: #6c757d;
+`;
+
+const InfoSection = styled.div`
+  flex: 1;
+`;
+
+const Name = styled.h1`
+  margin: 0 0 1rem;
+  color: #212529;
+`;
+
+const HourlyRate = styled.div`
+  font-size: 1.5rem;
+  color: #28a745;
+  margin-bottom: 1rem;
+`;
+
+const Languages = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+`;
+
+const LanguageTag = styled.span`
+  background: #e9ecef;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  color: #495057;
+`;
+
+const Bio = styled.p`
+  color: #495057;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+`;
+
+const Education = styled.div`
+  h3 {
+    color: #212529;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    color: #495057;
+    line-height: 1.6;
+  }
+`;
+
+const BookingSection = styled.div`
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  h2 {
+    margin: 0 0 1.5rem;
+    color: #212529;
+  }
+`;
+
+const LanguageSelect = styled.select`
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 1rem;
+  color: #495057;
+`;
+
+const CalendarWrapper = styled.div`
+  margin-bottom: 1.5rem;
+
+  .react-calendar {
+    width: 100%;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-family: inherit;
+  }
+`;
+
+const TimeSlotGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+`;
+
+interface TimeSlotButtonProps {
+  selected?: boolean;
+}
+
+const TimeSlotButton = styled.button<TimeSlotButtonProps>`
+  padding: 0.5rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  background: ${props => props.selected ? '#4a90e2' : 'white'};
+  color: ${props => props.selected ? 'white' : '#495057'};
+  cursor: pointer;
+
+  &:disabled {
+    background: #e9ecef;
+    cursor: not-allowed;
+  }
+
+  &:not(:disabled):hover {
+    background: ${props => props.selected ? '#357abd' : '#f8f9fa'};
+  }
+`;
+
+const BookButton = styled.button`
+  width: 100%;
+  padding: 1rem;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+
+  &:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+  }
+
+  &:not(:disabled):hover {
+    background: #218838;
+  }
+`;
+
+export default TutorProfilePage; 

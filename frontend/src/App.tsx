@@ -6,19 +6,20 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { Navbar } from './components/Layout/Navbar';
 import { Footer } from './components/Footer';
-import { Home } from './pages/Home';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Profile } from './pages/Profile';
-import Dashboard from './pages/Dashboard';
-import { Tutors } from './pages/Tutors';
-import { TutorProfile } from './pages/TutorProfile';
+import StudentDashboard from './pages/StudentDashboard';
 import TutorDashboard from './pages/TutorDashboard';
+import TutorProfile from './pages/TutorProfile';
+import TutorSearch from './pages/TutorSearch';
 import { Lessons } from './pages/Lessons';
+import LessonRoom from './pages/LessonRoom';
 import { Wallet } from './pages/Wallet';
 import { Challenges } from './pages/Challenges';
 import { Leaderboard } from './pages/Leaderboard';
 import { useAuth } from './contexts/AuthContext';
+import { BookLesson } from './pages/BookLesson';
 
 const queryClient = new QueryClient();
 
@@ -26,94 +27,85 @@ const PrivateRoute = ({ children, role }: { children: React.ReactNode, role?: st
     const { user } = useAuth();
     if (!user) return <Navigate to="/login" />;
     if (role && user.credentials.role !== role) {
-        return <Navigate to={`/${user.credentials.role}/dashboard`} />;
+        return <Navigate to="/" />;
     }
     return <>{children}</>;
 };
 
 const AppRoutes = () => {
+    const { user } = useAuth();
+    const defaultRoute = user?.credentials.role === 'tutor' ? '/tutor/dashboard' : '/student/dashboard';
+
     return (
         <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
             <Navbar />
             <main className="container mx-auto px-4 py-8 flex-grow">
                 <Routes>
-                    <Route path="/" element={<Home />} />
+                    {/* Public Routes */}
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
-                    
-                    {/* Protected Routes */}
-                    <Route
-                        path="/profile"
-                        element={
-                            <PrivateRoute>
-                                <Profile />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route
-                        path="/student/dashboard"
-                        element={
-                            <PrivateRoute role="student">
-                                <Dashboard />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route
-                        path="/tutors"
-                        element={
-                            <PrivateRoute role="student">
-                                <Tutors />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route
-                        path="/tutors/:id"
-                        element={
-                            <PrivateRoute role="student">
-                                <TutorProfile />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route
-                        path="/tutor/dashboard"
-                        element={
-                            <PrivateRoute role="tutor">
-                                <TutorDashboard />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route
-                        path="/lessons"
-                        element={
-                            <PrivateRoute>
-                                <Lessons />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route
-                        path="/wallet"
-                        element={
-                            <PrivateRoute>
-                                <Wallet />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route
-                        path="/challenges"
-                        element={
-                            <PrivateRoute role="student">
-                                <Challenges />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route
-                        path="/leaderboard"
-                        element={
-                            <PrivateRoute role="student">
-                                <Leaderboard />
-                            </PrivateRoute>
-                        }
-                    />
+
+                    {/* Common Protected Routes */}
+                    <Route path="/profile" element={
+                        <PrivateRoute>
+                            <Profile />
+                        </PrivateRoute>
+                    } />
+                    <Route path="/wallet" element={
+                        <PrivateRoute>
+                            <Wallet />
+                        </PrivateRoute>
+                    } />
+
+                    {/* Student Routes */}
+                    <Route path="/student/dashboard" element={
+                        <PrivateRoute role="student">
+                            <StudentDashboard />
+                        </PrivateRoute>
+                    } />
+                    <Route path="/tutors" element={
+                        <PrivateRoute role="student">
+                            <TutorSearch />
+                        </PrivateRoute>
+                    } />
+                    <Route path="/tutors/:id" element={
+                        <PrivateRoute role="student">
+                            <TutorProfile />
+                        </PrivateRoute>
+                    } />
+
+                    {/* Tutor Routes */}
+                    <Route path="/tutor/dashboard" element={
+                        <PrivateRoute role="tutor">
+                            <TutorDashboard />
+                        </PrivateRoute>
+                    } />
+                    <Route path="/tutors/:id/profile" element={
+                        <PrivateRoute role="student">
+                            <TutorProfile />
+                        </PrivateRoute>
+                    } />
+                    <Route path="/tutors/:id/book" element={
+                        <PrivateRoute role="student">
+                            <BookLesson />
+                        </PrivateRoute>
+                    } />
+
+                    {/* Lesson Routes */}
+                    <Route path="/lessons" element={
+                        <PrivateRoute>
+                            <Lessons />
+                        </PrivateRoute>
+                    } />
+                    <Route path="/lessons/:lessonId" element={
+                        <PrivateRoute>
+                            <LessonRoom />
+                        </PrivateRoute>
+                    } />
+
+                    {/* Default Route */}
+                    <Route path="/" element={<Navigate to={defaultRoute} replace />} />
+                    <Route path="*" element={<Navigate to={defaultRoute} replace />} />
                 </Routes>
             </main>
             <Footer />

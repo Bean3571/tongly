@@ -60,7 +60,7 @@ const languageLevels = [
     'Mastery (C2)'
 ];
 
-const Dashboard: React.FC = () => {
+const StudentDashboard: React.FC = () => {
     const { user, refreshUser } = useAuth();
     const { showNotification } = useNotification();
     const [isEditingLanguages, setIsEditingLanguages] = useState(false);
@@ -460,4 +460,4 @@ const Dashboard: React.FC = () => {
     );
 };
 
-export default Dashboard;
+export default StudentDashboard;

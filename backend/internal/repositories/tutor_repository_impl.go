@@ -389,3 +389,8 @@ func (r *TutorRepositoryImpl) UpdateTutorApprovalStatus(ctx context.Context, use
 
 	return nil
 }
+
+// GetTutorByID retrieves tutor details by tutor ID
+func (r *TutorRepositoryImpl) GetTutorByID(ctx context.Context, tutorID int) (*entities.TutorDetails, error) {
+	return r.GetTutorDetails(ctx, tutorID)
+}
