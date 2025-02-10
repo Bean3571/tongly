@@ -15,8 +15,8 @@ type LessonUseCase interface {
 	BookLesson(ctx context.Context, studentID int, request *entities.LessonBookingRequest) (*entities.Lesson, error)
 	CancelLesson(ctx context.Context, userID int, lessonID int, request *entities.LessonCancellationRequest) error
 	GetLessonByID(ctx context.Context, userID int, lessonID int) (*entities.Lesson, error)
-	GetUpcomingLessons(ctx context.Context, userID int, role string) ([]*entities.Lesson, error)
-	GetCompletedLessons(ctx context.Context, userID int, role string) ([]*entities.Lesson, error)
+	GetUpcomingLessons(ctx context.Context, userID int) ([]entities.Lesson, error)
+	GetCompletedLessons(ctx context.Context, userID int) ([]entities.Lesson, error)
 
 	// Video session management
 	StartVideoSession(ctx context.Context, lessonID int, userID int) (*entities.VideoSession, error)
@@ -51,24 +51,38 @@ func NewLessonUseCase(
 }
 
 func (uc *lessonUseCase) BookLesson(ctx context.Context, studentID int, request *entities.LessonBookingRequest) (*entities.Lesson, error) {
-	// Validate tutor exists and is available
+	// Validate request
+	if err := request.Validate(); err != nil {
+		return nil, err
+	}
+
+	// Validate tutor exists and check approval status
 	tutor, err := uc.tutorRepo.GetTutorByID(ctx, request.TutorID)
 	if err != nil {
 		return nil, err
 	}
-	if !tutor.Approved {
-		return nil, errors.New("tutor is not approved")
-	}
 
 	// Check if the time slot is available
-	endTime := request.StartTime.Add(45 * time.Minute)
-	existingLessons, err := uc.lessonRepo.GetLessonsByTimeRange(ctx, request.TutorID, request.StartTime, endTime)
+	endTime := request.StartTime.Add(time.Duration(request.Duration) * time.Minute)
+	existingLessons, err := uc.lessonRepo.GetLessonsByTutor(ctx, uint(request.TutorID))
 	if err != nil {
 		return nil, err
 	}
-	if len(existingLessons) > 0 {
-		return nil, errors.New("time slot is not available")
+
+	// Check for time slot conflicts
+	for _, lesson := range existingLessons {
+		if (request.StartTime.Before(lesson.EndTime) && endTime.After(lesson.StartTime)) ||
+			(request.StartTime.Equal(lesson.StartTime) && endTime.Equal(lesson.EndTime)) {
+			return nil, errors.New("time slot is not available")
+		}
 	}
+
+	// Calculate price based on duration
+	hourlyRate := tutor.HourlyRate
+	if hourlyRate <= 0 {
+		hourlyRate = 25.0 // Default hourly rate if not set
+	}
+	price := hourlyRate * float64(request.Duration) / 60.0
 
 	// Create the lesson
 	lesson := &entities.Lesson{
@@ -76,9 +90,10 @@ func (uc *lessonUseCase) BookLesson(ctx context.Context, studentID int, request 
 		TutorID:   request.TutorID,
 		StartTime: request.StartTime,
 		EndTime:   endTime,
+		Duration:  request.Duration,
 		Status:    entities.LessonStatusScheduled,
 		Language:  request.Language,
-		Price:     tutor.HourlyRate,
+		Price:     price,
 	}
 
 	err = uc.lessonRepo.CreateLesson(ctx, lesson)
@@ -86,11 +101,24 @@ func (uc *lessonUseCase) BookLesson(ctx context.Context, studentID int, request 
 		return nil, err
 	}
 
+	// If tutor is not approved, return a specific error type that includes the lesson
+	if !tutor.Approved {
+		return lesson, &entities.TutorNotApprovedError{
+			Message: "Lesson booked successfully, but tutor is not yet approved. The lesson will be pending until tutor approval.",
+			Lesson:  lesson,
+		}
+	}
+
 	return lesson, nil
 }
 
 func (uc *lessonUseCase) CancelLesson(ctx context.Context, userID int, lessonID int, request *entities.LessonCancellationRequest) error {
-	lesson, err := uc.lessonRepo.GetLessonByID(ctx, lessonID)
+	// Validate request
+	if err := request.Validate(); err != nil {
+		return err
+	}
+
+	lesson, err := uc.lessonRepo.GetLesson(ctx, uint(lessonID))
 	if err != nil {
 		return err
 	}
@@ -100,9 +128,9 @@ func (uc *lessonUseCase) CancelLesson(ctx context.Context, userID int, lessonID 
 		return errors.New("unauthorized to cancel this lesson")
 	}
 
-	// Check if lesson can be cancelled (not too close to start time)
-	if time.Until(lesson.StartTime) < 24*time.Hour {
-		return errors.New("cannot cancel lesson less than 24 hours before start time")
+	// Check if lesson can be cancelled
+	if err := lesson.CanCancel(); err != nil {
+		return err
 	}
 
 	lesson.Status = entities.LessonStatusCancelled
@@ -110,7 +138,7 @@ func (uc *lessonUseCase) CancelLesson(ctx context.Context, userID int, lessonID 
 }
 
 func (uc *lessonUseCase) GetLessonByID(ctx context.Context, userID int, lessonID int) (*entities.Lesson, error) {
-	lesson, err := uc.lessonRepo.GetLessonByID(ctx, lessonID)
+	lesson, err := uc.lessonRepo.GetLesson(ctx, uint(lessonID))
 	if err != nil {
 		return nil, err
 	}
@@ -123,12 +151,12 @@ func (uc *lessonUseCase) GetLessonByID(ctx context.Context, userID int, lessonID
 	return lesson, nil
 }
 
-func (uc *lessonUseCase) GetUpcomingLessons(ctx context.Context, userID int, role string) ([]*entities.Lesson, error) {
-	return uc.lessonRepo.GetUpcomingLessons(ctx, userID, role)
+func (uc *lessonUseCase) GetUpcomingLessons(ctx context.Context, userID int) ([]entities.Lesson, error) {
+	return uc.lessonRepo.GetUpcomingLessons(ctx, uint(userID))
 }
 
-func (uc *lessonUseCase) GetCompletedLessons(ctx context.Context, userID int, role string) ([]*entities.Lesson, error) {
-	return uc.lessonRepo.GetCompletedLessons(ctx, userID, role)
+func (uc *lessonUseCase) GetCompletedLessons(ctx context.Context, userID int) ([]entities.Lesson, error) {
+	return uc.lessonRepo.GetCompletedLessons(ctx, uint(userID))
 }
 
 func (uc *lessonUseCase) StartVideoSession(ctx context.Context, lessonID int, userID int) (*entities.VideoSession, error) {
@@ -137,13 +165,9 @@ func (uc *lessonUseCase) StartVideoSession(ctx context.Context, lessonID int, us
 		return nil, err
 	}
 
-	// Check if lesson is scheduled to start now
-	now := time.Now()
-	if now.Before(lesson.StartTime.Add(-5 * time.Minute)) {
-		return nil, errors.New("too early to start video session")
-	}
-	if now.After(lesson.EndTime) {
-		return nil, errors.New("lesson has ended")
+	// Check if lesson can be started
+	if err := lesson.CanStart(); err != nil {
+		return nil, err
 	}
 
 	// Create video session
@@ -151,19 +175,13 @@ func (uc *lessonUseCase) StartVideoSession(ctx context.Context, lessonID int, us
 		LessonID:     lessonID,
 		RoomID:       generateRoomID(lessonID),
 		SessionToken: generateSessionToken(),
-		StartedAt:    now,
+		StartedAt:    time.Now(),
 	}
 
-	err = uc.lessonRepo.CreateVideoSession(ctx, session)
+	// Start video session with transaction
+	err = uc.lessonRepo.StartVideoSession(ctx, lesson, session)
 	if err != nil {
-		return nil, err
-	}
-
-	// Update lesson status
-	lesson.Status = entities.LessonStatusInProgress
-	err = uc.lessonRepo.UpdateLesson(ctx, lesson)
-	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to start video session: %v", err)
 	}
 
 	return session, nil
@@ -175,20 +193,25 @@ func (uc *lessonUseCase) EndVideoSession(ctx context.Context, lessonID int, user
 		return err
 	}
 
+	// Check if lesson can be ended
+	if err := lesson.CanEnd(); err != nil {
+		return err
+	}
+
 	session, err := uc.lessonRepo.GetVideoSession(ctx, lessonID)
 	if err != nil {
 		return err
 	}
 
-	now := time.Now()
-	session.EndedAt = now
-	err = uc.lessonRepo.UpdateVideoSession(ctx, session)
+	session.EndedAt = time.Now()
+
+	// End video session with transaction
+	err = uc.lessonRepo.EndVideoSession(ctx, lesson, session)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to end video session: %v", err)
 	}
 
-	lesson.Status = entities.LessonStatusCompleted
-	return uc.lessonRepo.UpdateLesson(ctx, lesson)
+	return nil
 }
 
 func (uc *lessonUseCase) GetVideoSession(ctx context.Context, lessonID int, userID int) (*entities.VideoSession, error) {

@@ -25,28 +25,28 @@ func (h *LessonHandler) RegisterRoutes(r *gin.Engine) {
 	lessons := r.Group("/api/lessons")
 	{
 		// Lesson management
-		lessons.POST("", middleware.AuthMiddleware(), h.bookLesson)
-		lessons.GET("/:id", middleware.AuthMiddleware(), h.getLesson)
-		lessons.POST("/:id/cancel", middleware.AuthMiddleware(), h.cancelLesson)
-		lessons.GET("/upcoming", middleware.AuthMiddleware(), h.getUpcomingLessons)
-		lessons.GET("/completed", middleware.AuthMiddleware(), h.getCompletedLessons)
+		lessons.POST("", middleware.AuthMiddleware(), h.BookLesson)
+		lessons.GET("/:id", middleware.AuthMiddleware(), h.GetLesson)
+		lessons.POST("/:id/cancel", middleware.AuthMiddleware(), h.CancelLesson)
+		lessons.GET("/upcoming", middleware.AuthMiddleware(), h.GetUpcomingLessons)
+		lessons.GET("/completed", middleware.AuthMiddleware(), h.GetCompletedLessons)
 
 		// Video session
-		lessons.POST("/:id/video/start", middleware.AuthMiddleware(), h.startVideoSession)
-		lessons.POST("/:id/video/end", middleware.AuthMiddleware(), h.endVideoSession)
-		lessons.GET("/:id/video", middleware.AuthMiddleware(), h.getVideoSession)
+		lessons.POST("/:id/video/start", middleware.AuthMiddleware(), h.StartVideoSession)
+		lessons.POST("/:id/video/end", middleware.AuthMiddleware(), h.EndVideoSession)
+		lessons.GET("/:id/video", middleware.AuthMiddleware(), h.GetVideoSession)
 
 		// Chat
-		lessons.POST("/:id/chat", middleware.AuthMiddleware(), h.sendChatMessage)
-		lessons.GET("/:id/chat", middleware.AuthMiddleware(), h.getChatHistory)
+		lessons.POST("/:id/chat", middleware.AuthMiddleware(), h.SendChatMessage)
+		lessons.GET("/:id/chat", middleware.AuthMiddleware(), h.GetChatHistory)
 
 		// Ratings
-		lessons.POST("/:id/rate", middleware.AuthMiddleware(), h.rateLesson)
+		lessons.POST("/:id/rate", middleware.AuthMiddleware(), h.RateLesson)
 	}
-	r.GET("/api/tutors/:id/rating", h.getTutorRating)
+	r.GET("/api/tutors/:id/rating", h.GetTutorRating)
 }
 
-func (h *LessonHandler) bookLesson(c *gin.Context) {
+func (h *LessonHandler) BookLesson(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
@@ -61,6 +61,16 @@ func (h *LessonHandler) bookLesson(c *gin.Context) {
 
 	lesson, err := h.lessonUseCase.BookLesson(c.Request.Context(), userID.(int), &request)
 	if err != nil {
+		// Check if it's a TutorNotApprovedError
+		if tutorErr, ok := err.(*entities.TutorNotApprovedError); ok {
+			// Return a 201 Created status with both the lesson and warning message
+			c.JSON(http.StatusCreated, gin.H{
+				"lesson":  tutorErr.Lesson,
+				"warning": tutorErr.Message,
+			})
+			return
+		}
+		// Handle other errors
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -68,7 +78,7 @@ func (h *LessonHandler) bookLesson(c *gin.Context) {
 	c.JSON(http.StatusOK, lesson)
 }
 
-func (h *LessonHandler) getLesson(c *gin.Context) {
+func (h *LessonHandler) GetLesson(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
@@ -90,7 +100,7 @@ func (h *LessonHandler) getLesson(c *gin.Context) {
 	c.JSON(http.StatusOK, lesson)
 }
 
-func (h *LessonHandler) cancelLesson(c *gin.Context) {
+func (h *LessonHandler) CancelLesson(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
@@ -117,16 +127,14 @@ func (h *LessonHandler) cancelLesson(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Lesson cancelled successfully"})
 }
 
-func (h *LessonHandler) getUpcomingLessons(c *gin.Context) {
+func (h *LessonHandler) GetUpcomingLessons(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
-	role := c.GetString("user_role")
-
-	lessons, err := h.lessonUseCase.GetUpcomingLessons(c.Request.Context(), userID.(int), role)
+	lessons, err := h.lessonUseCase.GetUpcomingLessons(c.Request.Context(), userID.(int))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -135,16 +143,14 @@ func (h *LessonHandler) getUpcomingLessons(c *gin.Context) {
 	c.JSON(http.StatusOK, lessons)
 }
 
-func (h *LessonHandler) getCompletedLessons(c *gin.Context) {
+func (h *LessonHandler) GetCompletedLessons(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
-	role := c.GetString("user_role")
-
-	lessons, err := h.lessonUseCase.GetCompletedLessons(c.Request.Context(), userID.(int), role)
+	lessons, err := h.lessonUseCase.GetCompletedLessons(c.Request.Context(), userID.(int))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -153,7 +159,7 @@ func (h *LessonHandler) getCompletedLessons(c *gin.Context) {
 	c.JSON(http.StatusOK, lessons)
 }
 
-func (h *LessonHandler) startVideoSession(c *gin.Context) {
+func (h *LessonHandler) StartVideoSession(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
@@ -175,7 +181,7 @@ func (h *LessonHandler) startVideoSession(c *gin.Context) {
 	c.JSON(http.StatusOK, session)
 }
 
-func (h *LessonHandler) endVideoSession(c *gin.Context) {
+func (h *LessonHandler) EndVideoSession(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
@@ -196,7 +202,7 @@ func (h *LessonHandler) endVideoSession(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Video session ended successfully"})
 }
 
-func (h *LessonHandler) getVideoSession(c *gin.Context) {
+func (h *LessonHandler) GetVideoSession(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
@@ -218,7 +224,7 @@ func (h *LessonHandler) getVideoSession(c *gin.Context) {
 	c.JSON(http.StatusOK, session)
 }
 
-func (h *LessonHandler) sendChatMessage(c *gin.Context) {
+func (h *LessonHandler) SendChatMessage(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
@@ -247,7 +253,7 @@ func (h *LessonHandler) sendChatMessage(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Chat message sent successfully"})
 }
 
-func (h *LessonHandler) getChatHistory(c *gin.Context) {
+func (h *LessonHandler) GetChatHistory(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
@@ -269,7 +275,7 @@ func (h *LessonHandler) getChatHistory(c *gin.Context) {
 	c.JSON(http.StatusOK, messages)
 }
 
-func (h *LessonHandler) rateLesson(c *gin.Context) {
+func (h *LessonHandler) RateLesson(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
@@ -299,7 +305,7 @@ func (h *LessonHandler) rateLesson(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Lesson rated successfully"})
 }
 
-func (h *LessonHandler) getTutorRating(c *gin.Context) {
+func (h *LessonHandler) GetTutorRating(c *gin.Context) {
 	tutorID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid tutor ID"})

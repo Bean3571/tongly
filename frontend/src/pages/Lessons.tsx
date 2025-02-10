@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { format } from 'date-fns';
+import { message, notification } from 'antd';
 
 interface Lesson {
     id: number;
@@ -31,14 +32,34 @@ export const Lessons: React.FC = () => {
     const loadLessons = async () => {
         try {
             setLoading(true);
-            const endpoint = activeTab === 'upcoming' ? '/api/lessons/upcoming' : '/api/lessons/completed';
-            const response = await fetch(endpoint);
-            if (response.ok) {
-                const data = await response.json();
-                setLessons(data);
+            const token = localStorage.getItem('token');
+            const apiUrl = 'http://localhost:8080/api';
+            const endpoint = activeTab === 'upcoming' ? '/lessons/upcoming' : '/lessons/completed';
+
+            const response = await fetch(`${apiUrl}${endpoint}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.status === 401) {
+                navigate('/login');
+                return;
             }
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            setLessons(data);
         } catch (error) {
             console.error('Error loading lessons:', error);
+            notification.error({
+                message: 'Error',
+                description: 'Failed to load lessons. Please try again later.',
+            });
         } finally {
             setLoading(false);
         }
@@ -68,11 +89,44 @@ export const Lessons: React.FC = () => {
         );
     };
 
+    const formatDateTime = (dateString: string) => {
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) {
+                return 'Invalid date';
+            }
+            return format(date, 'MMM d, yyyy h:mm a');
+        } catch (error) {
+            return 'Invalid date';
+        }
+    };
+
+    const formatTime = (dateString: string) => {
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) {
+                return 'Invalid time';
+            }
+            return format(date, 'h:mm a');
+        } catch (error) {
+            return 'Invalid time';
+        }
+    };
+
     const isLessonJoinable = (lesson: Lesson) => {
-        const now = new Date();
-        const startTime = new Date(lesson.startTime);
-        const endTime = new Date(lesson.endTime);
-        return now >= startTime && now <= endTime && lesson.status === 'scheduled';
+        try {
+            const now = new Date();
+            const startTime = new Date(lesson.startTime);
+            const endTime = new Date(lesson.endTime);
+            
+            if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+                return false;
+            }
+            
+            return now >= startTime && now <= endTime && lesson.status === 'scheduled';
+        } catch (error) {
+            return false;
+        }
     };
 
     if (loading) {
@@ -165,7 +219,7 @@ export const Lessons: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm text-gray-700 dark:text-gray-300">
-                                            {format(new Date(lesson.startTime), 'MMM d, yyyy h:mm a')}
+                                            {formatDateTime(lesson.startTime)}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
@@ -186,7 +240,7 @@ export const Lessons: React.FC = () => {
                                             </button>
                                         ) : lesson.status === 'scheduled' ? (
                                             <div className="text-sm text-gray-500 dark:text-gray-400">
-                                                Starts in {format(new Date(lesson.startTime), 'h:mm a')}
+                                                Starts in {formatTime(lesson.startTime)}
                                             </div>
                                         ) : null}
                                     </td>

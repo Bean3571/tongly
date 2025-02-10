@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"context"
-	"time"
 
 	"tongly-backend/internal/entities"
 )
@@ -10,17 +9,19 @@ import (
 type LessonRepository interface {
 	// Lesson management
 	CreateLesson(ctx context.Context, lesson *entities.Lesson) error
-	GetLessonByID(ctx context.Context, id int) (*entities.Lesson, error)
+	GetLesson(ctx context.Context, id uint) (*entities.Lesson, error)
 	UpdateLesson(ctx context.Context, lesson *entities.Lesson) error
 	DeleteLesson(ctx context.Context, id int) error
 
 	// Lesson queries
-	GetUpcomingLessons(ctx context.Context, userID int, role string) ([]*entities.Lesson, error)
-	GetCompletedLessons(ctx context.Context, userID int, role string) ([]*entities.Lesson, error)
-	GetLessonsByTimeRange(ctx context.Context, tutorID int, start, end time.Time) ([]*entities.Lesson, error)
+	GetUpcomingLessons(ctx context.Context, userID uint) ([]entities.Lesson, error)
+	GetCompletedLessons(ctx context.Context, userID uint) ([]entities.Lesson, error)
+	GetLessonsByTutor(ctx context.Context, tutorID uint) ([]entities.Lesson, error)
 
 	// Video session management
 	CreateVideoSession(ctx context.Context, session *entities.VideoSession) error
+	StartVideoSession(ctx context.Context, lesson *entities.Lesson, session *entities.VideoSession) error
+	EndVideoSession(ctx context.Context, lesson *entities.Lesson, session *entities.VideoSession) error
 	GetVideoSession(ctx context.Context, lessonID int) (*entities.VideoSession, error)
 	UpdateVideoSession(ctx context.Context, session *entities.VideoSession) error
 

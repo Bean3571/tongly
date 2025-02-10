@@ -10,68 +10,81 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(r *gin.Engine, authHandler *interfaces.AuthHandler, tutorHandler *interfaces.TutorHandler, gamificationHandler *interfaces.GamificationHandler, userHandler *interfaces.UserHandler) {
-	// Add logger middleware with configuration
-	r.Use(middleware.Logger(middleware.LoggerConfig{
-		// Skip logging for health check and options requests
-		SkipPaths: []string{"/health", "/metrics"},
-		// Skip logging for 304 Not Modified responses
-		//SkipStatusCodes: []int{304},
+func SetupRouter(
+	r *gin.Engine,
+	authHandler *interfaces.AuthHandler,
+	tutorHandler *interfaces.TutorHandler,
+	gamificationHandler *interfaces.GamificationHandler,
+	userHandler *interfaces.UserHandler,
+	lessonHandler *interfaces.LessonHandler,
+) {
+	// Add CORS middleware first
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
 	}))
 
-	// Add CORS middleware
-	r.Use(func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
-		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
+	// Add logger middleware
+	r.Use(middleware.Logger(middleware.LoggerConfig{
+		SkipPaths: []string{"/health", "/metrics"},
+	}))
 
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
-			return
+	// Public routes
+	api := r.Group("/api")
+	{
+		// Auth routes
+		auth := api.Group("/auth")
+		{
+			auth.POST("/register", authHandler.Register)
+			auth.POST("/login", authHandler.Login)
 		}
 
-		c.Next()
-	})
+		// Protected routes
+		protected := api.Group("/")
+		protected.Use(middleware.AuthMiddleware())
+		{
+			// User profile routes
+			protected.GET("/profile", userHandler.GetProfile)
+			protected.PUT("/profile", userHandler.UpdateProfile)
+			protected.PUT("/profile/password", userHandler.UpdatePassword)
+			protected.POST("/profile/avatar", userHandler.UploadProfilePicture)
 
-	// Handle OPTIONS requests
-	r.OPTIONS("/*any", func(c *gin.Context) {
-		c.Status(200)
-	})
+			// Tutor routes
+			protected.POST("/tutors", tutorHandler.RegisterTutor)
+			protected.GET("/tutors", tutorHandler.ListTutors)
+			protected.PUT("/tutors/profile", tutorHandler.UpdateTutorProfile)
+			protected.GET("/tutors/profile", tutorHandler.GetTutorProfile)
+			protected.PUT("/tutors/:id/approval", tutorHandler.UpdateTutorApprovalStatus)
+			protected.POST("/tutors/video", tutorHandler.UploadVideo)
+			protected.GET("/tutors/:id/rating", lessonHandler.GetTutorRating)
 
-	// Serve static files
-	r.Static("/uploads", "./uploads")
+			// Lesson routes
+			lessons := protected.Group("/lessons")
+			{
+				// List endpoints must come before parameterized routes
+				lessons.GET("/upcoming", lessonHandler.GetUpcomingLessons)
+				lessons.GET("/completed", lessonHandler.GetCompletedLessons)
 
-	api := r.Group("/api")
+				// Parameterized routes
+				lessons.POST("", lessonHandler.BookLesson)
+				lessons.GET("/:id", lessonHandler.GetLesson)
+				lessons.POST("/:id/cancel", lessonHandler.CancelLesson)
+				lessons.POST("/:id/video/start", lessonHandler.StartVideoSession)
+				lessons.POST("/:id/video/end", lessonHandler.EndVideoSession)
+				lessons.GET("/:id/video", lessonHandler.GetVideoSession)
+				lessons.POST("/:id/chat", lessonHandler.SendChatMessage)
+				lessons.GET("/:id/chat", lessonHandler.GetChatHistory)
+				lessons.POST("/:id/rate", lessonHandler.RateLesson)
+			}
 
-	// Auth routes
-	auth := api.Group("/auth")
-	{
-		auth.POST("/register", authHandler.Register)
-		auth.POST("/login", authHandler.Login)
-	}
-
-	// Protected routes
-	protected := api.Group("/")
-	protected.Use(middleware.AuthMiddleware())
-	{
-		// User profile routes
-		protected.GET("/profile", userHandler.GetProfile)
-		protected.PUT("/profile", userHandler.UpdateProfile)
-		protected.PUT("/profile/password", userHandler.UpdatePassword)
-		protected.POST("/profile/avatar", userHandler.UploadProfilePicture)
-
-		// Tutor routes
-		protected.POST("/tutors", tutorHandler.RegisterTutor)
-		protected.GET("/tutors", tutorHandler.ListTutors)
-		protected.PUT("/tutors/profile", tutorHandler.UpdateTutorProfile)
-		protected.GET("/tutors/profile", tutorHandler.GetTutorProfile)
-		protected.PUT("/tutors/:id/approval", tutorHandler.UpdateTutorApprovalStatus)
-		protected.POST("/tutors/video", tutorHandler.UploadVideo)
-
-		// Gamification routes
-		protected.POST("/challenges/submit", gamificationHandler.SubmitChallenge)
-		protected.GET("/leaderboards", gamificationHandler.GetLeaderboard)
+			// Gamification routes
+			protected.POST("/challenges/submit", gamificationHandler.SubmitChallenge)
+			protected.GET("/leaderboards", gamificationHandler.GetLeaderboard)
+		}
 	}
 }
 
@@ -80,6 +93,7 @@ func NewRouter(
 	userHandler *interfaces.UserHandler,
 	tutorHandler *interfaces.TutorHandler,
 	gamificationHandler *interfaces.GamificationHandler,
+	lessonHandler *interfaces.LessonHandler,
 ) *gin.Engine {
 	router := gin.Default()
 
@@ -121,6 +135,19 @@ func NewRouter(
 		protected.GET("/tutors/profile", tutorHandler.GetTutorProfile)
 		protected.PUT("/tutors/:id/approval", tutorHandler.UpdateTutorApprovalStatus)
 		protected.POST("/tutors/video", tutorHandler.UploadVideo)
+
+		// Lesson routes
+		protected.GET("/lessons/upcoming", lessonHandler.GetUpcomingLessons)
+		protected.GET("/lessons/completed", lessonHandler.GetCompletedLessons)
+		protected.POST("/lessons", lessonHandler.BookLesson)
+		protected.GET("/lessons/:id", lessonHandler.GetLesson)
+		protected.POST("/lessons/:id/cancel", lessonHandler.CancelLesson)
+		protected.POST("/lessons/:id/video/start", lessonHandler.StartVideoSession)
+		protected.POST("/lessons/:id/video/end", lessonHandler.EndVideoSession)
+		protected.GET("/lessons/:id/video", lessonHandler.GetVideoSession)
+		protected.POST("/lessons/:id/chat", lessonHandler.SendChatMessage)
+		protected.GET("/lessons/:id/chat", lessonHandler.GetChatHistory)
+		protected.POST("/lessons/:id/rate", lessonHandler.RateLesson)
 
 		// Gamification routes
 		protected.POST("/challenges/submit", gamificationHandler.SubmitChallenge)

@@ -72,7 +72,7 @@ export const BookLesson: React.FC = () => {
 
   const generateTimeOptions = () => {
     const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
-    const minutes = ['00', '15', '30', '45'];
+    const minutes = Array.from({ length: 6 }, (_, i) => (i * 10).toString().padStart(2, '0'));
     return { hours, minutes };
   };
 
@@ -98,26 +98,38 @@ export const BookLesson: React.FC = () => {
       // Calculate end time
       const endDateTime = new Date(startDateTime.getTime() + duration * 60000);
 
-      const response = await fetch('http://localhost:8080/api/lessons/book', {
+      const requestData = {
+        tutor_id: parseInt(id!, 10),
+        start_time: startDateTime.toISOString(),
+        language: selectedLanguage,
+        duration: duration,
+      };
+
+      console.log('Booking lesson with data:', requestData);
+
+      const response = await fetch('http://localhost:8080/api/lessons', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
         credentials: 'include',
-        body: JSON.stringify({
-          tutor_id: parseInt(id!, 10),
-          start_time: startDateTime.toISOString(),
-          end_time: endDateTime.toISOString(),
-          language: selectedLanguage,
-          price: tutor.tutor?.hourly_rate || 25,
-          status: 'scheduled'
-        }),
+        body: JSON.stringify(requestData),
       });
 
+      console.log('Response status:', response.status);
+      const responseData = await response.text();
+      console.log('Response data:', responseData);
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.error || 'Failed to book lesson');
+        let errorMessage = 'Failed to book lesson';
+        try {
+          const errorData = JSON.parse(responseData);
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          console.error('Error parsing error response:', e);
+        }
+        throw new Error(errorMessage);
       }
       
       showNotification('success', 'Lesson booked successfully!');
