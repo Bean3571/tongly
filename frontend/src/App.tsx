@@ -80,6 +80,11 @@ const AppRoutes = () => {
                             <TutorProfile />
                         </PrivateRoute>
                     } />
+                    <Route path="/tutors/:id/book" element={
+                        <PrivateRoute role="student">
+                            <BookLesson />
+                        </PrivateRoute>
+                    } />
 
                     {/* Tutor Routes */}
                     <Route path="/tutor/dashboard" element={
@@ -114,7 +119,7 @@ const AppRoutes = () => {
                             <Lessons />
                         </PrivateRoute>
                     } />
-                    <Route path="/lessons/:lessonId" element={
+                    <Route path="/lessons/:lessonId/room" element={
                         <PrivateRoute>
                             <LessonRoom />
                         </PrivateRoute>

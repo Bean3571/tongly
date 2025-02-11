@@ -60,7 +60,6 @@ func (h *AuthHandler) Register(c *gin.Context) {
 			TeachingLanguages: []entities.Language{},
 			Education:         []entities.Education{},
 			HourlyRate:        25.0, // Default hourly rate
-			OffersTrial:       true, // Default to offering trial
 		}
 
 		if err := h.TutorUseCase.RegisterTutor(c.Request.Context(), user.Credentials.ID, tutorReq); err != nil {

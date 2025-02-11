@@ -66,7 +66,7 @@ export const UpcomingLessonsTable: React.FC<UpcomingLessonsTableProps> = ({ less
             render: (_: string, record: Lesson) => (
                 <Button 
                     type="primary"
-                    onClick={() => navigate(`/lessons/${record.id}`)}
+                    onClick={() => navigate(`/lessons/${record.id}/room`)}
                     disabled={record.status !== 'scheduled' && record.status !== 'in_progress'}
                 >
                     Join

@@ -64,7 +64,8 @@ const VideoRoom: React.FC<VideoRoomProps> = ({ lessonId, userId }) => {
   };
 
   const connectSignalingServer = () => {
-    const ws = new WebSocket(`ws://${window.location.host}/api/lessons/${lessonId}/rtc`);
+    const token = localStorage.getItem('token');
+    const ws = new WebSocket(`ws://localhost:8080/api/lessons/${lessonId}/rtc?token=${token}`);
     wsRef.current = ws;
 
     ws.onopen = () => {
@@ -366,7 +367,7 @@ const VideoRoom: React.FC<VideoRoomProps> = ({ lessonId, userId }) => {
             muted
           />
           <ParticipantName>You</ParticipantName>
-          <NetworkStatus quality={networkQuality}>
+          <NetworkStatus $quality={networkQuality}>
             {networkQuality === 'good' ? '📶' : networkQuality === 'fair' ? '📡' : '⚠️'}
           </NetworkStatus>
         </LocalVideoContainer>
@@ -472,11 +473,11 @@ const ControlButton = styled.button`
   }
 `;
 
-const NetworkStatus = styled.div<NetworkStatusProps>`
+const NetworkStatus = styled.div<{ $quality: 'good' | 'fair' | 'poor' }>`
   font-size: 1.5rem;
-  color: ${(props: NetworkStatusProps) =>
-    props.quality === 'good' ? '#4caf50' :
-    props.quality === 'fair' ? '#ff9800' : '#f44336'
+  color: ${(props) =>
+    props.$quality === 'good' ? '#4caf50' :
+    props.$quality === 'fair' ? '#ff9800' : '#f44336'
   };
 `;
 

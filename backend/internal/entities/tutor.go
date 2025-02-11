@@ -11,11 +11,10 @@ type TutorDetails struct {
 	Education         []Education `json:"education"`
 	Interests         []string    `json:"interests"`
 	HourlyRate        float64     `json:"hourly_rate"`
-	IntroductionVideo string      `json:"introduction_video"`
-	OffersTrial       bool        `json:"offers_trial"`
+	IntroductionVideo string      `json:"introduction_video,omitempty"`
 	Approved          bool        `json:"approved"`
-	CreatedAt         string      `json:"created_at"`
-	UpdatedAt         string      `json:"updated_at"`
+	CreatedAt         time.Time   `json:"created_at"`
+	UpdatedAt         time.Time   `json:"updated_at"`
 }
 
 // TutorProfile represents public tutor information
@@ -27,8 +26,7 @@ type TutorProfile struct {
 	Interests         []string    `json:"interests"`
 	ProfilePicture    string      `json:"profile_picture"`
 	HourlyRate        float64     `json:"hourly_rate"`
-	OffersTrial       bool        `json:"offers_trial"`
-	IntroductionVideo string      `json:"introduction_video"`
+	IntroductionVideo string      `json:"introduction_video,omitempty"`
 	Education         []Education `json:"education"`
 	CreatedAt         time.Time   `json:"created_at"`
 	UpdatedAt         time.Time   `json:"updated_at"`
@@ -64,7 +62,6 @@ type TutorRegistrationRequest struct {
 	Education         []Education `json:"education"`
 	HourlyRate        float64     `json:"hourly_rate"`
 	IntroductionVideo string      `json:"introduction_video"`
-	OffersTrial       bool        `json:"offers_trial"`
 }
 
 // TutorUpdateRequest represents the data needed to update a tutor's profile
@@ -74,8 +71,7 @@ type TutorUpdateRequest struct {
 	Education         []Education `json:"education"`
 	Interests         []string    `json:"interests"`
 	HourlyRate        float64     `json:"hourly_rate"`
-	IntroductionVideo string      `json:"introduction_video"`
-	OffersTrial       bool        `json:"offers_trial"`
+	IntroductionVideo string      `json:"introduction_video,omitempty"`
 }
 
 type Language struct {
@@ -90,4 +86,11 @@ type Education struct {
 	StartYear    string `json:"start_year"`
 	EndYear      string `json:"end_year"`
 	DocumentURL  string `json:"documentUrl,omitempty"`
+}
+
+type TutorSearchFilters struct {
+	Languages []string `json:"languages"`
+	MinPrice  float64  `json:"min_price"`
+	MaxPrice  float64  `json:"max_price"`
+	MinRating float64  `json:"min_rating"`
 }

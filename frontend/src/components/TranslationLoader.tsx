@@ -1,6 +1,13 @@
 import React, { useEffect, useState, ReactNode } from 'react';
 import { useI18n } from '../contexts/I18nContext';
 import { Language } from '../services/i18n/types';
+import enTranslations from '../locales/en.json';
+import ruTranslations from '../locales/ru.json';
+
+const translations = {
+    en: enTranslations,
+    ru: ruTranslations
+};
 
 interface TranslationLoaderProps {
     children: ReactNode;
@@ -23,18 +30,12 @@ export const TranslationLoader = ({
                 setLoadingLocales(true);
                 setLoadingError(null);
 
-                // Load all required locales in parallel
-                await Promise.all(
-                    locales.map(async (locale) => {
-                        try {
-                            const module = await import(`../locales/${locale}.json`);
-                            return module.default;
-                        } catch (err) {
-                            console.error(`Failed to load locale: ${locale}`, err);
-                            throw err;
-                        }
-                    })
-                );
+                // Load translations synchronously since they're now statically imported
+                locales.forEach((locale) => {
+                    if (!translations[locale]) {
+                        throw new Error(`Translation not found for locale: ${locale}`);
+                    }
+                });
             } catch (err) {
                 setLoadingError(err instanceof Error ? err.message : 'Failed to load translations');
                 console.error('Failed to load translations:', err);

@@ -9,12 +9,14 @@ import (
 )
 
 type TutorUseCase struct {
-	UserRepo repositories.UserRepository
+	UserRepo  repositories.UserRepository
+	TutorRepo repositories.TutorRepository
 }
 
-func NewTutorUseCase(userRepo repositories.UserRepository) *TutorUseCase {
+func NewTutorUseCase(userRepo repositories.UserRepository, tutorRepo repositories.TutorRepository) *TutorUseCase {
 	return &TutorUseCase{
-		UserRepo: userRepo,
+		UserRepo:  userRepo,
+		TutorRepo: tutorRepo,
 	}
 }
 
@@ -54,7 +56,6 @@ func (uc *TutorUseCase) RegisterTutor(ctx context.Context, userID int, req entit
 		Education:         req.Education,
 		HourlyRate:        req.HourlyRate,
 		IntroductionVideo: req.IntroductionVideo,
-		OffersTrial:       req.OffersTrial,
 		Approved:          false, // New tutors start as unapproved
 	}
 
@@ -183,10 +184,9 @@ func (uc *TutorUseCase) UpdateTutorProfile(ctx context.Context, userID int, req 
 	// Create tutor details if they don't exist
 	if details == nil {
 		details = &entities.TutorDetails{
-			UserID:      userID,
-			HourlyRate:  25.0, // Default hourly rate
-			OffersTrial: true, // Default to offering trial
-			Approved:    false,
+			UserID:     userID,
+			HourlyRate: 25.0, // Default hourly rate
+			Approved:   false,
 		}
 	}
 
@@ -197,7 +197,6 @@ func (uc *TutorUseCase) UpdateTutorProfile(ctx context.Context, userID int, req 
 	details.Interests = req.Interests
 	details.HourlyRate = req.HourlyRate
 	details.IntroductionVideo = req.IntroductionVideo
-	details.OffersTrial = req.OffersTrial
 
 	// Create or update tutor details
 	if details.ID == 0 {
@@ -229,10 +228,9 @@ func (uc *TutorUseCase) UpdateTutorVideo(ctx context.Context, userID int, videoU
 	// Create tutor details if they don't exist
 	if details == nil {
 		details = &entities.TutorDetails{
-			UserID:      userID,
-			HourlyRate:  25.0, // Default hourly rate
-			OffersTrial: true, // Default to offering trial
-			Approved:    false,
+			UserID:     userID,
+			HourlyRate: 25.0, // Default hourly rate
+			Approved:   false,
 		}
 	}
 
@@ -253,4 +251,24 @@ func (uc *TutorUseCase) UpdateTutorVideo(ctx context.Context, userID int, videoU
 
 	logger.Info("Tutor video updated successfully", "user_id", userID)
 	return nil
+}
+
+// SearchTutors searches for tutors based on filters
+func (uc *TutorUseCase) SearchTutors(ctx context.Context, filters entities.TutorSearchFilters) ([]*entities.TutorProfile, error) {
+	filterMap := make(map[string]interface{})
+
+	if len(filters.Languages) > 0 {
+		filterMap["languages"] = filters.Languages
+	}
+	if filters.MinPrice > 0 {
+		filterMap["min_price"] = filters.MinPrice
+	}
+	if filters.MaxPrice > 0 {
+		filterMap["max_price"] = filters.MaxPrice
+	}
+	if filters.MinRating > 0 {
+		filterMap["min_rating"] = filters.MinRating
+	}
+
+	return uc.TutorRepo.SearchTutors(ctx, filterMap)
 }

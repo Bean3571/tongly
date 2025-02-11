@@ -177,7 +177,6 @@ func (h *TutorHandler) UpdateTutorProfile(c *gin.Context) {
 			"interests_full":          req.Interests,
 			"hourly_rate":             req.HourlyRate,
 			"introduction_video":      req.IntroductionVideo,
-			"offers_trial":            req.OffersTrial,
 		})
 
 	if err := h.TutorUseCase.UpdateTutorProfile(c.Request.Context(), userID.(int), req); err != nil {
@@ -203,7 +202,6 @@ func (h *TutorHandler) UpdateTutorProfile(c *gin.Context) {
 				"interests":          updatedProfile.Interests,
 				"hourly_rate":        updatedProfile.HourlyRate,
 				"introduction_video": updatedProfile.IntroductionVideo,
-				"offers_trial":       updatedProfile.OffersTrial,
 			})
 	}
 
@@ -271,6 +269,30 @@ func (h *TutorHandler) UploadVideo(c *gin.Context) {
 	})
 }
 
+// Helper function to parse string to float64
+func parseFloat64(s string) float64 {
+	val, _ := strconv.ParseFloat(s, 64)
+	return val
+}
+
+// SearchTutors handles the search request for tutors
+func (h *TutorHandler) SearchTutors(c *gin.Context) {
+	filters := entities.TutorSearchFilters{
+		Languages: strings.Split(c.Query("languages"), ","),
+		MinPrice:  parseFloat64(c.Query("min_price")),
+		MaxPrice:  parseFloat64(c.Query("max_price")),
+		MinRating: parseFloat64(c.Query("min_rating")),
+	}
+
+	tutors, err := h.TutorUseCase.SearchTutors(c.Request.Context(), filters)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, tutors)
+}
+
 func (h *TutorHandler) RegisterRoutes(r *gin.Engine) {
 	tutors := r.Group("/tutors")
 	{
@@ -279,5 +301,6 @@ func (h *TutorHandler) RegisterRoutes(r *gin.Engine) {
 		tutors.GET("/profile", middleware.AuthMiddleware(), h.GetTutorProfile)
 		tutors.PUT("/profile", middleware.AuthMiddleware(), h.UpdateTutorProfile)
 		tutors.POST("/video", middleware.AuthMiddleware(), h.UploadVideo)
+		tutors.GET("/search", h.SearchTutors)
 	}
 }

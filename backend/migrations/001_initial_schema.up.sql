@@ -44,7 +44,6 @@ CREATE TABLE tutor_details (
     interests TEXT[] DEFAULT ARRAY[]::TEXT[],
     hourly_rate DECIMAL(10,2) ,
     introduction_video TEXT,
-    offers_trial BOOLEAN ,
     approved BOOLEAN ,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP

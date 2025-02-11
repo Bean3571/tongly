@@ -34,7 +34,7 @@ type ProcessLessonPaymentResult struct {
 
 func (s *WalletService) ProcessLessonPayment(ctx context.Context, lessonID int, studentID int) (*ProcessLessonPaymentResult, error) {
 	// Get lesson details
-	lesson, err := s.lessonRepo.GetLesson(ctx, uint(lessonID))
+	lesson, err := s.lessonRepo.GetLesson(ctx, lessonID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get lesson: %v", err)
 	}

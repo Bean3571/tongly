@@ -35,11 +35,16 @@ const LessonChat: React.FC<LessonChatProps> = ({ lessonId, userId, participants 
 
   const loadChatHistory = async () => {
     try {
-      const response = await fetch(`/api/lessons/${lessonId}/chat`);
-      if (response.ok) {
-        const data = await response.json();
-        setMessages(data);
-      }
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:8080/api/lessons/${lessonId}/chat`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) throw new Error('Failed to load chat history');
+      const data = await response.json();
+      setMessages(data);
     } catch (error) {
       console.error('Error loading chat history:', error);
     } finally {
@@ -47,23 +52,21 @@ const LessonChat: React.FC<LessonChatProps> = ({ lessonId, userId, participants 
     }
   };
 
-  const sendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim()) return;
-
+  const sendMessage = async (content: string) => {
     try {
-      const response = await fetch(`/api/lessons/${lessonId}/chat`, {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:8080/api/lessons/${lessonId}/chat`, {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ content: newMessage }),
+        body: JSON.stringify({ content }),
       });
-
-      if (response.ok) {
-        setNewMessage('');
-        loadChatHistory(); // In a real app, use WebSocket to receive messages
-      }
+      if (!response.ok) throw new Error('Failed to send message');
+      const newMessage = await response.json();
+      setMessages(prev => [...prev, newMessage]);
+      setNewMessage('');
     } catch (error) {
       console.error('Error sending message:', error);
     }
@@ -83,8 +86,10 @@ const LessonChat: React.FC<LessonChatProps> = ({ lessonId, userId, participants 
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setNewMessage(e.target.value);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMessage.trim()) return;
+    await sendMessage(newMessage.trim());
   };
 
   if (isLoading) {
@@ -114,10 +119,10 @@ const LessonChat: React.FC<LessonChatProps> = ({ lessonId, userId, participants 
         <div ref={messagesEndRef} />
       </MessageList>
 
-      <MessageForm onSubmit={sendMessage}>
+      <MessageForm onSubmit={handleSubmit}>
         <MessageInput
           value={newMessage}
-          onChange={handleInputChange}
+          onChange={(e) => setNewMessage(e.target.value)}
           placeholder="Type your message..."
           maxLength={500}
         />

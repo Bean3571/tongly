@@ -17,6 +17,7 @@ func SetupRouter(
 	gamificationHandler *interfaces.GamificationHandler,
 	userHandler *interfaces.UserHandler,
 	lessonHandler *interfaces.LessonHandler,
+	walletHandler *interfaces.WalletHandler,
 ) {
 	// Add CORS middleware first
 	r.Use(cors.New(cors.Config{
@@ -84,6 +85,15 @@ func SetupRouter(
 			// Gamification routes
 			protected.POST("/challenges/submit", gamificationHandler.SubmitChallenge)
 			protected.GET("/leaderboards", gamificationHandler.GetLeaderboard)
+
+			// Wallet routes
+			wallet := protected.Group("/wallet")
+			{
+				wallet.GET("/balance", walletHandler.GetBalance)
+				wallet.GET("/transactions", walletHandler.GetTransactionHistory)
+				wallet.POST("/deposit", walletHandler.ProcessDeposit)
+				wallet.POST("/withdraw", walletHandler.ProcessWithdrawal)
+			}
 		}
 	}
 }
@@ -94,6 +104,7 @@ func NewRouter(
 	tutorHandler *interfaces.TutorHandler,
 	gamificationHandler *interfaces.GamificationHandler,
 	lessonHandler *interfaces.LessonHandler,
+	walletHandler *interfaces.WalletHandler,
 ) *gin.Engine {
 	router := gin.Default()
 
@@ -152,6 +163,15 @@ func NewRouter(
 		// Gamification routes
 		protected.POST("/challenges/submit", gamificationHandler.SubmitChallenge)
 		protected.GET("/leaderboards", gamificationHandler.GetLeaderboard)
+
+		// Wallet routes
+		wallet := protected.Group("/wallet")
+		{
+			wallet.GET("/balance", walletHandler.GetBalance)
+			wallet.GET("/transactions", walletHandler.GetTransactionHistory)
+			wallet.POST("/deposit", walletHandler.ProcessDeposit)
+			wallet.POST("/withdraw", walletHandler.ProcessWithdrawal)
+		}
 	}
 
 	return router

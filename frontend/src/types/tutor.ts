@@ -29,4 +29,16 @@ export const LANGUAGE_LEVELS = [
   'Native'
 ] as const;
 
-export type LanguageLevel = typeof LANGUAGE_LEVELS[number]; 
+export type LanguageLevel = typeof LANGUAGE_LEVELS[number];
+
+export interface TutorProfile {
+    id: string;
+    name: string;
+    bio: string;
+    education: string;
+    languages: string[];
+    hourlyRate: number;
+    rating: number;
+    totalLessons: number;
+    avatarUrl: string;
+} 

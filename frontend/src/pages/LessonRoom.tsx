@@ -12,12 +12,14 @@ interface Participant {
 
 interface LessonDetails {
   id: number;
-  startTime: string;
-  endTime: string;
+  student_id: number;
+  tutor_id: number;
+  start_time: string;
+  end_time: string;
   status: string;
   language: string;
-  student: Participant;
-  tutor: Participant;
+  student_name?: string;
+  tutor_name?: string;
 }
 
 interface TimerProps {
@@ -46,13 +48,23 @@ const LessonRoom: React.FC = () => {
 
   const loadLessonDetails = async () => {
     try {
-      const response = await fetch(`/api/lessons/${lessonId}`);
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:8080/api/lessons/${lessonId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
       if (!response.ok) {
         throw new Error('Failed to load lesson details');
       }
 
       const data = await response.json();
-      setLesson(data);
+      setLesson({
+        ...data,
+        start_time: data.start_time,
+        end_time: data.end_time,
+      });
       updateTimeRemaining();
     } catch (error) {
       setError('Failed to load lesson. Please try again.');
@@ -63,7 +75,7 @@ const LessonRoom: React.FC = () => {
 
   const updateTimeRemaining = () => {
     if (lesson) {
-      const endTime = new Date(lesson.endTime).getTime();
+      const endTime = new Date(lesson.end_time).getTime();
       const now = new Date().getTime();
       const remaining = Math.max(0, endTime - now);
       setTimeRemaining(remaining);
@@ -93,9 +105,14 @@ const LessonRoom: React.FC = () => {
 
   const handleLessonEnd = async () => {
     try {
+      const token = localStorage.getItem('token');
       // End video session
-      await fetch(`/api/lessons/${lessonId}/video/end`, {
+      await fetch(`http://localhost:8080/api/lessons/${lessonId}/video/end`, {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
 
       // Redirect to rating page
@@ -116,15 +133,8 @@ const LessonRoom: React.FC = () => {
   }
 
   if (error || !lesson) {
-    return <ErrorContainer>{error}</ErrorContainer>;
+    return <ErrorContainer>{error || 'Failed to load lesson'}</ErrorContainer>;
   }
-
-  const participants = [
-    lesson.student,
-    lesson.tutor,
-  ];
-
-  const currentUser = lesson.student; // In a real app, get from auth context
 
   return (
     <Container>
@@ -132,7 +142,7 @@ const LessonRoom: React.FC = () => {
         <LessonInfo>
           <Title>{`${lesson.language} Lesson`}</Title>
           <Subtitle>
-            {`with ${lesson.tutor.name}`}
+            {lesson.tutor_name ? `with ${lesson.tutor_name}` : ''}
           </Subtitle>
         </LessonInfo>
         <Timer warning={timeRemaining <= 10 * 60 * 1000}>
@@ -144,15 +154,18 @@ const LessonRoom: React.FC = () => {
         <VideoSection>
           <VideoRoom
             lessonId={parseInt(lessonId!, 10)}
-            userId={currentUser.id}
+            userId={lesson.student_id}
           />
         </VideoSection>
 
         <ChatSection>
           <LessonChat
             lessonId={parseInt(lessonId!, 10)}
-            userId={currentUser.id}
-            participants={participants}
+            userId={lesson.student_id}
+            participants={[
+              { id: lesson.student_id, name: lesson.student_name || 'Student' },
+              { id: lesson.tutor_id, name: lesson.tutor_name || 'Tutor' }
+            ]}
           />
         </ChatSection>
       </Content>

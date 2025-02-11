@@ -42,7 +42,6 @@ interface TutorProfile {
     education: Education[];
     interests: string[];
     hourlyRate: number;
-    offersTrial: boolean;
     introductionVideo?: string;
 }
 
@@ -80,7 +79,6 @@ export const TeachingProfile: React.FC = () => {
         education: [],
         interests: [],
         hourlyRate: 25,
-        offersTrial: true,
         introductionVideo: undefined
     });
 
@@ -143,7 +141,7 @@ export const TeachingProfile: React.FC = () => {
                 education: [],
                 interests: [],
                 hourlyRate: 25,
-                offersTrial: true
+                introductionVideo: undefined
             });
         } finally {
             setLoading(false);
@@ -484,7 +482,7 @@ export const TeachingProfile: React.FC = () => {
             {/* Pricing Section */}
             <section id="pricing" className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
                 <Title level={3} className="text-gray-800 dark:text-gray-100 mb-4">
-                    Pricing
+                    {t('tutors.profile.pricing')}
                 </Title>
                 <div className="space-y-4">
                     <div>
@@ -501,24 +499,6 @@ export const TeachingProfile: React.FC = () => {
                             addonAfter="USD/hour"
                             className="w-48 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
                         />
-                    </div>
-                    <div>
-                        <label className="flex items-center space-x-2 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={profile.offersTrial}
-                                onChange={(e) => {
-                                    const newProfile = { ...profile, offersTrial: e.target.checked };
-                                    setProfile(newProfile);
-                                    handleAutoSave(newProfile);
-                                }}
-                                className="form-checkbox dark:bg-gray-700 dark:border-gray-600"
-                            />
-                            <span className="text-gray-800 dark:text-gray-100">Offer trial lessons (30 minutes)</span>
-                        </label>
-                        <Text className="block mt-1 text-gray-500 dark:text-gray-400">
-                            Trial lessons help students decide if you're the right tutor for them
-                        </Text>
                     </div>
                 </div>
             </section>

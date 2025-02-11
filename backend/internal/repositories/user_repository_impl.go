@@ -326,8 +326,8 @@ func (r *UserRepositoryImpl) CreateTutorDetails(ctx context.Context, details *en
 	query := `
         INSERT INTO tutor_details (
             user_id, bio, teaching_languages, education,
-            interests, hourly_rate, introduction_video, offers_trial, approved
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            interests, hourly_rate, introduction_video, approved
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING id`
 
 	// Convert arrays to JSONB
@@ -351,7 +351,6 @@ func (r *UserRepositoryImpl) CreateTutorDetails(ctx context.Context, details *en
 		pq.Array(details.Interests),
 		details.HourlyRate,
 		details.IntroductionVideo,
-		details.OffersTrial,
 		details.Approved,
 	).Scan(&details.ID)
 
@@ -367,7 +366,7 @@ func (r *UserRepositoryImpl) CreateTutorDetails(ctx context.Context, details *en
 func (r *UserRepositoryImpl) GetTutorDetails(ctx context.Context, userID int) (*entities.TutorDetails, error) {
 	query := `
         SELECT id, user_id, bio, teaching_languages, education,
-               interests, hourly_rate, introduction_video, offers_trial, approved,
+               interests, hourly_rate, introduction_video, approved,
                created_at, updated_at
         FROM tutor_details
         WHERE user_id = $1`
@@ -384,7 +383,6 @@ func (r *UserRepositoryImpl) GetTutorDetails(ctx context.Context, userID int) (*
 		pq.Array(&details.Interests),
 		&details.HourlyRate,
 		&details.IntroductionVideo,
-		&details.OffersTrial,
 		&details.Approved,
 		&details.CreatedAt,
 		&details.UpdatedAt,
@@ -419,9 +417,8 @@ func (r *UserRepositoryImpl) UpdateTutorDetails(ctx context.Context, details *en
             interests = $4,
             hourly_rate = $5,
             introduction_video = $6,
-            offers_trial = $7,
-            approved = $8
-        WHERE user_id = $9`
+            approved = $7
+        WHERE user_id = $8`
 
 	// Convert arrays to JSONB
 	teachingLanguagesJSON, err := json.Marshal(details.TeachingLanguages)
@@ -443,7 +440,6 @@ func (r *UserRepositoryImpl) UpdateTutorDetails(ctx context.Context, details *en
 		pq.Array(details.Interests),
 		details.HourlyRate,
 		details.IntroductionVideo,
-		details.OffersTrial,
 		details.Approved,
 		details.UserID,
 	)
@@ -482,7 +478,6 @@ func (r *UserRepositoryImpl) ListTutors(ctx context.Context, limit, offset int, 
                 td.interests,
                 td.hourly_rate,
                 td.introduction_video,
-                td.offers_trial,
                 td.approved
             FROM user_credentials uc
             LEFT JOIN user_personal up ON uc.id = up.user_id
@@ -511,12 +506,6 @@ func (r *UserRepositoryImpl) ListTutors(ctx context.Context, limit, offset int, 
 	if maxRate, ok := filters["max_hourly_rate"].(float64); ok && maxRate > 0 {
 		query += ` AND hourly_rate <= $` + strconv.Itoa(argPosition)
 		args = append(args, maxRate)
-		argPosition++
-	}
-
-	if offersTrial, ok := filters["offers_trial"].(bool); ok {
-		query += ` AND offers_trial = $` + strconv.Itoa(argPosition)
-		args = append(args, offersTrial)
 		argPosition++
 	}
 
@@ -557,7 +546,6 @@ func (r *UserRepositoryImpl) ListTutors(ctx context.Context, limit, offset int, 
 			pq.Array(&details.Interests),
 			&details.HourlyRate,
 			&details.IntroductionVideo,
-			&details.OffersTrial,
 			&details.Approved,
 		)
 

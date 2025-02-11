@@ -47,10 +47,15 @@
         "balance": "Balance"
     },
     "wallet": {
+        "title": "Wallet",
         "balance": "Balance",
         "deposit": "Deposit",
         "withdraw": "Withdraw",
-        "transactions": "Transactions",
+        "transactions": {
+            "deposit": "Deposit",
+            "withdrawal": "Withdrawal",
+            "lessonPayment": "Lesson Payment"
+        },
         "commission": {
             "title": "Commission",
             "description": "Platform commission is {{rate}}% of the lesson price",
@@ -61,7 +66,9 @@
         "errors": {
             "insufficientFunds": "Insufficient funds",
             "invalidAmount": "Invalid amount",
-            "minAmount": "Minimum amount is {{amount}}"
+            "minAmount": "Minimum amount is {{amount}}",
+            "depositFailed": "Failed to deposit funds",
+            "withdrawalFailed": "Failed to withdraw funds"
         },
         "depositModal": {
             "title": "Deposit Funds",
@@ -77,7 +84,8 @@
         "transactionHistory": "Transaction History",
         "availableBalance": "Available Balance",
         "depositSuccess": "Deposit successful",
-        "withdrawalSuccess": "Withdrawal request submitted"
+        "withdrawalSuccess": "Withdrawal request submitted",
+        "earnings": "Earnings"
     },
     "lessons": {
         "title": "My Lessons",
@@ -177,36 +185,29 @@
             "about": "About Me",
             "about.placeholder": "Tell students about yourself, your teaching experience, and what makes your lessons unique...",
             "about.tip": "Pro tip: Include information about your teaching experience, methodology, and what students can expect from your lessons.",
-            "education": "Education",
-            "education.degree.placeholder": "Select your degree",
-            "education.institution.placeholder": "Institution name",
-            "education.field.placeholder": "Field of study",
-            "education.start_year.placeholder": "Start year",
-            "education.end_year.placeholder": "End year",
-            "education.add": "Add Education",
+            "education": {
+                "add": "Add Education",
+                "institution.placeholder": "Enter institution name",
+                "field.placeholder": "Enter field of study",
+                "start": "Start Year",
+                "end": "End Year"
+            },
             "languages": "Languages I Teach",
             "pricing": "Pricing",
             "reviews": "Reviews",
-            "schedule": "Schedule",
-            "trial": "Trial Lesson Available"
+            "schedule": "Schedule"
         }
     },
     "pages": {
         "login": {
             "title": "Sign in to your account",
-            "no.account": "Don't have an account?",
-            "sign.up": "Sign up",
             "username": "Username",
             "username.placeholder": "Enter your username",
             "password": "Password",
             "password.placeholder": "Enter your password",
             "sign.in.button": "Sign in",
-            "forgot.password": "Forgot your password?",
-            "remember.me": "Remember me",
-            "error": {
-                "invalid.credentials": "Invalid username or password",
-                "required.fields": "Please fill in all required fields"
-            }
+            "no.account": "Don't have an account?",
+            "sign.up": "Sign up"
         },
         "dashboard": {
             "student": {
@@ -378,6 +379,23 @@
                     "add.another": "Add Another Education"
                 }
             }
+        },
+        "register": {
+            "title": "Create your account",
+            "username": "Username",
+            "username.placeholder": "Choose a username",
+            "email": "Email",
+            "email.placeholder": "Enter your email",
+            "password": "Password",
+            "password.placeholder": "Choose a password",
+            "confirm.password": "Confirm Password",
+            "confirm.password.placeholder": "Confirm your password",
+            "i.want.to": "I want to",
+            "role.student": "Learn languages",
+            "role.tutor": "Teach languages",
+            "register.button": "Create Account",
+            "have.account": "Already have an account?",
+            "sign.in": "Sign in"
         }
     },
     "components": {

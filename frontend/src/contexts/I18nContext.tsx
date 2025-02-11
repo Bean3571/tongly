@@ -10,70 +10,29 @@ interface I18nProviderProps {
 
 export const I18nProvider: React.FC<I18nProviderProps> = ({ children }) => {
     const [currentLocale, setCurrentLocale] = useState<Language>(i18nService.getCurrentLocale());
-    const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-
-    // Load initial locale
-    useEffect(() => {
-        const initializeLocale = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-                await i18nService.loadLocale(currentLocale);
-                // Also load English as fallback
-                if (currentLocale !== 'en') {
-                    await i18nService.loadLocale('en');
-                }
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'Failed to load translations');
-                console.error('Failed to initialize locale:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        initializeLocale();
-    }, []);
-
-    // Handle locale changes
-    useEffect(() => {
-        const changeLocale = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-                await i18nService.setLocale(currentLocale);
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'Failed to set locale');
-                console.error('Failed to set locale:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (!loading) {
-            changeLocale();
-        }
-    }, [currentLocale]);
 
     const handleSetLocale = async (locale: Language) => {
         try {
-            setLoading(true);
             setError(null);
             await i18nService.setLocale(locale);
             setCurrentLocale(locale);
+            // Update document attributes
+            document.documentElement.lang = locale;
+            document.documentElement.dir = SUPPORTED_LOCALES[locale].rtl ? 'rtl' : 'ltr';
+            // Store preference
+            localStorage.setItem('locale', locale);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to set locale');
             console.error('Failed to set locale:', err);
-        } finally {
-            setLoading(false);
         }
     };
 
     const value: I18nContextType = {
         currentLocale,
-        fallbackLocale: 'ru',
+        fallbackLocale: 'en',
         locales: i18nService['locales'],
-        loading,
+        loading: false,
         error,
         setLocale: handleSetLocale,
         t: (key: string, variables?: TranslationVariables, count?: number) => 
@@ -82,16 +41,6 @@ export const I18nProvider: React.FC<I18nProviderProps> = ({ children }) => {
         formatDate: (value: Date) => i18nService.formatDate(value),
         formatCurrency: (value: number) => i18nService.formatCurrency(value),
     };
-
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center min-h-screen">
-                <div className="text-gray-600 dark:text-gray-400">
-                    {i18nService.translate('common.loading')}
-                </div>
-            </div>
-        );
-    }
 
     return (
         <I18nContext.Provider value={value}>

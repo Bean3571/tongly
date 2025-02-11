@@ -64,7 +64,7 @@ func (uc *lessonUseCase) BookLesson(ctx context.Context, studentID int, request 
 
 	// Check if the time slot is available
 	endTime := request.StartTime.Add(time.Duration(request.Duration) * time.Minute)
-	existingLessons, err := uc.lessonRepo.GetLessonsByTutor(ctx, uint(request.TutorID))
+	existingLessons, err := uc.lessonRepo.GetLessonsByTutor(ctx, request.TutorID)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +118,7 @@ func (uc *lessonUseCase) CancelLesson(ctx context.Context, userID int, lessonID 
 		return err
 	}
 
-	lesson, err := uc.lessonRepo.GetLesson(ctx, uint(lessonID))
+	lesson, err := uc.lessonRepo.GetLesson(ctx, lessonID)
 	if err != nil {
 		return err
 	}
@@ -138,7 +138,7 @@ func (uc *lessonUseCase) CancelLesson(ctx context.Context, userID int, lessonID 
 }
 
 func (uc *lessonUseCase) GetLessonByID(ctx context.Context, userID int, lessonID int) (*entities.Lesson, error) {
-	lesson, err := uc.lessonRepo.GetLesson(ctx, uint(lessonID))
+	lesson, err := uc.lessonRepo.GetLesson(ctx, lessonID)
 	if err != nil {
 		return nil, err
 	}
@@ -152,11 +152,11 @@ func (uc *lessonUseCase) GetLessonByID(ctx context.Context, userID int, lessonID
 }
 
 func (uc *lessonUseCase) GetUpcomingLessons(ctx context.Context, userID int) ([]entities.Lesson, error) {
-	return uc.lessonRepo.GetUpcomingLessons(ctx, uint(userID))
+	return uc.lessonRepo.GetUpcomingLessons(ctx, userID)
 }
 
 func (uc *lessonUseCase) GetCompletedLessons(ctx context.Context, userID int) ([]entities.Lesson, error) {
-	return uc.lessonRepo.GetCompletedLessons(ctx, uint(userID))
+	return uc.lessonRepo.GetCompletedLessons(ctx, userID)
 }
 
 func (uc *lessonUseCase) StartVideoSession(ctx context.Context, lessonID int, userID int) (*entities.VideoSession, error) {

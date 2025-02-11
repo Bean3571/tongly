@@ -9,14 +9,14 @@ import (
 type LessonRepository interface {
 	// Lesson management
 	CreateLesson(ctx context.Context, lesson *entities.Lesson) error
-	GetLesson(ctx context.Context, id uint) (*entities.Lesson, error)
+	GetLesson(ctx context.Context, id int) (*entities.Lesson, error)
 	UpdateLesson(ctx context.Context, lesson *entities.Lesson) error
 	DeleteLesson(ctx context.Context, id int) error
 
 	// Lesson queries
-	GetUpcomingLessons(ctx context.Context, userID uint) ([]entities.Lesson, error)
-	GetCompletedLessons(ctx context.Context, userID uint) ([]entities.Lesson, error)
-	GetLessonsByTutor(ctx context.Context, tutorID uint) ([]entities.Lesson, error)
+	GetUpcomingLessons(ctx context.Context, userID int) ([]entities.Lesson, error)
+	GetCompletedLessons(ctx context.Context, userID int) ([]entities.Lesson, error)
+	GetLessonsByTutor(ctx context.Context, tutorID int) ([]entities.Lesson, error)
 
 	// Video session management
 	CreateVideoSession(ctx context.Context, session *entities.VideoSession) error

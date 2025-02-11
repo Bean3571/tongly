@@ -23,17 +23,17 @@ export interface TransactionRequest {
 
 class WalletService {
     async getBalance(): Promise<WalletBalance> {
-        const response = await apiClient.get<WalletBalance>('/wallet/balance');
+        const response = await apiClient.get<WalletBalance>('/api/wallet/balance');
         return response.data;
     }
 
     async getTransactions(): Promise<Transaction[]> {
-        const response = await apiClient.get<Transaction[]>('/wallet/transactions');
+        const response = await apiClient.get<Transaction[]>('/api/wallet/transactions');
         return response.data;
     }
 
     async deposit(amount: number): Promise<Transaction> {
-        const response = await apiClient.post<Transaction>('/wallet/deposit', {
+        const response = await apiClient.post<Transaction>('/api/wallet/deposit', {
             amount,
             currency: 'RUB'
         });
@@ -41,7 +41,7 @@ class WalletService {
     }
 
     async withdraw(amount: number): Promise<Transaction> {
-        const response = await apiClient.post<Transaction>('/wallet/withdraw', {
+        const response = await apiClient.post<Transaction>('/api/wallet/withdraw', {
             amount,
             currency: 'RUB'
         });

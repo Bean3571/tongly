@@ -75,18 +75,28 @@ func (r *LessonRepositoryImpl) CreateLesson(ctx context.Context, lesson *entitie
 	})
 }
 
-func (r *LessonRepositoryImpl) GetLesson(ctx context.Context, id uint) (*entities.Lesson, error) {
+func (r *LessonRepositoryImpl) GetLesson(ctx context.Context, id int) (*entities.Lesson, error) {
 	query := `
-		SELECT id, student_id, tutor_id, start_time, end_time, duration, status, language,
-			price, created_at, updated_at
-		FROM lessons
-		WHERE id = $1`
+		SELECT 
+			l.id, l.student_id, l.tutor_id, l.start_time, l.end_time, 
+			l.duration, l.status, l.language, l.price, l.created_at, l.updated_at,
+			sp.first_name as student_first_name, sp.last_name as student_last_name,
+			tp.first_name as tutor_first_name, tp.last_name as tutor_last_name
+		FROM lessons l
+		LEFT JOIN user_credentials sc ON l.student_id = sc.id
+		LEFT JOIN user_personal sp ON sc.id = sp.user_id
+		LEFT JOIN user_credentials tc ON l.tutor_id = tc.id
+		LEFT JOIN user_personal tp ON tc.id = tp.user_id
+		WHERE l.id = $1`
 
 	lesson := &entities.Lesson{}
+	var studentFirstName, studentLastName, tutorFirstName, tutorLastName sql.NullString
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&lesson.ID, &lesson.StudentID, &lesson.TutorID, &lesson.StartTime,
 		&lesson.EndTime, &lesson.Duration, &lesson.Status, &lesson.Language,
 		&lesson.Price, &lesson.CreatedAt, &lesson.UpdatedAt,
+		&studentFirstName, &studentLastName,
+		&tutorFirstName, &tutorLastName,
 	)
 	if err == sql.ErrNoRows {
 		return nil, errors.New("lesson not found")
@@ -94,6 +104,15 @@ func (r *LessonRepositoryImpl) GetLesson(ctx context.Context, id uint) (*entitie
 	if err != nil {
 		return nil, err
 	}
+
+	// Set the names in the lesson struct
+	if studentFirstName.Valid && studentLastName.Valid {
+		lesson.StudentName = studentFirstName.String + " " + studentLastName.String
+	}
+	if tutorFirstName.Valid && tutorLastName.Valid {
+		lesson.TutorName = tutorFirstName.String + " " + tutorLastName.String
+	}
+
 	return lesson, nil
 }
 
@@ -119,43 +138,67 @@ func (r *LessonRepositoryImpl) UpdateLesson(ctx context.Context, lesson *entitie
 	return nil
 }
 
-func (r *LessonRepositoryImpl) GetUpcomingLessons(ctx context.Context, userID uint) ([]entities.Lesson, error) {
+func (r *LessonRepositoryImpl) GetUpcomingLessons(ctx context.Context, userID int) ([]entities.Lesson, error) {
 	query := `
-		SELECT id, student_id, tutor_id, start_time, end_time, duration, status, language,
-			price, created_at, updated_at
-		FROM lessons
-		WHERE (student_id = $1 OR tutor_id = $1) 
-			AND start_time > NOW() 
-			AND status != 'cancelled'
-		ORDER BY start_time ASC`
+		SELECT 
+			l.id, l.student_id, l.tutor_id, l.start_time, l.end_time, 
+			l.duration, l.status, l.language, l.price, l.created_at, l.updated_at,
+			sp.first_name as student_first_name, sp.last_name as student_last_name,
+			tp.first_name as tutor_first_name, tp.last_name as tutor_last_name
+		FROM lessons l
+		LEFT JOIN user_credentials sc ON l.student_id = sc.id
+		LEFT JOIN user_personal sp ON sc.id = sp.user_id
+		LEFT JOIN user_credentials tc ON l.tutor_id = tc.id
+		LEFT JOIN user_personal tp ON tc.id = tp.user_id
+		WHERE (l.student_id = $1 OR l.tutor_id = $1) 
+			AND (
+				(l.start_time > NOW() AND l.status = 'scheduled')
+				OR l.status = 'in_progress'
+			)
+			AND l.status != 'cancelled'
+		ORDER BY l.start_time ASC`
 
-	return r.queryLessons(ctx, query, userID)
+	return r.queryLessonsWithNames(ctx, query, userID)
 }
 
-func (r *LessonRepositoryImpl) GetCompletedLessons(ctx context.Context, userID uint) ([]entities.Lesson, error) {
+func (r *LessonRepositoryImpl) GetCompletedLessons(ctx context.Context, userID int) ([]entities.Lesson, error) {
 	query := `
-		SELECT id, student_id, tutor_id, start_time, end_time, duration, status, language,
-			price, created_at, updated_at
-		FROM lessons
-		WHERE (student_id = $1 OR tutor_id = $1) 
-			AND end_time < NOW()
-		ORDER BY start_time DESC`
+		SELECT 
+			l.id, l.student_id, l.tutor_id, l.start_time, l.end_time, 
+			l.duration, l.status, l.language, l.price, l.created_at, l.updated_at,
+			sp.first_name as student_first_name, sp.last_name as student_last_name,
+			tp.first_name as tutor_first_name, tp.last_name as tutor_last_name
+		FROM lessons l
+		LEFT JOIN user_credentials sc ON l.student_id = sc.id
+		LEFT JOIN user_personal sp ON sc.id = sp.user_id
+		LEFT JOIN user_credentials tc ON l.tutor_id = tc.id
+		LEFT JOIN user_personal tp ON tc.id = tp.user_id
+		WHERE (l.student_id = $1 OR l.tutor_id = $1) 
+			AND l.status = 'completed'
+		ORDER BY l.start_time DESC`
 
-	return r.queryLessons(ctx, query, userID)
+	return r.queryLessonsWithNames(ctx, query, userID)
 }
 
-func (r *LessonRepositoryImpl) GetLessonsByTutor(ctx context.Context, tutorID uint) ([]entities.Lesson, error) {
+func (r *LessonRepositoryImpl) GetLessonsByTutor(ctx context.Context, tutorID int) ([]entities.Lesson, error) {
 	query := `
-		SELECT id, student_id, tutor_id, start_time, end_time, duration, status, language,
-			price, created_at, updated_at
-		FROM lessons
-		WHERE tutor_id = $1
-		ORDER BY start_time ASC`
+		SELECT 
+			l.id, l.student_id, l.tutor_id, l.start_time, l.end_time, 
+			l.duration, l.status, l.language, l.price, l.created_at, l.updated_at,
+			sp.first_name as student_first_name, sp.last_name as student_last_name,
+			tp.first_name as tutor_first_name, tp.last_name as tutor_last_name
+		FROM lessons l
+		LEFT JOIN user_credentials sc ON l.student_id = sc.id
+		LEFT JOIN user_personal sp ON sc.id = sp.user_id
+		LEFT JOIN user_credentials tc ON l.tutor_id = tc.id
+		LEFT JOIN user_personal tp ON tc.id = tp.user_id
+		WHERE l.tutor_id = $1
+		ORDER BY l.start_time ASC`
 
-	return r.queryLessons(ctx, query, tutorID)
+	return r.queryLessonsWithNames(ctx, query, tutorID)
 }
 
-func (r *LessonRepositoryImpl) queryLessons(ctx context.Context, query string, args ...interface{}) ([]entities.Lesson, error) {
+func (r *LessonRepositoryImpl) queryLessonsWithNames(ctx context.Context, query string, args ...interface{}) ([]entities.Lesson, error) {
 	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
@@ -165,14 +208,26 @@ func (r *LessonRepositoryImpl) queryLessons(ctx context.Context, query string, a
 	var lessons []entities.Lesson
 	for rows.Next() {
 		var lesson entities.Lesson
+		var studentFirstName, studentLastName, tutorFirstName, tutorLastName sql.NullString
 		err := rows.Scan(
 			&lesson.ID, &lesson.StudentID, &lesson.TutorID, &lesson.StartTime,
 			&lesson.EndTime, &lesson.Duration, &lesson.Status, &lesson.Language,
 			&lesson.Price, &lesson.CreatedAt, &lesson.UpdatedAt,
+			&studentFirstName, &studentLastName,
+			&tutorFirstName, &tutorLastName,
 		)
 		if err != nil {
 			return nil, err
 		}
+
+		// Set the names in the lesson struct
+		if studentFirstName.Valid && studentLastName.Valid {
+			lesson.StudentName = studentFirstName.String + " " + studentLastName.String
+		}
+		if tutorFirstName.Valid && tutorLastName.Valid {
+			lesson.TutorName = tutorFirstName.String + " " + tutorLastName.String
+		}
+
 		lessons = append(lessons, lesson)
 	}
 	return lessons, nil
@@ -284,18 +339,20 @@ func (r *LessonRepositoryImpl) GetVideoSession(ctx context.Context, lessonID int
 	query := `
 		SELECT id, lesson_id, room_id, session_token, started_at, ended_at
 		FROM video_sessions
-		WHERE lesson_id = $1`
+		WHERE lesson_id = $1
+		ORDER BY created_at DESC
+		LIMIT 1`
 
 	session := &entities.VideoSession{}
 	err := r.db.QueryRowContext(ctx, query, lessonID).Scan(
-		&session.ID, &session.LessonID, &session.RoomID,
-		&session.SessionToken, &session.StartedAt, &session.EndedAt,
+		&session.ID, &session.LessonID, &session.RoomID, &session.SessionToken,
+		&session.StartedAt, &session.EndedAt,
 	)
 	if err == sql.ErrNoRows {
 		return nil, errors.New("video session not found")
 	}
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get video session: %v", err)
 	}
 	return session, nil
 }
@@ -303,12 +360,13 @@ func (r *LessonRepositoryImpl) GetVideoSession(ctx context.Context, lessonID int
 func (r *LessonRepositoryImpl) UpdateVideoSession(ctx context.Context, session *entities.VideoSession) error {
 	query := `
 		UPDATE video_sessions
-		SET ended_at = $1
-		WHERE id = $2`
+		SET ended_at = $1, updated_at = $2
+		WHERE id = $3`
 
-	result, err := r.db.ExecContext(ctx, query, session.EndedAt, session.ID)
+	result, err := r.db.ExecContext(ctx, query,
+		session.EndedAt, time.Now(), session.ID)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to update video session: %v", err)
 	}
 
 	rows, err := result.RowsAffected()

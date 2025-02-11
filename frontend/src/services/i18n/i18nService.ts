@@ -1,4 +1,6 @@
 import { Language, LocaleConfig, LocaleData, TranslationVariables, PluralRules } from './types';
+import enTranslations from '../../locales/en.json';
+import ruTranslations from '../../locales/ru.json';
 
 export const SUPPORTED_LOCALES: Record<Language, LocaleConfig> = {
     en: {
@@ -17,6 +19,11 @@ export const SUPPORTED_LOCALES: Record<Language, LocaleConfig> = {
     },
 };
 
+const TRANSLATIONS = {
+    en: enTranslations,
+    ru: ruTranslations
+};
+
 type PluralRule = 'zero' | 'one' | 'few' | 'many' | 'other';
 
 interface TranslationWithMessage {
@@ -26,16 +33,14 @@ interface TranslationWithMessage {
 
 class I18nService {
     private locales: Record<Language, LocaleData> = {} as Record<Language, LocaleData>;
-    private currentLocale: Language = 'ru';
-    private fallbackLocale: Language = 'ru';
+    private currentLocale: Language = 'en';
+    private fallbackLocale: Language = 'en';
 
     constructor() {
         // Initialize with browser language or stored preference
         this.currentLocale = this.getInitialLocale();
-        // Immediately load the Russian locale
-        this.loadLocale('ru').catch(err => {
-            console.error('Failed to load Russian locale:', err);
-        });
+        // Initialize both locales synchronously
+        this.initializeLocales();
     }
 
     private getInitialLocale(): Language {
@@ -51,54 +56,42 @@ class I18nService {
             return browserLang;
         }
 
-        // Default to Russian
-        return 'ru';
+        // Default to English
+        return 'en';
     }
 
-    async loadLocale(locale: Language): Promise<void> {
-        if (this.locales[locale]) {
-            return;
-        }
-
-        try {
-            const module = await import(`../../locales/${locale}.json`);
-            const translations = module.default;
-
-            this.locales[locale] = {
-                locale,
-                translations,
-                pluralRules: new Intl.PluralRules(locale),
-                numberFormat: new Intl.NumberFormat(locale),
-                dateFormat: new Intl.DateTimeFormat(locale, {
+    private initializeLocales(): void {
+        Object.keys(TRANSLATIONS).forEach((locale) => {
+            const lang = locale as Language;
+            this.locales[lang] = {
+                locale: lang,
+                translations: TRANSLATIONS[lang],
+                pluralRules: new Intl.PluralRules(lang),
+                numberFormat: new Intl.NumberFormat(lang),
+                dateFormat: new Intl.DateTimeFormat(lang, {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric',
                     hour: '2-digit',
                     minute: '2-digit',
                 }),
-                currencyFormat: new Intl.NumberFormat(locale, {
+                currencyFormat: new Intl.NumberFormat(lang, {
                     style: 'currency',
-                    currency: locale === 'ru' ? 'RUB' : 'USD',
+                    currency: lang === 'ru' ? 'RUB' : 'USD',
                 }),
             };
-        } catch (error) {
-            console.error(`Failed to load locale: ${locale}`, error);
-            throw error;
-        }
+        });
+    }
+
+    getCurrentLocale(): Language {
+        return this.currentLocale;
     }
 
     async setLocale(locale: Language): Promise<void> {
         if (!SUPPORTED_LOCALES[locale]) {
             throw new Error(`Unsupported locale: ${locale}`);
         }
-
-        await this.loadLocale(locale);
         this.currentLocale = locale;
-        localStorage.setItem('locale', locale);
-
-        // Update document attributes
-        document.documentElement.lang = locale;
-        document.documentElement.dir = SUPPORTED_LOCALES[locale].rtl ? 'rtl' : 'ltr';
     }
 
     private getNestedTranslation(obj: any, path: string[]): string | PluralRules | undefined {
@@ -189,20 +182,12 @@ class I18nService {
 
     formatDate(value: Date): string {
         const localeData = this.locales[this.currentLocale];
-        return localeData ? localeData.dateFormat.format(value) : value.toLocaleString();
+        return localeData ? localeData.dateFormat.format(value) : value.toISOString();
     }
 
     formatCurrency(value: number): string {
         const localeData = this.locales[this.currentLocale];
         return localeData ? localeData.currencyFormat.format(value) : value.toString();
-    }
-
-    getCurrentLocale(): Language {
-        return this.currentLocale;
-    }
-
-    getSupportedLocales(): LocaleConfig[] {
-        return Object.values(SUPPORTED_LOCALES);
     }
 }
 

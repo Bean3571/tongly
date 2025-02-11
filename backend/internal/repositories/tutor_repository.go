@@ -19,4 +19,7 @@ type TutorRepository interface {
 	CreateTutorProfile(ctx context.Context, profile *entities.TutorProfile) error
 	GetTutorProfile(ctx context.Context, tutorID int) (*entities.TutorProfile, error)
 	UpdateTutorProfile(ctx context.Context, profile *entities.TutorProfile) error
+
+	// Search operations
+	SearchTutors(ctx context.Context, filters map[string]interface{}) ([]*entities.TutorProfile, error)
 }

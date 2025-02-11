@@ -47,10 +47,15 @@
         "balance": "Баланс"
     },
     "wallet": {
+        "title": "Кошелек",
         "balance": "Баланс",
         "deposit": "Пополнить",
         "withdraw": "Вывести",
-        "transactions": "Транзакции",
+        "transactions": {
+            "deposit": "Пополнение",
+            "withdrawal": "Вывод",
+            "lessonPayment": "Оплата урока"
+        },
         "commission": {
             "title": "Комиссия",
             "description": "Комиссия платформы составляет {{rate}}% от стоимости урока",
@@ -61,7 +66,9 @@
         "errors": {
             "insufficientFunds": "Недостаточно средств",
             "invalidAmount": "Неверная сумма",
-            "minAmount": "Минимальная сумма {{amount}}"
+            "minAmount": "Минимальная сумма {{amount}}",
+            "depositFailed": "Не удалось пополнить баланс",
+            "withdrawalFailed": "Не удалось вывести средства"
         },
         "depositModal": {
             "title": "Пополнение баланса",
@@ -77,7 +84,8 @@
         "transactionHistory": "История транзакций",
         "availableBalance": "Доступный баланс",
         "depositSuccess": "Средства успешно зачислены",
-        "withdrawalSuccess": "Заявка на вывод средств отправлена"
+        "withdrawalSuccess": "Заявка на вывод средств отправлена",
+        "earnings": "Заработок"
     },
     "lessons": {
         "title": "Мои уроки",
@@ -175,32 +183,33 @@
             }
         },
         "profile": {
+            "title": "Профиль преподавателя",
             "about": "Обо мне",
-            "education": "Образование",
-            "experience": "Опыт",
-            "languages": "Языки преподавания",
+            "about.placeholder": "Расскажите студентам о себе, своем опыте преподавания и что делает ваши уроки уникальными...",
+            "about.tip": "Совет: Включите информацию о вашем опыте преподавания, методологии и что студенты могут ожидать от ваших уроков.",
+            "education": {
+                "add": "Добавить образование",
+                "institution.placeholder": "Введите название учебного заведения",
+                "field.placeholder": "Введите специальность",
+                "start": "Год начала",
+                "end": "Год окончания"
+            },
+            "languages": "Языки, которые я преподаю",
             "pricing": "Стоимость",
             "reviews": "Отзывы",
-            "schedule": "Расписание",
-            "trial": "Доступен пробный урок"
+            "schedule": "Расписание"
         }
     },
     "pages": {
         "login": {
             "title": "Вход в аккаунт",
-            "no.account": "Нет аккаунта?",
-            "sign.up": "Зарегистрироваться",
             "username": "Имя пользователя",
             "username.placeholder": "Введите имя пользователя",
             "password": "Пароль",
             "password.placeholder": "Введите пароль",
             "sign.in.button": "Войти",
-            "forgot.password": "Забыли пароль?",
-            "remember.me": "Запомнить меня",
-            "error": {
-                "invalid.credentials": "Неверное имя пользователя или пароль",
-                "required.fields": "Пожалуйста, заполните все обязательные поля"
-            }
+            "no.account": "Нет аккаунта?",
+            "sign.up": "Зарегистрироваться"
         },
         "dashboard": {
             "student": {
@@ -372,6 +381,23 @@
                     "add.another": "Добавить еще образование"
                 }
             }
+        },
+        "register": {
+            "title": "Создание аккаунта",
+            "username": "Имя пользователя",
+            "username.placeholder": "Выберите имя пользователя",
+            "email": "Email",
+            "email.placeholder": "Введите ваш email",
+            "password": "Пароль",
+            "password.placeholder": "Выберите пароль",
+            "confirm.password": "Подтверждение пароля",
+            "confirm.password.placeholder": "Подтвердите ваш пароль",
+            "i.want.to": "Я хочу",
+            "role.student": "Изучать языки",
+            "role.tutor": "Преподавать языки",
+            "register.button": "Создать аккаунт",
+            "have.account": "Уже есть аккаунт?",
+            "sign.in": "Войти"
         }
     },
     "components": {

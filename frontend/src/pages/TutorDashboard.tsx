@@ -19,36 +19,6 @@ const TutorDashboard: React.FC = () => {
     const navigate = useNavigate();
     const { loading, stats, upcomingLessons = [], recentReviews = [] } = useTutorDashboard();
 
-    const getProfileCompletionStatus = () => {
-        const requiredFields = [
-            { 
-                name: 'Bio', 
-                completed: Boolean(stats.bio?.trim()), 
-                path: '/tutor/profile' 
-            },
-            { 
-                name: 'Teaching Languages', 
-                completed: Boolean(Array.isArray(stats.teachingLanguages) && stats.teachingLanguages.length > 0), 
-                path: '/tutor/profile' 
-            },
-            { 
-                name: 'Schedule', 
-                completed: Boolean(stats.hasSchedule), 
-                path: '/schedule' 
-            }
-        ];
-
-        const completedCount = requiredFields.filter(field => field.completed).length;
-        const percentage = Math.round((completedCount / requiredFields.length) * 100);
-
-        return {
-            percentage,
-            incompleteFields: requiredFields.filter(field => !field.completed)
-        };
-    };
-
-    const profileStatus = getProfileCompletionStatus();
-
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-screen">
@@ -72,38 +42,6 @@ const TutorDashboard: React.FC = () => {
                 </Button>
             </div>
             
-            {/* Profile Completion Alert */}
-            {profileStatus.percentage < 100 && (
-                <Card className="bg-blue-50 dark:bg-blue-900 border-blue-200 dark:border-blue-800 mb-6">
-                    <div className="flex items-start">
-                        <WarningOutlined className="text-blue-500 text-lg mt-1 mr-4" />
-                        <div className="flex-1">
-                            <h3 className="text-blue-800 dark:text-blue-200 font-medium mb-2">
-                                Complete Your Profile
-                            </h3>
-                            <Progress 
-                                percent={profileStatus.percentage} 
-                                status="active"
-                                strokeColor="#3B82F6"
-                            />
-                            <div className="mt-2 text-blue-600 dark:text-blue-300">
-                                Complete these items to increase your visibility to students:
-                                <ul className="list-disc ml-5 mt-1">
-                                    {profileStatus.incompleteFields.map(field => (
-                                        <li 
-                                            key={field.name}
-                                            className="cursor-pointer hover:underline"
-                                            onClick={() => navigate(field.path)}
-                                        >
-                                            {field.name}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </Card>
-            )}
             
             <StatsCards stats={stats} loading={loading} />
             

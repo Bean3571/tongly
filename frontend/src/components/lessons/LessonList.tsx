@@ -42,8 +42,8 @@ export const LessonList: React.FC<LessonListProps> = ({ lessons, userRole, onCan
 
             const lessonData = await lessonResponse.json();
             
-            // Only allow joining if the lesson is scheduled
-            if (lessonData.status !== 'scheduled') {
+            // Allow joining if the lesson is scheduled or in progress
+            if (lessonData.status !== 'scheduled' && lessonData.status !== 'in_progress') {
                 throw new Error(t('lessons.error.cannot.join'));
             }
             
@@ -51,7 +51,7 @@ export const LessonList: React.FC<LessonListProps> = ({ lessons, userRole, onCan
             const now = new Date();
             const startTime = new Date(lessonData.start_time);
             const endTime = new Date(lessonData.end_time);
-            const joinWindow = new Date(startTime.getTime() - 5 * 60 * 1000); // 5 minutes before start
+            const joinWindow = new Date(startTime.getTime() - 5 * 60 * 1000);
             
             if (now < joinWindow) {
                 notification.warning({
@@ -98,7 +98,7 @@ export const LessonList: React.FC<LessonListProps> = ({ lessons, userRole, onCan
             }
 
             // Navigate to the lesson room with the session info
-            navigate(`/lessons/${lessonId}`, {
+            navigate(`/lessons/${lessonId}/room`, {
                 state: { videoSession }
             });
 
@@ -128,8 +128,8 @@ export const LessonList: React.FC<LessonListProps> = ({ lessons, userRole, onCan
                 return false;
             }
             
-            // Only allow joining scheduled lessons
-            if (lesson.status !== 'scheduled') {
+            // Allow joining scheduled and in-progress lessons
+            if (lesson.status !== 'scheduled' && lesson.status !== 'in_progress') {
                 return false;
             }
             

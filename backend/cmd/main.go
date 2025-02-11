@@ -1,15 +1,23 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"net/http"
+	"os"
+	"os/signal"
 	"path/filepath"
+	"syscall"
+	"time"
 	"tongly-backend/internal/config"
 	"tongly-backend/internal/database"
 	"tongly-backend/internal/interfaces"
 	"tongly-backend/internal/logger"
 	"tongly-backend/internal/repositories"
 	"tongly-backend/internal/router"
+	"tongly-backend/internal/services"
 	"tongly-backend/internal/usecases"
+	"tongly-backend/pkg/middleware"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -63,13 +71,15 @@ func main() {
 	challengeRepo := &repositories.ChallengeRepositoryImpl{DB: db}
 	tutorRepo := &repositories.TutorRepositoryImpl{DB: db}
 	lessonRepo := repositories.NewLessonRepository(db)
+	walletRepo := repositories.NewWalletRepository(db)
 
-	// Initialize use cases
+	// Initialize use cases and services
 	authUseCase := usecases.AuthUseCase{UserRepo: userRepo}
 	tutorUseCase := &usecases.TutorUseCase{UserRepo: userRepo}
 	gamificationUseCase := usecases.GamificationUseCase{ChallengeRepo: challengeRepo}
 	userUseCase := usecases.UserUseCase{UserRepo: userRepo}
 	lessonUseCase := usecases.NewLessonUseCase(lessonRepo, tutorRepo, userRepo)
+	walletService := services.NewWalletService(walletRepo, lessonRepo)
 
 	// Initialize handlers
 	authHandler := interfaces.NewAuthHandler(&authUseCase, tutorUseCase)
@@ -77,25 +87,56 @@ func main() {
 	gamificationHandler := interfaces.GamificationHandler{GamificationUseCase: gamificationUseCase}
 	userHandler := interfaces.UserHandler{UserUseCase: userUseCase}
 	lessonHandler := interfaces.NewLessonHandler(lessonUseCase)
+	webrtcHandler := interfaces.NewWebRTCHandler(lessonUseCase)
+	walletHandler := interfaces.NewWalletHandler(walletService)
 
-	// Create a new Gin router
-	r := gin.Default()
-
-	// Enable CORS
-	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
+	// Create a new Gin router with recommended production settings
+	gin.SetMode(gin.ReleaseMode)
+	r := gin.New()
+	r.Use(gin.Recovery())
+	r.Use(middleware.Logger(middleware.LoggerConfig{
+		SkipPaths: []string{"/health", "/metrics"},
 	}))
 
-	// Register routes using the SetupRouter function
-	router.SetupRouter(r, authHandler, &tutorHandler, &gamificationHandler, &userHandler, lessonHandler)
+	// CORS configuration
+	config := cors.DefaultConfig()
+	config.AllowOrigins = []string{"http://localhost:3000"}
+	config.AllowCredentials = true
+	config.AllowHeaders = append(config.AllowHeaders, "Authorization")
+	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
+	r.Use(cors.New(config))
 
-	// Start server
-	logger.Info("Server started", "port", cfg.ServerPort)
-	if err := r.Run(":" + cfg.ServerPort); err != nil {
-		logger.Error("Failed to start server", "error", err)
+	// Register routes using the SetupRouter function
+	router.SetupRouter(r, authHandler, &tutorHandler, &gamificationHandler, &userHandler, lessonHandler, walletHandler)
+
+	// Register WebRTC routes (this is the only one we need to add manually)
+	webrtcHandler.RegisterRoutes(r)
+
+	// Start server with graceful shutdown
+	srv := &http.Server{
+		Addr:    ":" + cfg.ServerPort,
+		Handler: r,
 	}
+
+	go func() {
+		logger.Info("Server started", "port", cfg.ServerPort)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Error("Failed to start server", "error", err)
+		}
+	}()
+
+	// Wait for interrupt signal to gracefully shutdown the server
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	logger.Info("Shutting down server...")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		logger.Error("Server forced to shutdown", "error", err)
+	}
+
+	logger.Info("Server exited")
 }

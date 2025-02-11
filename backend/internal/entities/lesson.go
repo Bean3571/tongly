@@ -30,9 +30,15 @@ func (s LessonStatus) IsValidTransition(newStatus LessonStatus) bool {
 		},
 		LessonStatusInProgress: {
 			LessonStatusCompleted,
+			LessonStatusInProgress, // Allow re-joining in_progress lessons
 		},
 		LessonStatusCompleted: {}, // No valid transitions from completed
 		LessonStatusCancelled: {}, // No valid transitions from cancelled
+	}
+
+	// If transitioning to the same status, it's valid
+	if s == newStatus {
+		return true
 	}
 
 	allowed, exists := validTransitions[s]
@@ -50,17 +56,19 @@ func (s LessonStatus) IsValidTransition(newStatus LessonStatus) bool {
 
 // Lesson represents a scheduled or completed lesson
 type Lesson struct {
-	ID        int          `json:"id"`
-	StudentID int          `json:"student_id"`
-	TutorID   int          `json:"tutor_id"`
-	StartTime time.Time    `json:"start_time"`
-	EndTime   time.Time    `json:"end_time"`
-	Duration  int          `json:"duration"` // Duration in minutes
-	Status    LessonStatus `json:"status"`
-	Language  string       `json:"language"`
-	Price     float64      `json:"price"`
-	CreatedAt time.Time    `json:"created_at"`
-	UpdatedAt time.Time    `json:"updated_at"`
+	ID          int          `json:"id"`
+	StudentID   int          `json:"student_id"`
+	TutorID     int          `json:"tutor_id"`
+	StartTime   time.Time    `json:"start_time"`
+	EndTime     time.Time    `json:"end_time"`
+	Duration    int          `json:"duration"` // in minutes
+	Status      LessonStatus `json:"status"`
+	Language    string       `json:"language"`
+	Price       float64      `json:"price"`
+	CreatedAt   time.Time    `json:"created_at"`
+	UpdatedAt   time.Time    `json:"updated_at"`
+	StudentName string       `json:"student_name,omitempty"`
+	TutorName   string       `json:"tutor_name,omitempty"`
 }
 
 // CanCancel checks if the lesson can be cancelled
