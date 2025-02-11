@@ -18,6 +18,7 @@ import {
     PlusOutlined
 } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
+import { useTranslation } from '../contexts/I18nContext';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -60,6 +61,15 @@ const INTERESTS = [
     'Photography', 'Art', 'Technology', 'Science', 'History', 'Culture'
 ];
 
+const EDUCATION_DEGREES = [
+    'High School',
+    'Associate',
+    'Bachelor',
+    'Master',
+    'PhD',
+    'Other'
+];
+
 export const TeachingProfile: React.FC = () => {
     const location = useLocation();
     const [loading, setLoading] = useState(true);
@@ -89,6 +99,7 @@ export const TeachingProfile: React.FC = () => {
 
     const [videoFile, setVideoFile] = useState<UploadFile | null>(null);
     const saveTimeoutRef = useRef<NodeJS.Timeout>();
+    const { t } = useTranslation();
 
     useEffect(() => {
         loadProfile();
@@ -222,12 +233,12 @@ export const TeachingProfile: React.FC = () => {
         <div className="max-w-4xl mx-auto p-6 space-y-8">
             <div className="flex justify-between items-center">
                 <Title level={2} className="text-gray-800 dark:text-gray-100">
-                    Teaching Profile
+                    {t('tutors.profile.title')}
                 </Title>
                 {saving && (
                     <Text className="text-gray-500">
                         <Spin size="small" className="mr-2" />
-                        Saving changes...
+                        {t('common.saving')}
                     </Text>
                 )}
             </div>
@@ -235,12 +246,12 @@ export const TeachingProfile: React.FC = () => {
             {/* Bio Section */}
             <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
                 <Title level={3} className="text-gray-800 dark:text-gray-100 mb-4">
-                    About Me
+                    {t('tutors.profile.about')}
                 </Title>
                 <div className="space-y-4">
                     <TextArea
                         rows={6}
-                        placeholder="Tell students about yourself, your teaching experience, and what makes your lessons unique..."
+                        placeholder={t('tutors.profile.about.placeholder')}
                         value={profile.bio}
                         onChange={(e) => {
                             const newProfile = { ...profile, bio: e.target.value };
@@ -250,8 +261,106 @@ export const TeachingProfile: React.FC = () => {
                         className="w-full p-4 bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
                     />
                     <Text className="text-gray-500 dark:text-gray-400">
-                        Pro tip: Include information about your teaching experience, methodology, and what students can expect from your lessons.
+                        {t('tutors.profile.about.tip')}
                     </Text>
+                </div>
+            </section>
+
+            {/* Education Section */}
+            <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                <Title level={3} className="text-gray-800 dark:text-gray-100 mb-4">
+                    {t('tutors.profile.education')}
+                </Title>
+                <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Select
+                            placeholder={t('tutors.profile.education.degree.placeholder')}
+                            value={newEducation.degree}
+                            onChange={(value) => setNewEducation(prev => ({ ...prev, degree: value }))}
+                            className="w-full dark:bg-gray-700 dark:text-gray-100"
+                        >
+                            {EDUCATION_DEGREES.map(degree => (
+                                <Select.Option key={degree} value={degree}>{degree}</Select.Option>
+                            ))}
+                        </Select>
+                        <Input
+                            placeholder={t('tutors.profile.education.institution.placeholder')}
+                            value={newEducation.institution}
+                            onChange={(e) => setNewEducation(prev => ({ ...prev, institution: e.target.value }))}
+                            className="w-full dark:bg-gray-700 dark:text-gray-100"
+                        />
+                        <Input
+                            placeholder={t('tutors.profile.education.field.placeholder')}
+                            value={newEducation.field_of_study}
+                            onChange={(e) => setNewEducation(prev => ({ ...prev, field_of_study: e.target.value }))}
+                            className="w-full dark:bg-gray-700 dark:text-gray-100"
+                        />
+                        <div className="grid grid-cols-2 gap-2">
+                            <Input
+                                placeholder={t('tutors.profile.education.start_year.placeholder')}
+                                value={newEducation.start_year}
+                                onChange={(e) => setNewEducation(prev => ({ ...prev, start_year: e.target.value }))}
+                                className="w-full dark:bg-gray-700 dark:text-gray-100"
+                            />
+                            <Input
+                                placeholder={t('tutors.profile.education.end_year.placeholder')}
+                                value={newEducation.end_year}
+                                onChange={(e) => setNewEducation(prev => ({ ...prev, end_year: e.target.value }))}
+                                className="w-full dark:bg-gray-700 dark:text-gray-100"
+                            />
+                        </div>
+                    </div>
+                    <Button
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        onClick={() => {
+                            if (newEducation.degree && newEducation.institution) {
+                                const newProfile = {
+                                    ...profile,
+                                    education: [...profile.education, newEducation]
+                                };
+                                setProfile(newProfile);
+                                handleAutoSave(newProfile);
+                                setNewEducation({
+                                    degree: '',
+                                    institution: '',
+                                    field_of_study: '',
+                                    start_year: '',
+                                    end_year: ''
+                                });
+                            }
+                        }}
+                    >
+                        {t('tutors.profile.education.add')}
+                    </Button>
+                    <div className="space-y-2">
+                        {profile.education.map((edu, index) => (
+                            <div key={index} className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded">
+                                <div>
+                                    <Tag color="blue">{edu.degree}</Tag>
+                                    <span className="ml-2 text-gray-600 dark:text-gray-300">
+                                        {edu.institution} - {edu.field_of_study}
+                                    </span>
+                                    <span className="ml-2 text-gray-500">
+                                        ({edu.start_year} - {edu.end_year})
+                                    </span>
+                                </div>
+                                <Button
+                                    type="text"
+                                    danger
+                                    icon={<DeleteOutlined />}
+                                    onClick={() => {
+                                        const newProfile = {
+                                            ...profile,
+                                            education: profile.education.filter((_, i) => i !== index)
+                                        };
+                                        setProfile(newProfile);
+                                        handleAutoSave(newProfile);
+                                    }}
+                                />
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </section>
 

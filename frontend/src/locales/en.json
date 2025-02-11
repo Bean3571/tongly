@@ -173,9 +173,17 @@
             }
         },
         "profile": {
+            "title": "Teaching Profile",
             "about": "About Me",
+            "about.placeholder": "Tell students about yourself, your teaching experience, and what makes your lessons unique...",
+            "about.tip": "Pro tip: Include information about your teaching experience, methodology, and what students can expect from your lessons.",
             "education": "Education",
-            "experience": "Experience",
+            "education.degree.placeholder": "Select your degree",
+            "education.institution.placeholder": "Institution name",
+            "education.field.placeholder": "Field of study",
+            "education.start_year.placeholder": "Start year",
+            "education.end_year.placeholder": "End year",
+            "education.add": "Add Education",
             "languages": "Languages I Teach",
             "pricing": "Pricing",
             "reviews": "Reviews",
@@ -330,6 +338,45 @@
                 "next": "Next",
                 "back": "Back",
                 "submit": "Submit"
+            }
+        },
+        "teaching.profile": {
+            "title": "Teaching Profile",
+            "subtitle": "Complete your profile to start teaching",
+            "education": {
+                "title": "Education",
+                "add": "Add Education",
+                "edit": "Edit Education",
+                "remove": "Remove Education",
+                "fields": {
+                    "degree": "Degree",
+                    "field": "Field of Study",
+                    "institution": "Institution",
+                    "country": "Country",
+                    "start_year": "Start Year",
+                    "end_year": "End Year",
+                    "current": "I currently study here",
+                    "description": "Description"
+                },
+                "placeholders": {
+                    "degree": "e.g., Bachelor's, Master's, Ph.D.",
+                    "field": "e.g., English Literature, Linguistics",
+                    "institution": "e.g., University of Cambridge",
+                    "description": "Describe your studies and achievements"
+                },
+                "validation": {
+                    "degree.required": "Degree is required",
+                    "field.required": "Field of study is required",
+                    "institution.required": "Institution is required",
+                    "start_year.required": "Start year is required",
+                    "end_year.required": "End year is required",
+                    "end_year.invalid": "End year must be after start year"
+                },
+                "buttons": {
+                    "save": "Save Education",
+                    "cancel": "Cancel",
+                    "add.another": "Add Another Education"
+                }
             }
         }
     },
