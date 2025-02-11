@@ -9,7 +9,16 @@
         "delete": "Delete",
         "confirm": "Confirm",
         "back": "Back",
-        "try.again": "Try Again"
+        "try.again": "Try Again",
+        "toggleTheme": "Toggle theme"
+    },
+    "validation": {
+        "required": "This field is required",
+        "email.invalid": "Invalid email address",
+        "username.min.length": "Username must be at least 3 characters",
+        "password.min.length": "Password must be at least 6 characters",
+        "password.match": "Passwords must match",
+        "role.invalid": "Invalid role selected"
     },
     "auth": {
         "login": "Login",
@@ -33,7 +42,9 @@
         "lessons": "My Lessons",
         "wallet": "Wallet",
         "profile": "Profile",
-        "settings": "Settings"
+        "settings": "Settings",
+        "earnings": "Earnings",
+        "balance": "Balance"
     },
     "wallet": {
         "balance": "Balance",
@@ -44,13 +55,29 @@
             "title": "Commission",
             "description": "Platform commission is {{rate}}% of the lesson price",
             "student": "Commission is included in the lesson price",
-            "tutor": "Commission is deducted from the lesson price"
+            "tutor": "Commission is deducted from the lesson price",
+            "amount": "Commission: {{amount}}"
         },
         "errors": {
             "insufficientFunds": "Insufficient funds",
             "invalidAmount": "Invalid amount",
             "minAmount": "Minimum amount is {{amount}}"
-        }
+        },
+        "depositModal": {
+            "title": "Deposit Funds",
+            "amountPlaceholder": "Enter amount to deposit",
+            "minAmount": "Minimum deposit amount: {{amount}}"
+        },
+        "withdrawModal": {
+            "title": "Withdraw Funds",
+            "amountPlaceholder": "Enter amount to withdraw",
+            "availableBalance": "Available balance: {{balance}}",
+            "processingTime": "Withdrawals are typically processed within 1-3 business days"
+        },
+        "transactionHistory": "Transaction History",
+        "availableBalance": "Available Balance",
+        "depositSuccess": "Deposit successful",
+        "withdrawalSuccess": "Withdrawal request submitted"
     },
     "lessons": {
         "title": "My Lessons",
@@ -154,6 +181,209 @@
             "reviews": "Reviews",
             "schedule": "Schedule",
             "trial": "Trial Lesson Available"
+        }
+    },
+    "pages": {
+        "login": {
+            "title": "Sign in to your account",
+            "no.account": "Don't have an account?",
+            "sign.up": "Sign up",
+            "username": "Username",
+            "username.placeholder": "Enter your username",
+            "password": "Password",
+            "password.placeholder": "Enter your password",
+            "sign.in.button": "Sign in",
+            "forgot.password": "Forgot your password?",
+            "remember.me": "Remember me",
+            "error": {
+                "invalid.credentials": "Invalid username or password",
+                "required.fields": "Please fill in all required fields"
+            }
+        },
+        "dashboard": {
+            "student": {
+                "title": "Student Dashboard",
+                "welcome": "Welcome back, {{name}}!",
+                "progress": {
+                    "title": "Your Progress",
+                    "level": "Level {{level}}",
+                    "points": "{{points}} points",
+                    "next.level": "{{points}} points to next level"
+                },
+                "upcoming.lessons": "Upcoming Lessons",
+                "completed.lessons": "Completed Lessons",
+                "no.lessons": "No lessons scheduled",
+                "quick.actions": {
+                    "title": "Quick Actions",
+                    "find.tutor": "Find a Tutor",
+                    "schedule.lesson": "Schedule Lesson",
+                    "view.all.lessons": "View All Lessons"
+                },
+                "stats": {
+                    "total.lessons": "Total Lessons",
+                    "hours.learned": "Hours Learned",
+                    "languages": "Languages",
+                    "streak": "Day Streak"
+                }
+            },
+            "tutor": {
+                "title": "Tutor Dashboard",
+                "welcome": "Welcome back, {{name}}!",
+                "earnings": {
+                    "title": "Earnings",
+                    "total": "Total Earnings",
+                    "this.month": "This Month",
+                    "pending": "Pending"
+                },
+                "schedule": {
+                    "title": "Today's Schedule",
+                    "no.lessons": "No lessons scheduled for today"
+                },
+                "stats": {
+                    "total.students": "Total Students",
+                    "total.lessons": "Total Lessons",
+                    "rating": "Average Rating",
+                    "completion.rate": "Completion Rate"
+                }
+            }
+        },
+        "profile": {
+            "title": "Profile Settings",
+            "personal.info": "Personal Information",
+            "teaching.info": "Teaching Information",
+            "account.settings": "Account Settings",
+            "fields": {
+                "first.name": "First Name",
+                "last.name": "Last Name",
+                "email": "Email",
+                "phone": "Phone",
+                "bio": "Bio",
+                "languages": "Languages",
+                "education": "Education",
+                "experience": "Experience",
+                "hourly.rate": "Hourly Rate",
+                "timezone": "Time Zone"
+            },
+            "buttons": {
+                "save": "Save Changes",
+                "cancel": "Cancel",
+                "upload.photo": "Upload Photo",
+                "remove.photo": "Remove Photo"
+            }
+        },
+        "settings": {
+            "title": "Settings",
+            "sections": {
+                "notifications": {
+                    "title": "Notifications",
+                    "email": "Email Notifications",
+                    "sms": "SMS Notifications",
+                    "marketing": "Marketing Updates"
+                },
+                "security": {
+                    "title": "Security",
+                    "current.password": "Current Password",
+                    "new.password": "New Password",
+                    "confirm.password": "Confirm New Password"
+                },
+                "preferences": {
+                    "title": "Preferences",
+                    "language": "Language",
+                    "timezone": "Time Zone",
+                    "theme": "Theme"
+                }
+            }
+        },
+        "messages": {
+            "title": "Messages",
+            "no.messages": "No messages yet",
+            "search": "Search conversations",
+            "online": "Online",
+            "offline": "Offline",
+            "type.message": "Type your message",
+            "send": "Send"
+        },
+        "schedule": {
+            "title": "Schedule Management",
+            "availability": {
+                "title": "Set Availability",
+                "timezone": "Your time zone",
+                "weekly.hours": "Weekly Hours",
+                "breaks": "Break Times"
+            },
+            "calendar": {
+                "title": "Calendar",
+                "available": "Available",
+                "booked": "Booked",
+                "unavailable": "Unavailable"
+            }
+        },
+        "survey": {
+            "title": "Learning Preferences",
+            "sections": {
+                "goals": "Learning Goals",
+                "interests": "Interests",
+                "experience": "Language Experience",
+                "preferences": "Learning Preferences"
+            },
+            "buttons": {
+                "next": "Next",
+                "back": "Back",
+                "submit": "Submit"
+            }
+        }
+    },
+    "components": {
+        "footer": {
+            "about": "About Us",
+            "contact": "Contact",
+            "terms": "Terms of Service",
+            "privacy": "Privacy Policy",
+            "copyright": "© {{year}} Tongly. All rights reserved."
+        },
+        "navbar": {
+            "search": "Search",
+            "notifications": "Notifications",
+            "account": "Account",
+            "dashboard": "Dashboard"
+        },
+        "lessonChat": {
+            "title": "Lesson Chat",
+            "participants": "{{count}} participants",
+            "type.message": "Type your message...",
+            "send": "Send"
+        },
+        "videoRoom": {
+            "controls": {
+                "mute": "Mute",
+                "unmute": "Unmute",
+                "camera.on": "Turn Camera On",
+                "camera.off": "Turn Camera Off",
+                "share.screen": "Share Screen",
+                "stop.sharing": "Stop Sharing",
+                "leave": "Leave Room"
+            },
+            "status": {
+                "connecting": "Connecting...",
+                "connected": "Connected",
+                "disconnected": "Disconnected"
+            }
+        },
+        "lessonRating": {
+            "title": "Rate Your Lesson",
+            "with.tutor": "with {{name}}",
+            "rating.labels": {
+                "1": "Poor",
+                "2": "Fair",
+                "3": "Good",
+                "4": "Very Good",
+                "5": "Excellent"
+            },
+            "comment.placeholder": "Share your experience (optional)",
+            "buttons": {
+                "submit": "Submit Rating",
+                "skip": "Skip"
+            }
         }
     }
 }
