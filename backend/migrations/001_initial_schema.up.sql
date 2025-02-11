@@ -39,7 +39,7 @@ CREATE TABLE tutor_details (
     id SERIAL PRIMARY KEY,
     user_id INTEGER UNIQUE REFERENCES user_credentials(id) ON DELETE CASCADE,
     bio TEXT,
-    teaching_languages JSONB ,
+    teaching_languages JSONB DEFAULT '[]'::jsonb,
     education JSONB DEFAULT '[]'::jsonb,
     interests TEXT[] DEFAULT ARRAY[]::TEXT[],
     hourly_rate DECIMAL(10,2) ,
