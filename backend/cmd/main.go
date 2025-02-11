@@ -98,19 +98,28 @@ func main() {
 		SkipPaths: []string{"/health", "/metrics"},
 	}))
 
-	// CORS configuration
+	// CORS configuration with WebSocket support
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{"http://localhost:3000"}
 	config.AllowCredentials = true
-	config.AllowHeaders = append(config.AllowHeaders, "Authorization")
+	config.AllowHeaders = append(config.AllowHeaders,
+		"Authorization",
+		"Sec-WebSocket-Protocol",
+		"Sec-WebSocket-Version",
+		"Sec-WebSocket-Key",
+		"Sec-WebSocket-Extensions",
+		"Upgrade",
+		"Connection",
+	)
 	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
+	config.ExposeHeaders = []string{"Content-Length", "Sec-WebSocket-Accept"}
 	r.Use(cors.New(config))
 
-	// Register routes using the SetupRouter function
-	router.SetupRouter(r, authHandler, &tutorHandler, &gamificationHandler, &userHandler, lessonHandler, walletHandler)
-
-	// Register WebRTC routes (this is the only one we need to add manually)
+	// Register WebRTC routes first (before other routes)
 	webrtcHandler.RegisterRoutes(r)
+
+	// Register other routes
+	router.SetupRouter(r, authHandler, &tutorHandler, &gamificationHandler, &userHandler, lessonHandler, walletHandler)
 
 	// Start server with graceful shutdown
 	srv := &http.Server{

@@ -11,11 +11,15 @@ interface PeerConnection {
   id: number;
   connection: RTCPeerConnection;
   stream?: MediaStream;
+  screenStream?: MediaStream;
 }
 
 interface NetworkStatusProps {
   quality: 'good' | 'fair' | 'poor';
 }
+
+type StreamType = 'camera' | 'screen';
+type ActiveView = 'remote-camera' | 'remote-screen' | 'local-camera' | 'local-screen';
 
 const VideoRoom: React.FC<VideoRoomProps> = ({ lessonId, userId }) => {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
@@ -24,6 +28,7 @@ const VideoRoom: React.FC<VideoRoomProps> = ({ lessonId, userId }) => {
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [networkQuality, setNetworkQuality] = useState<'good' | 'fair' | 'poor'>('good');
+  const [activeView, setActiveView] = useState<ActiveView>('remote-camera');
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
@@ -140,15 +145,32 @@ const VideoRoom: React.FC<VideoRoomProps> = ({ lessonId, userId }) => {
     // Handle incoming streams
     peerConnection.ontrack = (event) => {
       const stream = event.streams[0];
-      setPeers(prev => {
-        const updated = new Map(prev);
-        const peer = updated.get(peerId);
-        if (peer) {
-          peer.stream = stream;
+      if (stream) {
+        // Check if this is a screen share stream or camera stream
+        const isScreenShare = stream.getTracks().some(track => track.label.toLowerCase().includes('screen'));
+        
+        setPeers(prev => {
+          const updated = new Map(prev);
+          const peer = updated.get(peerId) || { id: peerId, connection: peerConnection };
+          
+          if (isScreenShare) {
+            peer.screenStream = stream;
+          } else {
+            peer.stream = stream;
+          }
+          
           updated.set(peerId, peer);
+          return updated;
+        });
+
+        // Update video element directly if it's a camera stream
+        if (!isScreenShare) {
+          const peerRef = peerRefs.current[peerId.toString()];
+          if (peerRef?.video) {
+            peerRef.video.srcObject = stream;
+          }
         }
-        return updated;
-      });
+      }
     };
 
     // Monitor connection state
@@ -356,40 +378,142 @@ const VideoRoom: React.FC<VideoRoomProps> = ({ lessonId, userId }) => {
     });
   }, [peerRefs.current]);
 
-  return (
-    <Container>
-      <VideoGrid>
-        <LocalVideoContainer>
-          <VideoElement
-            ref={localVideoRef}
-            autoPlay
-            playsInline
-            muted
-          />
-          <ParticipantName>You</ParticipantName>
-          <NetworkStatus $quality={networkQuality}>
-            {networkQuality === 'good' ? '📶' : networkQuality === 'fair' ? '📡' : '⚠️'}
-          </NetworkStatus>
-        </LocalVideoContainer>
-        {Array.from(peers.values()).map(peer => (
-          <RemoteVideoContainer key={peer.id}>
-            {peer.stream && (
+  const renderStreamSelector = () => (
+    <StreamSelector>
+      <StreamButton 
+        active={activeView === 'remote-camera'} 
+        onClick={() => setActiveView('remote-camera')}
+      >
+        Participant Camera
+      </StreamButton>
+      <StreamButton 
+        active={activeView === 'remote-screen'} 
+        onClick={() => setActiveView('remote-screen')}
+        disabled={!Array.from(peers.values()).some(peer => peer.screenStream)}
+      >
+        Participant Screen
+      </StreamButton>
+      <StreamButton 
+        active={activeView === 'local-camera'} 
+        onClick={() => setActiveView('local-camera')}
+      >
+        My Camera
+      </StreamButton>
+      <StreamButton 
+        active={activeView === 'local-screen'} 
+        onClick={() => setActiveView('local-screen')}
+        disabled={!isScreenSharing}
+      >
+        My Screen
+      </StreamButton>
+    </StreamSelector>
+  );
+
+  const renderMainStream = () => {
+    switch (activeView) {
+      case 'remote-camera':
+        return Array.from(peers.values()).map(peer => (
+          <MainVideoContainer key={peer.id}>
+            {peer.stream ? (
               <>
                 <VideoElement
-                  ref={(el) => {
-                    if (peerRefs.current[peer.id.toString()]) {
-                      peerRefs.current[peer.id.toString()].video = el;
+                  ref={el => {
+                    if (el && peer.stream) {
+                      peerRefs.current[peer.id.toString()] = {
+                        ...peerRefs.current[peer.id.toString()],
+                        video: el,
+                        stream: peer.stream
+                      };
+                      el.srcObject = peer.stream;
                     }
                   }}
                   autoPlay
                   playsInline
                 />
-                <ParticipantName>Participant {peer.id}</ParticipantName>
+                <StreamTitle>Participant Camera</StreamTitle>
+              </>
+            ) : (
+              <NoStreamMessage>Waiting for participant's camera...</NoStreamMessage>
+            )}
+          </MainVideoContainer>
+        ));
+      case 'remote-screen':
+        return Array.from(peers.values()).map(peer => (
+          <MainVideoContainer key={`${peer.id}-screen`}>
+            {peer.screenStream ? (
+              <>
+                <VideoElement
+                  ref={el => {
+                    if (el && peer.screenStream) {
+                      el.srcObject = peer.screenStream;
+                    }
+                  }}
+                  autoPlay
+                  playsInline
+                />
+                <StreamTitle>Participant Screen</StreamTitle>
+              </>
+            ) : (
+              <NoStreamMessage>No screen being shared</NoStreamMessage>
+            )}
+          </MainVideoContainer>
+        ));
+      case 'local-camera':
+        return (
+          <MainVideoContainer>
+            <VideoElement
+              ref={localVideoRef}
+              autoPlay
+              playsInline
+              muted
+            />
+            <StreamTitle>My Camera</StreamTitle>
+          </MainVideoContainer>
+        );
+      case 'local-screen':
+        return (
+          <MainVideoContainer>
+            {screenStreamRef.current && (
+              <>
+                <VideoElement
+                  ref={el => {
+                    if (el && screenStreamRef.current) {
+                      el.srcObject = screenStreamRef.current;
+                    }
+                  }}
+                  autoPlay
+                  playsInline
+                  muted
+                />
+                <StreamTitle>My Screen</StreamTitle>
               </>
             )}
-          </RemoteVideoContainer>
-        ))}
-      </VideoGrid>
+          </MainVideoContainer>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <Container>
+      <MainSection>
+        {renderStreamSelector()}
+        {renderMainStream()}
+      </MainSection>
+
+      <LocalPreview>
+        <VideoElement
+          ref={localVideoRef}
+          autoPlay
+          playsInline
+          muted
+        />
+        <StreamTitle>You</StreamTitle>
+        <NetworkStatus $quality={networkQuality}>
+          {networkQuality === 'good' ? '📶' : networkQuality === 'fair' ? '📡' : '⚠️'}
+        </NetworkStatus>
+      </LocalPreview>
 
       <Controls>
         <ControlButton onClick={toggleMute}>
@@ -409,45 +533,84 @@ const VideoRoom: React.FC<VideoRoomProps> = ({ lessonId, userId }) => {
 const Container = styled.div`
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
   background: #1a1a1a;
-`;
-
-const VideoGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 1rem;
-  padding: 1rem;
-  flex: 1;
-`;
-
-const VideoContainer = styled.div`
+  border-radius: 8px;
+  overflow: hidden;
   position: relative;
+`;
+
+const MainSection = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  gap: 1rem;
+`;
+
+const StreamSelector = styled.div`
+  display: flex;
+  gap: 1rem;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+`;
+
+const StreamButton = styled.button<{ active: boolean }>`
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  background: ${props => props.active ? '#4a90e2' : 'rgba(255, 255, 255, 0.1)'};
+  color: white;
+  cursor: pointer;
+  opacity: ${props => props.disabled ? 0.5 : 1};
+  
+  &:hover:not(:disabled) {
+    background: ${props => props.active ? '#357abd' : 'rgba(255, 255, 255, 0.2)'};
+  }
+  
+  &:disabled {
+    cursor: not-allowed;
+  }
+`;
+
+const MainVideoContainer = styled.div`
+  position: relative;
+  flex: 1;
   background: #2a2a2a;
   border-radius: 8px;
   overflow: hidden;
+  aspect-ratio: 16/9;
 `;
 
-const LocalVideoContainer = styled(VideoContainer)`
+const LocalPreview = styled.div`
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 240px;
+  aspect-ratio: 16/9;
+  background: #2a2a2a;
+  border-radius: 8px;
+  overflow: hidden;
   border: 2px solid #4a90e2;
+  z-index: 10;
 `;
-
-const RemoteVideoContainer = styled(VideoContainer)``;
 
 const VideoElement = styled.video`
   width: 100%;
-  max-width: 640px;
-  border-radius: 8px;
+  height: 100%;
+  object-fit: cover;
 `;
 
-const ParticipantName = styled.div`
+const StreamTitle = styled.div`
   position: absolute;
-  bottom: 1rem;
+  top: 1rem;
   left: 1rem;
   color: white;
   background: rgba(0, 0, 0, 0.5);
   padding: 0.5rem;
   border-radius: 4px;
+  font-size: 0.9rem;
 `;
 
 const Controls = styled.div`
@@ -474,11 +637,29 @@ const ControlButton = styled.button`
 `;
 
 const NetworkStatus = styled.div<{ $quality: 'good' | 'fair' | 'poor' }>`
-  font-size: 1.5rem;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 1.2rem;
+  padding: 0.3rem;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
   color: ${(props) =>
     props.$quality === 'good' ? '#4caf50' :
     props.$quality === 'fair' ? '#ff9800' : '#f44336'
   };
+`;
+
+const NoStreamMessage = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
 `;
 
 export default VideoRoom; 

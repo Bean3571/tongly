@@ -23,7 +23,7 @@ interface LessonDetails {
 }
 
 interface TimerProps {
-  warning: boolean;
+  $warning: boolean;
 }
 
 const LessonRoom: React.FC = () => {
@@ -145,7 +145,7 @@ const LessonRoom: React.FC = () => {
             {lesson.tutor_name ? `with ${lesson.tutor_name}` : ''}
           </Subtitle>
         </LessonInfo>
-        <Timer warning={timeRemaining <= 10 * 60 * 1000}>
+        <Timer $warning={timeRemaining <= 10 * 60 * 1000}>
           {formatTimeRemaining(timeRemaining)}
         </Timer>
       </Header>
@@ -211,10 +211,10 @@ const Subtitle = styled.div`
   font-size: 1rem;
 `;
 
-const Timer = styled.div<TimerProps>`
+const Timer = styled.div<{ $warning: boolean }>`
   font-size: 1.5rem;
   font-weight: bold;
-  color: ${(props: TimerProps) => props.warning ? '#e74c3c' : '#2c3e50'};
+  color: ${(props) => props.$warning ? '#e74c3c' : '#2c3e50'};
   transition: color 0.3s;
 `;
 

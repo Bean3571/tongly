@@ -1,6 +1,7 @@
 package interfaces
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -47,21 +48,21 @@ func (h *WebRTCHandler) handleWebRTC(c *gin.Context) {
 		return
 	}
 
-	// Verify lesson is in progress
-	if lesson.Status != "in_progress" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Lesson is not in progress"})
+	// Verify lesson is in progress or scheduled
+	if lesson.Status != "in_progress" && lesson.Status != "scheduled" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Lesson must be in progress or scheduled"})
 		return
 	}
 
-	// Get or create video session
-	session, err := h.lessonUseCase.GetVideoSession(c.Request.Context(), lessonID, userID.(int))
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Video session not found"})
-		return
-	}
+	// Set WebSocket headers
+	c.Writer.Header().Set("Sec-WebSocket-Protocol", "v1.webrtc.tongly")
+	c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+	c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+	c.Writer.Header().Set("Connection", "Upgrade")
+	c.Writer.Header().Set("Upgrade", "websocket")
 
 	// Handle WebSocket connection
-	if err := h.signalingServer.HandleConnection(session.RoomID, userID.(int), c.Writer, c.Request); err != nil {
+	if err := h.signalingServer.HandleConnection(fmt.Sprintf("room_%d", lesson.ID), userID.(int), c.Writer, c.Request); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to establish WebSocket connection"})
 		return
 	}

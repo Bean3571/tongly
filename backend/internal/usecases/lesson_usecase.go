@@ -231,10 +231,9 @@ func (uc *lessonUseCase) SendChatMessage(ctx context.Context, lessonID int, user
 		return err
 	}
 
-	// Only allow chat during the lesson
-	now := time.Now()
-	if now.Before(lesson.StartTime) || now.After(lesson.EndTime) {
-		return errors.New("chat is only available during the lesson")
+	// Only allow chat when lesson is in progress
+	if lesson.Status != entities.LessonStatusInProgress {
+		return errors.New("chat is only available during in-progress lessons")
 	}
 
 	message := &entities.ChatMessage{
