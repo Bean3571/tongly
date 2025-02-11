@@ -1,4 +1,6 @@
 -- Drop indexes
+DROP INDEX IF EXISTS idx_platform_earnings_transaction;
+DROP INDEX IF EXISTS idx_transaction_currency;
 DROP INDEX IF EXISTS idx_wallet_transactions_type;
 DROP INDEX IF EXISTS idx_wallet_transactions_status;
 DROP INDEX IF EXISTS idx_wallet_transactions_user_id;
@@ -32,6 +34,7 @@ DROP TRIGGER IF EXISTS update_user_credentials_updated_at ON user_credentials;
 DROP FUNCTION IF EXISTS update_updated_at_column();
 
 -- Drop tables in correct order (respecting foreign key constraints)
+DROP TABLE IF EXISTS platform_earnings;
 DROP TABLE IF EXISTS wallet_transactions;
 DROP TABLE IF EXISTS lesson_ratings;
 DROP TABLE IF EXISTS chat_messages;

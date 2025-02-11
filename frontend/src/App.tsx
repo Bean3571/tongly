@@ -24,6 +24,7 @@ import { TeachingProfile } from './pages/TeachingProfile';
 import { Schedule } from './pages/Schedule';
 import { Messages } from './pages/Messages';
 import { Settings } from './pages/Settings';
+import { PlatformEarnings } from './pages/admin/PlatformEarnings';
 
 const queryClient = new QueryClient();
 
@@ -114,6 +115,13 @@ const AppRoutes = () => {
                     <Route path="/lessons/:lessonId" element={
                         <PrivateRoute>
                             <LessonRoom />
+                        </PrivateRoute>
+                    } />
+
+                    {/* Admin Routes */}
+                    <Route path="/admin/earnings" element={
+                        <PrivateRoute role="admin">
+                            <PlatformEarnings />
                         </PrivateRoute>
                     } />
 
