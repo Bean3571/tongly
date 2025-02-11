@@ -1,0 +1,159 @@
+{
+    "common": {
+        "loading": "Loading...",
+        "error": "Error",
+        "success": "Success",
+        "cancel": "Cancel",
+        "save": "Save",
+        "edit": "Edit",
+        "delete": "Delete",
+        "confirm": "Confirm",
+        "back": "Back",
+        "try.again": "Try Again"
+    },
+    "auth": {
+        "login": "Login",
+        "register": "Register",
+        "logout": "Logout",
+        "email": "Email",
+        "password": "Password",
+        "username": "Username",
+        "forgotPassword": "Forgot Password?",
+        "rememberMe": "Remember Me",
+        "errors": {
+            "invalidCredentials": "Invalid email or password",
+            "emailRequired": "Email is required",
+            "passwordRequired": "Password is required",
+            "usernameRequired": "Username is required"
+        }
+    },
+    "navbar": {
+        "home": "Home",
+        "tutors": "Find Tutors",
+        "lessons": "My Lessons",
+        "wallet": "Wallet",
+        "profile": "Profile",
+        "settings": "Settings"
+    },
+    "wallet": {
+        "balance": "Balance",
+        "deposit": "Deposit",
+        "withdraw": "Withdraw",
+        "transactions": "Transactions",
+        "commission": {
+            "title": "Commission",
+            "description": "Platform commission is {{rate}}% of the lesson price",
+            "student": "Commission is included in the lesson price",
+            "tutor": "Commission is deducted from the lesson price"
+        },
+        "errors": {
+            "insufficientFunds": "Insufficient funds",
+            "invalidAmount": "Invalid amount",
+            "minAmount": "Minimum amount is {{amount}}"
+        }
+    },
+    "lessons": {
+        "title": "My Lessons",
+        "subtitle": {
+            "upcoming": "Manage your upcoming lessons",
+            "completed": "View your lesson history"
+        },
+        "empty": "No lessons found",
+        "loading": "Loading your lessons...",
+        "upcoming": "Upcoming Lessons",
+        "completed": "Completed Lessons",
+        "status": {
+            "scheduled": "Scheduled",
+            "in_progress": "In Progress",
+            "completed": "Completed",
+            "cancelled": "Cancelled"
+        },
+        "actions": {
+            "join": "Join Lesson",
+            "join.ongoing": "Join Ongoing Lesson",
+            "cancel": "Cancel Lesson",
+            "rate": "Rate Lesson"
+        },
+        "count": {
+            "one": "{{count}} lesson",
+            "other": "{{count}} lessons"
+        },
+        "table": {
+            "tutor": "Tutor",
+            "student": "Student",
+            "language.duration": "Language & Duration",
+            "date.time": "Date & Time",
+            "status": "Status",
+            "price": "Price",
+            "actions": "Actions"
+        },
+        "duration": "{{minutes}} minutes",
+        "price": "${{price}}",
+        "participant": {
+            "tutor": "Tutor",
+            "student": "Student"
+        },
+        "filter": {
+            "all": "All Status",
+            "scheduled": "Scheduled",
+            "completed": "Completed",
+            "cancelled": "Cancelled"
+        },
+        "tabs": {
+            "upcoming": "Upcoming",
+            "completed": "Past"
+        },
+        "error": {
+            "auth": {
+                "title": "Authentication Error",
+                "description": "Please log in again to continue."
+            },
+            "verify.status": "Failed to verify lesson status",
+            "cannot.join": "This lesson cannot be joined at this time",
+            "ended": "This lesson has already ended",
+            "start.session": "Failed to start video session",
+            "check.session": "Failed to check video session status",
+            "join": {
+                "title": "Error Joining Lesson",
+                "default": "Failed to join lesson"
+            }
+        },
+        "warning": {
+            "too.early": {
+                "title": "Too Early",
+                "description": "You can join the lesson 5 minutes before the scheduled start time."
+            }
+        },
+        "cancel": {
+            "modal": {
+                "title": "Cancel Lesson",
+                "confirm": "Are you sure you want to cancel this lesson?",
+                "warning": "This action cannot be undone.",
+                "confirm.button": "Yes, Cancel Lesson",
+                "keep.button": "No, Keep Lesson"
+            },
+            "reason": "Cancelled by {{role}}"
+        }
+    },
+    "tutors": {
+        "search": {
+            "title": "Find Your Perfect Tutor",
+            "placeholder": "Search by name, language, or bio...",
+            "filters": {
+                "language": "Language",
+                "price": "Price Range",
+                "rating": "Minimum Rating"
+            }
+        },
+        "profile": {
+            "about": "About Me",
+            "education": "Education",
+            "experience": "Experience",
+            "languages": "Languages I Teach",
+            "pricing": "Pricing",
+            "reviews": "Reviews",
+            "schedule": "Schedule",
+            "trial": "Trial Lesson Available"
+        }
+    }
+}

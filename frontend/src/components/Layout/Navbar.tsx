@@ -2,34 +2,37 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useTranslation } from '../../contexts/I18nContext';
 import { FaSun, FaMoon } from 'react-icons/fa';
+import { LanguageSwitcher } from '../LanguageSwitcher';
 
 const DEFAULT_AVATAR = 'https://secure.gravatar.com/avatar/default?s=200&d=mp';
 
 export const Navbar = () => {
     const { user, logout } = useAuth();
     const { isDarkMode, toggleTheme } = useTheme();
+    const { t, formatCurrency } = useTranslation();
     const location = useLocation();
 
     const getNavLinks = () => {
         if (!user) return [];
 
         const commonLinks = [
-            { to: '/lessons', label: 'My Lessons' },
-            { to: '/wallet', label: 'Wallet' }
+            { to: '/lessons', label: t('navbar.lessons') },
+            { to: '/wallet', label: t('navbar.wallet') }
         ];
 
         if (user.credentials.role === 'student') {
             return [
-                { to: '/student/dashboard', label: 'Dashboard' },
-                { to: '/tutors', label: 'Find Tutors' },
+                { to: '/student/dashboard', label: t('navbar.home') },
+                { to: '/tutors', label: t('navbar.tutors') },
                 ...commonLinks
             ];
         }
 
         if (user.credentials.role === 'tutor') {
             return [
-                { to: '/tutor/dashboard', label: 'Dashboard' },
+                { to: '/tutor/dashboard', label: t('navbar.home') },
                 ...commonLinks
             ];
         }
@@ -65,10 +68,12 @@ export const Navbar = () => {
                     </div>
 
                     <div className="flex items-center space-x-4">
+                        <LanguageSwitcher />
+                        
                         <button
                             onClick={toggleTheme}
                             className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                            aria-label="Toggle theme"
+                            aria-label={t('common.toggleTheme')}
                         >
                             {isDarkMode ? (
                                 <FaSun className="w-5 h-5" />
@@ -81,14 +86,14 @@ export const Navbar = () => {
                             <div className="flex items-center space-x-4">
                                 {user.credentials?.role === 'tutor' ? (
                                     <span className="text-gray-700 dark:text-gray-300">
-                                        <span className="font-medium">Earnings:</span> $250.00
+                                        <span className="font-medium">{t('wallet.earnings')}:</span> {formatCurrency(250)}
                                     </span>
                                 ) : (
                                     <Link
                                         to="/wallet"
                                         className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                                     >
-                                        <span className="font-medium">Balance:</span> $250.00
+                                        <span className="font-medium">{t('wallet.balance')}:</span> {formatCurrency(250)}
                                     </Link>
                                 )}
                                 <div className="relative group">
@@ -111,13 +116,13 @@ export const Navbar = () => {
                                             to="/profile"
                                             className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
                                         >
-                                            Profile Settings
+                                            {t('navbar.profile')}
                                         </Link>
                                         <button
                                             onClick={logout}
                                             className="block px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
                                         >
-                                            Logout
+                                            {t('auth.logout')}
                                         </button>
                                     </div>
                                 </div>
@@ -128,13 +133,13 @@ export const Navbar = () => {
                                     to="/login"
                                     className="px-4 py-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors"
                                 >
-                                    Login
+                                    {t('auth.login')}
                                 </Link>
                                 <Link
                                     to="/register"
                                     className="px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
                                 >
-                                    Sign Up
+                                    {t('auth.register')}
                                 </Link>
                             </div>
                         )}

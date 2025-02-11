@@ -1,21 +1,24 @@
 import React from 'react';
+import { useTranslation } from '../contexts/I18nContext';
 
 export const Challenges = () => {
+    const { t, formatNumber } = useTranslation();
+
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="flex justify-between items-center mb-8">
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                    Language Challenges 🎯
+                    {t('pages.challenges.title')} 🎯
                 </h1>
                 <div className="flex items-center space-x-4">
                     <div className="bg-blue-100 dark:bg-blue-900 px-4 py-2 rounded-lg">
                         <span className="text-blue-600 dark:text-blue-300 font-semibold">
-                            🏆 1,250 Points
+                            🏆 {t('pages.challenges.points', { points: formatNumber(1250) })}
                         </span>
                     </div>
                     <div className="bg-green-100 dark:bg-green-900 px-4 py-2 rounded-lg">
                         <span className="text-green-600 dark:text-green-300 font-semibold">
-                            Level 5
+                            {t('pages.challenges.level', { level: 5 })}
                         </span>
                     </div>
                 </div>
@@ -24,13 +27,13 @@ export const Challenges = () => {
             {/* Progress Section */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                    Your Progress
+                    {t('pages.challenges.progress.title')}
                 </h2>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 mb-4">
                     <div className="bg-blue-600 h-4 rounded-full" style={{ width: '75%' }}></div>
                 </div>
                 <p className="text-gray-600 dark:text-gray-300">
-                    750 points to next level
+                    {t('pages.challenges.points.to.next.level', { points: formatNumber(750) })}
                 </p>
             </div>
 
@@ -38,27 +41,27 @@ export const Challenges = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                 {[
                     {
-                        title: 'Daily Conversation',
-                        description: 'Complete a 30-minute conversation lesson',
+                        title: t('pages.challenges.daily.conversation.title'),
+                        description: t('pages.challenges.daily.conversation.description'),
                         points: 100,
                         progress: 0,
-                        deadline: '24h remaining',
+                        deadline: t('pages.challenges.deadline.24h'),
                         difficulty: 'easy'
                     },
                     {
-                        title: 'Grammar Master',
-                        description: 'Complete 5 grammar exercises without mistakes',
+                        title: t('pages.challenges.grammar.master.title'),
+                        description: t('pages.challenges.grammar.master.description'),
                         points: 200,
                         progress: 3,
-                        deadline: '3d remaining',
+                        deadline: t('pages.challenges.deadline.3d'),
                         difficulty: 'medium'
                     },
                     {
-                        title: 'Cultural Explorer',
-                        description: 'Learn about 3 cultural traditions',
+                        title: t('pages.challenges.cultural.explorer.title'),
+                        description: t('pages.challenges.cultural.explorer.description'),
                         points: 150,
                         progress: 2,
-                        deadline: '2d remaining',
+                        deadline: t('pages.challenges.deadline.2d'),
                         difficulty: 'easy'
                     }
                 ].map((challenge, i) => (
@@ -75,7 +78,7 @@ export const Challenges = () => {
                                 </h3>
                                 <span className="bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 
                                                px-2 py-1 rounded text-sm">
-                                    {challenge.points} pts
+                                    {t('pages.challenges.points.value', { points: challenge.points })}
                                 </span>
                             </div>
                             <p className="text-gray-600 dark:text-gray-300 mb-4">
@@ -83,7 +86,7 @@ export const Challenges = () => {
                             </p>
                             <div className="space-y-2">
                                 <div className="flex justify-between text-sm text-gray-600 dark:text-gray-300">
-                                    <span>Progress: {challenge.progress}/5</span>
+                                    <span>{t('pages.challenges.progress.value', { current: challenge.progress, total: 5 })}</span>
                                     <span>{challenge.deadline}</span>
                                 </div>
                                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
@@ -101,14 +104,14 @@ export const Challenges = () => {
             {/* Achievements */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                    Recent Achievements
+                    {t('pages.challenges.achievements.title')}
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {[
-                        { name: 'First Lesson', icon: '🎓', date: 'Jan 15' },
-                        { name: 'Perfect Week', icon: '🌟', date: 'Jan 20' },
-                        { name: 'Quick Learner', icon: '⚡', date: 'Jan 22' },
-                        { name: 'Social Butterfly', icon: '🦋', date: 'Jan 25' },
+                        { name: t('pages.challenges.achievements.first.lesson'), icon: '🎓', date: t('pages.challenges.date.jan15') },
+                        { name: t('pages.challenges.achievements.perfect.week'), icon: '🌟', date: t('pages.challenges.date.jan20') },
+                        { name: t('pages.challenges.achievements.quick.learner'), icon: '⚡', date: t('pages.challenges.date.jan22') },
+                        { name: t('pages.challenges.achievements.social.butterfly'), icon: '🦋', date: t('pages.challenges.date.jan25') },
                     ].map((achievement, i) => (
                         <div key={i} className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                             <span className="text-3xl mb-2 block">{achievement.icon}</span>

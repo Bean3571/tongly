@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Button, Tabs, Spin, Alert, Modal, Input, Typography } from 'antd';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotification } from '../contexts/NotificationContext';
+import { useTranslation } from '../contexts/I18nContext';
 import { 
     WalletOutlined, 
     ArrowUpOutlined, 
@@ -16,6 +17,7 @@ const { TabPane } = Tabs;
 export const Wallet: React.FC = () => {
     const { user } = useAuth();
     const { showNotification } = useNotification();
+    const { t, formatCurrency } = useTranslation();
     const [loading, setLoading] = useState(true);
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [balance, setBalance] = useState(0);
@@ -52,16 +54,16 @@ export const Wallet: React.FC = () => {
             const amount = parseFloat(depositAmount);
             
             if (!walletService.validateAmount(amount)) {
-                throw new Error('Invalid amount');
+                throw new Error(t('wallet.errors.invalidAmount'));
             }
 
             await walletService.deposit(amount);
-            showNotification('success', 'Deposit successful');
+            showNotification('success', t('wallet.depositSuccess'));
             setShowDepositModal(false);
             setDepositAmount('');
             loadWalletData();
         } catch (error) {
-            showNotification('error', error instanceof Error ? error.message : 'Failed to process deposit');
+            showNotification('error', error instanceof Error ? error.message : t('wallet.errors.depositFailed'));
         } finally {
             setProcessingPayment(false);
         }
@@ -73,16 +75,16 @@ export const Wallet: React.FC = () => {
             const amount = parseFloat(withdrawAmount);
             
             if (!walletService.validateWithdrawal(amount, balance)) {
-                throw new Error('Invalid withdrawal amount');
+                throw new Error(t('wallet.errors.invalidAmount'));
             }
 
             await walletService.withdraw(amount);
-            showNotification('success', 'Withdrawal request submitted');
+            showNotification('success', t('wallet.withdrawalSuccess'));
             setShowWithdrawModal(false);
             setWithdrawAmount('');
             loadWalletData();
         } catch (error) {
-            showNotification('error', error instanceof Error ? error.message : 'Failed to process withdrawal');
+            showNotification('error', error instanceof Error ? error.message : t('wallet.errors.withdrawalFailed'));
         } finally {
             setProcessingPayment(false);
         }
@@ -102,11 +104,11 @@ export const Wallet: React.FC = () => {
     const getTransactionLabel = (type: string) => {
         switch (type) {
             case 'deposit':
-                return 'Пополнение';
+                return t('wallet.transactions.deposit');
             case 'withdrawal':
-                return 'Вывод средств';
+                return t('wallet.transactions.withdrawal');
             case 'lesson_payment':
-                return 'Оплата урока';
+                return t('wallet.transactions.lessonPayment');
             default:
                 return type;
         }
@@ -122,13 +124,13 @@ export const Wallet: React.FC = () => {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <Title level={2} className="mb-8 dark:text-gray-100">Мой кошелек</Title>
+            <Title level={2} className="mb-8 dark:text-gray-100">{t('wallet.title')}</Title>
 
             {/* Balance Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <Card className="bg-gradient-to-r from-blue-600 to-blue-800 text-white">
-                    <Title level={4} className="text-white mb-4">Доступный баланс</Title>
-                    <div className="text-3xl font-bold mb-4">{walletService.formatRUB(balance)}</div>
+                    <Title level={4} className="text-white mb-4">{t('wallet.availableBalance')}</Title>
+                    <div className="text-3xl font-bold mb-4">{formatCurrency(balance)}</div>
                     <div className="flex space-x-2">
                         <Button 
                             type="primary" 
@@ -136,38 +138,38 @@ export const Wallet: React.FC = () => {
                             onClick={() => setShowDepositModal(true)}
                             className="flex-1"
                         >
-                            Пополнить
+                            {t('wallet.deposit')}
                         </Button>
                         <Button 
                             ghost 
                             onClick={() => setShowWithdrawModal(true)}
                             className="flex-1"
                         >
-                            Вывести
+                            {t('wallet.withdraw')}
                         </Button>
                     </div>
                 </Card>
 
                 {user?.credentials.role === 'student' && (
                     <Card className="dark:bg-gray-800 dark:border-gray-700">
-                        <Title level={4} className="dark:text-gray-100">Комиссия платформы</Title>
+                        <Title level={4} className="dark:text-gray-100">{t('wallet.commission.title')}</Title>
                         <Text className="block text-lg dark:text-gray-300">
-                            20% от стоимости урока
+                            {t('wallet.commission.description', { rate: 20 })}
                         </Text>
                         <Text className="block text-sm text-gray-500 dark:text-gray-400 mt-2">
-                            Комиссия включается в стоимость урока
+                            {t('wallet.commission.student')}
                         </Text>
                     </Card>
                 )}
 
                 {user?.credentials.role === 'tutor' && (
                     <Card className="dark:bg-gray-800 dark:border-gray-700">
-                        <Title level={4} className="dark:text-gray-100">Комиссия платформы</Title>
+                        <Title level={4} className="dark:text-gray-100">{t('wallet.commission.title')}</Title>
                         <Text className="block text-lg dark:text-gray-300">
-                            20% от стоимости урока
+                            {t('wallet.commission.description', { rate: 20 })}
                         </Text>
                         <Text className="block text-sm text-gray-500 dark:text-gray-400 mt-2">
-                            Комиссия удерживается из стоимости урока
+                            {t('wallet.commission.tutor')}
                         </Text>
                     </Card>
                 )}
@@ -175,7 +177,7 @@ export const Wallet: React.FC = () => {
 
             {/* Transaction History */}
             <Card className="dark:bg-gray-800 dark:border-gray-700">
-                <Title level={3} className="mb-6 dark:text-gray-100">История транзакций</Title>
+                <Title level={3} className="mb-6 dark:text-gray-100">{t('wallet.transactionHistory')}</Title>
                 <div className="space-y-4">
                     {transactions.map((transaction) => (
                         <div key={transaction.id} 
@@ -189,7 +191,7 @@ export const Wallet: React.FC = () => {
                                         {getTransactionLabel(transaction.transaction_type)}
                                     </Text>
                                     <Text className="text-gray-500 dark:text-gray-400">
-                                        {new Date(transaction.created_at).toLocaleString('ru-RU')}
+                                        {new Date(transaction.created_at).toLocaleString()}
                                     </Text>
                                 </div>
                             </div>
@@ -198,12 +200,11 @@ export const Wallet: React.FC = () => {
                                     transaction.amount > 0 ? 'text-green-600 dark:text-green-400' : 
                                     'text-red-600 dark:text-red-400'
                                 }`}>
-                                    {walletService.formatRUB(user?.credentials.role === 'tutor' ? 
-                                        transaction.net_amount : transaction.amount)}
+                                    {formatCurrency(transaction.amount)}
                                 </Text>
                                 {transaction.commission_amount > 0 && (
                                     <Text className="block text-sm text-gray-500 dark:text-gray-400 text-right">
-                                        Комиссия: {walletService.formatRUB(transaction.commission_amount)}
+                                        {t('wallet.commission.amount', { amount: formatCurrency(transaction.commission_amount) })}
                                     </Text>
                                 )}
                             </div>
@@ -214,12 +215,12 @@ export const Wallet: React.FC = () => {
 
             {/* Deposit Modal */}
             <Modal
-                title="Пополнение баланса"
+                title={t('wallet.depositModal.title')}
                 open={showDepositModal}
                 onCancel={() => setShowDepositModal(false)}
                 footer={[
                     <Button key="cancel" onClick={() => setShowDepositModal(false)}>
-                        Отмена
+                        {t('common.cancel')}
                     </Button>,
                     <Button
                         key="submit"
@@ -227,14 +228,14 @@ export const Wallet: React.FC = () => {
                         loading={processingPayment}
                         onClick={handleDeposit}
                     >
-                        Пополнить
+                        {t('wallet.deposit')}
                     </Button>
                 ]}
             >
                 <div className="space-y-4">
                     <Input
                         type="number"
-                        placeholder="Сумма в рублях"
+                        placeholder={t('wallet.depositModal.amountPlaceholder')}
                         value={depositAmount}
                         onChange={(e) => setDepositAmount(e.target.value)}
                         min={0}
@@ -242,19 +243,19 @@ export const Wallet: React.FC = () => {
                         prefix="₽"
                     />
                     <Text className="block text-gray-500">
-                        Минимальная сумма: 100 ₽
+                        {t('wallet.depositModal.minAmount', { amount: formatCurrency(100) })}
                     </Text>
                 </div>
             </Modal>
 
             {/* Withdraw Modal */}
             <Modal
-                title="Вывод средств"
+                title={t('wallet.withdrawModal.title')}
                 open={showWithdrawModal}
                 onCancel={() => setShowWithdrawModal(false)}
                 footer={[
                     <Button key="cancel" onClick={() => setShowWithdrawModal(false)}>
-                        Отмена
+                        {t('common.cancel')}
                     </Button>,
                     <Button
                         key="submit"
@@ -263,14 +264,14 @@ export const Wallet: React.FC = () => {
                         onClick={handleWithdraw}
                         danger
                     >
-                        Вывести
+                        {t('wallet.withdraw')}
                     </Button>
                 ]}
             >
                 <div className="space-y-4">
                     <Input
                         type="number"
-                        placeholder="Сумма в рублях"
+                        placeholder={t('wallet.withdrawModal.amountPlaceholder')}
                         value={withdrawAmount}
                         onChange={(e) => setWithdrawAmount(e.target.value)}
                         min={0}
@@ -279,10 +280,10 @@ export const Wallet: React.FC = () => {
                         prefix="₽"
                     />
                     <Text className="block text-gray-500">
-                        Доступно: {walletService.formatRUB(balance)}
+                        {t('wallet.withdrawModal.availableBalance', { balance: formatCurrency(balance) })}
                     </Text>
                     <Alert
-                        message="Обработка вывода средств может занять до 3 рабочих дней"
+                        message={t('wallet.withdrawModal.processingTime')}
                         type="info"
                         showIcon
                     />

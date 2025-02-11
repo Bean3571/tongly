@@ -3,9 +3,11 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from '../contexts/I18nContext';
 
 export const Login = () => {
     const { login, user } = useAuth();
+    const { t } = useTranslation();
 
     // Redirect if already logged in
     if (user) {
@@ -18,8 +20,8 @@ export const Login = () => {
             password: '',
         },
         validationSchema: Yup.object({
-            username: Yup.string().required('Required'),
-            password: Yup.string().required('Required'),
+            username: Yup.string().required(t('validation.required')),
+            password: Yup.string().required(t('validation.required')),
         }),
         onSubmit: async (values) => {
             try {
@@ -34,12 +36,12 @@ export const Login = () => {
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
                 <h2 className="text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-                    Sign in to your account
+                    {t('pages.login.title')}
                 </h2>
                 <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-                    Don't have an account?{' '}
+                    {t('pages.login.no.account')}{' '}
                     <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">
-                        Sign up
+                        {t('pages.login.sign.up')}
                     </Link>
                 </p>
             </div>
@@ -49,7 +51,7 @@ export const Login = () => {
                     <form className="space-y-6" onSubmit={formik.handleSubmit}>
                         <div>
                             <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Username
+                                {t('pages.login.username')}
                             </label>
                             <div className="mt-1">
                                 <input
@@ -60,6 +62,7 @@ export const Login = () => {
                                              rounded-md shadow-sm placeholder-gray-400 
                                              focus:outline-none focus:ring-blue-500 focus:border-blue-500 
                                              dark:bg-gray-700 dark:text-white"
+                                    placeholder={t('pages.login.username.placeholder')}
                                 />
                                 {formik.touched.username && formik.errors.username && (
                                     <div className="mt-1 text-sm text-red-600 dark:text-red-400">{formik.errors.username}</div>
@@ -69,7 +72,7 @@ export const Login = () => {
 
                         <div>
                             <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Password
+                                {t('pages.login.password')}
                             </label>
                             <div className="mt-1">
                                 <input
@@ -80,6 +83,7 @@ export const Login = () => {
                                              rounded-md shadow-sm placeholder-gray-400 
                                              focus:outline-none focus:ring-blue-500 focus:border-blue-500 
                                              dark:bg-gray-700 dark:text-white"
+                                    placeholder={t('pages.login.password.placeholder')}
                                 />
                                 {formik.touched.password && formik.errors.password && (
                                     <div className="mt-1 text-sm text-red-600 dark:text-red-400">{formik.errors.password}</div>
@@ -96,7 +100,7 @@ export const Login = () => {
                                          focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed
                                          dark:focus:ring-offset-gray-800"
                             >
-                                Sign in
+                                {t('pages.login.sign.in.button')}
                             </button>
                         </div>
                     </form>

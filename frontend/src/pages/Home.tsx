@@ -1,18 +1,19 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from '../contexts/I18nContext';
 
 export const Home = () => {
     const { user } = useAuth();
+    const { t } = useTranslation();
 
     return (
         <div className="max-w-4xl mx-auto text-center py-12">
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
-                Welcome to Tongly 🌍
+                {t('pages.home.welcome')} 🌍
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-                Your journey to language mastery begins here. Connect with native speakers,
-                practice with tutors, and achieve your language learning goals.
+                {t('pages.home.description')}
             </p>
 
             {!user ? (
@@ -22,7 +23,7 @@ export const Home = () => {
                         className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg 
                                  hover:bg-blue-700 transition-colors font-medium"
                     >
-                        Get Started
+                        {t('pages.home.get.started')}
                     </Link>
                     <Link
                         to="/login"
@@ -30,7 +31,7 @@ export const Home = () => {
                                  border-2 border-blue-600 dark:border-blue-400 rounded-lg 
                                  hover:bg-blue-50 dark:hover:bg-gray-800 transition-colors font-medium"
                     >
-                        Sign In
+                        {t('pages.home.sign.in')}
                     </Link>
                 </div>
             ) : (
@@ -39,7 +40,7 @@ export const Home = () => {
                     className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg 
                              hover:bg-blue-700 transition-colors font-medium"
                 >
-                    Go to Dashboard
+                    {t('pages.home.go.to.dashboard')}
                 </Link>
             )}
 
@@ -47,30 +48,30 @@ export const Home = () => {
                 <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
                     <span className="text-3xl mb-4 block">👥</span>
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                        Native Tutors
+                        {t('pages.home.features.native.tutors.title')}
                     </h3>
                     <p className="text-gray-600 dark:text-gray-300">
-                        Learn from experienced native speakers who understand your goals.
+                        {t('pages.home.features.native.tutors.description')}
                     </p>
                 </div>
 
                 <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
                     <span className="text-3xl mb-4 block">🎯</span>
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                        Personalized Learning
+                        {t('pages.home.features.personalized.learning.title')}
                     </h3>
                     <p className="text-gray-600 dark:text-gray-300">
-                        Customize your learning path based on your interests and goals.
+                        {t('pages.home.features.personalized.learning.description')}
                     </p>
                 </div>
 
                 <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
                     <span className="text-3xl mb-4 block">🏆</span>
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                        Track Progress
+                        {t('pages.home.features.track.progress.title')}
                     </h3>
                     <p className="text-gray-600 dark:text-gray-300">
-                        Monitor your improvement with detailed progress tracking.
+                        {t('pages.home.features.track.progress.description')}
                     </p>
                 </div>
             </div>

@@ -4,6 +4,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { I18nProvider } from './contexts/I18nContext';
+import { TranslationLoader } from './components/TranslationLoader';
 import { Navbar } from './components/Layout/Navbar';
 import { Footer } from './components/Footer';
 import { Login } from './pages/Login';
@@ -141,9 +143,13 @@ const App = () => {
             <Router>
                 <ThemeProvider>
                     <NotificationProvider>
-                        <AuthProvider>
-                            <AppRoutes />
-                        </AuthProvider>
+                        <I18nProvider>
+                            <TranslationLoader>
+                                <AuthProvider>
+                                    <AppRoutes />
+                                </AuthProvider>
+                            </TranslationLoader>
+                        </I18nProvider>
                     </NotificationProvider>
                 </ThemeProvider>
             </Router>

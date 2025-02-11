@@ -116,31 +116,22 @@ export const Footer = () => {
                         </h3>
                         <div className="flex space-x-4">
                             <a
-                                href="https://twitter.com/tongly"
+                                href="https://vk.com/tongly"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-gray-600 dark:text-gray-400 hover:text-blue-600 
                                          dark:hover:text-blue-400 transition-colors"
                             >
-                                Twitter
+                                VK
                             </a>
                             <a
-                                href="https://facebook.com/tongly"
+                                href="https://telegram.me/tongly"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-gray-600 dark:text-gray-400 hover:text-blue-600 
                                          dark:hover:text-blue-400 transition-colors"
                             >
-                                Facebook
-                            </a>
-                            <a
-                                href="https://instagram.com/tongly"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-gray-600 dark:text-gray-400 hover:text-blue-600 
-                                         dark:hover:text-blue-400 transition-colors"
-                            >
-                                Instagram
+                                Telegram
                             </a>
                         </div>
                     </div>

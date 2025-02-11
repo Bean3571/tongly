@@ -4,6 +4,7 @@ import { Tooltip, Button, Space, Empty, notification } from 'antd';
 import { LessonStatusBadge } from './LessonStatusBadge';
 import { Lesson } from '../../hooks/useLessons';
 import { formatDateTime, getTimeStatus, getHoursUntilStart } from '../../utils/dateUtils';
+import { useTranslation } from '../../contexts/I18nContext';
 
 interface LessonListProps {
     lessons: Lesson[];
@@ -13,14 +14,15 @@ interface LessonListProps {
 
 export const LessonList: React.FC<LessonListProps> = ({ lessons, userRole, onCancelLesson }) => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     const handleJoinLesson = async (lessonId: number) => {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
                 notification.error({
-                    message: 'Authentication Error',
-                    description: 'Please log in again to continue.',
+                    message: t('lessons.error.auth.title'),
+                    description: t('lessons.error.auth.description'),
                 });
                 navigate('/login');
                 return;
@@ -35,14 +37,14 @@ export const LessonList: React.FC<LessonListProps> = ({ lessons, userRole, onCan
             });
 
             if (!lessonResponse.ok) {
-                throw new Error('Failed to verify lesson status');
+                throw new Error(t('lessons.error.verify.status'));
             }
 
             const lessonData = await lessonResponse.json();
             
             // Only allow joining if the lesson is scheduled
             if (lessonData.status !== 'scheduled') {
-                throw new Error('This lesson cannot be joined at this time');
+                throw new Error(t('lessons.error.cannot.join'));
             }
             
             // Check if lesson can be joined
@@ -53,14 +55,14 @@ export const LessonList: React.FC<LessonListProps> = ({ lessons, userRole, onCan
             
             if (now < joinWindow) {
                 notification.warning({
-                    message: 'Too Early',
-                    description: 'You can join the lesson 5 minutes before the scheduled start time.',
+                    message: t('lessons.warning.too.early.title'),
+                    description: t('lessons.warning.too.early.description'),
                 });
                 return;
             }
 
             if (now > endTime) {
-                throw new Error('This lesson has already ended');
+                throw new Error(t('lessons.error.ended'));
             }
 
             // Try to get existing video session
@@ -85,14 +87,14 @@ export const LessonList: React.FC<LessonListProps> = ({ lessons, userRole, onCan
 
                 if (!startResponse.ok) {
                     const errorData = await startResponse.json();
-                    throw new Error(errorData.error || 'Failed to start video session');
+                    throw new Error(errorData.error || t('lessons.error.start.session'));
                 }
 
                 videoSession = await startResponse.json();
             } else if (sessionResponse.ok) {
                 videoSession = await sessionResponse.json();
             } else {
-                throw new Error('Failed to check video session status');
+                throw new Error(t('lessons.error.check.session'));
             }
 
             // Navigate to the lesson room with the session info
@@ -103,13 +105,13 @@ export const LessonList: React.FC<LessonListProps> = ({ lessons, userRole, onCan
         } catch (error) {
             console.error('Error joining lesson:', error);
             
-            let errorMessage = 'Failed to join lesson';
+            let errorMessage = t('lessons.error.join.default');
             if (error instanceof Error) {
                 errorMessage = error.message;
             }
             
             notification.error({
-                message: 'Error Joining Lesson',
+                message: t('lessons.error.join.title'),
                 description: errorMessage,
                 duration: 5,
             });
@@ -142,7 +144,7 @@ export const LessonList: React.FC<LessonListProps> = ({ lessons, userRole, onCan
 
     const getParticipantInfo = (lesson: Lesson) => {
         const name = userRole === 'student' ? lesson.tutor_name : lesson.student_name;
-        const defaultName = userRole === 'student' ? 'Tutor' : 'Student';
+        const defaultName = userRole === 'student' ? t('lessons.participant.tutor') : t('lessons.participant.student');
         return name || defaultName;
     };
 
@@ -161,7 +163,7 @@ export const LessonList: React.FC<LessonListProps> = ({ lessons, userRole, onCan
                     onClick={() => handleJoinLesson(lesson.id)}
                     className={isInProgress ? 'bg-green-600 hover:bg-green-700' : ''}
                 >
-                    {isInProgress ? 'Join Ongoing Lesson' : 'Join Lesson'}
+                    {isInProgress ? t('lessons.actions.join.ongoing') : t('lessons.actions.join')}
                 </Button>
             );
         }
@@ -178,7 +180,7 @@ export const LessonList: React.FC<LessonListProps> = ({ lessons, userRole, onCan
                             danger
                             onClick={() => onCancelLesson(lesson)}
                         >
-                            Cancel
+                            {t('lessons.actions.cancel')}
                         </Button>
                     )}
                 </Space>
@@ -189,7 +191,7 @@ export const LessonList: React.FC<LessonListProps> = ({ lessons, userRole, onCan
         if (lesson.status === 'completed' || lesson.status === 'cancelled') {
             return (
                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                    {lesson.status.charAt(0).toUpperCase() + lesson.status.slice(1)}
+                    {t(`lessons.status.${lesson.status}`)}
                 </div>
             );
         }
@@ -201,7 +203,7 @@ export const LessonList: React.FC<LessonListProps> = ({ lessons, userRole, onCan
         return (
             <Empty
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
-                description="No lessons found"
+                description={t('lessons.empty')}
             />
         );
     }
@@ -212,22 +214,22 @@ export const LessonList: React.FC<LessonListProps> = ({ lessons, userRole, onCan
                 <thead className="bg-gray-50 dark:bg-gray-900">
                     <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            {userRole === 'student' ? 'Tutor' : 'Student'}
+                            {userRole === 'student' ? t('lessons.table.tutor') : t('lessons.table.student')}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Language & Duration
+                            {t('lessons.table.language.duration')}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Date & Time
+                            {t('lessons.table.date.time')}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Status
+                            {t('lessons.table.status')}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Price
+                            {t('lessons.table.price')}
                         </th>
                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Actions
+                            {t('lessons.table.actions')}
                         </th>
                     </tr>
                 </thead>
@@ -243,7 +245,7 @@ export const LessonList: React.FC<LessonListProps> = ({ lessons, userRole, onCan
                                 <div className="text-sm text-gray-700 dark:text-gray-300">
                                     {lesson.language}
                                     <div className="text-xs text-gray-500">
-                                        {lesson.duration} minutes
+                                        {t('lessons.duration', { minutes: lesson.duration })}
                                     </div>
                                 </div>
                             </td>
@@ -259,7 +261,7 @@ export const LessonList: React.FC<LessonListProps> = ({ lessons, userRole, onCan
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm text-gray-700 dark:text-gray-300">
-                                    ${lesson.price.toFixed(2)}
+                                    {t('lessons.price', { price: lesson.price.toFixed(2) })}
                                 </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right">

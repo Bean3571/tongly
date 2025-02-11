@@ -2,6 +2,7 @@
   "name": "tongly-frontend",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "dependencies": {
     "@tanstack/react-query": "^5.0.0",
     "@types/react": "^18.0.26",
@@ -28,7 +29,11 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "extract-translations": "node --loader ts-node/esm scripts/extractTranslations.ts",
+    "validate-translations": "node --loader ts-node/esm scripts/validateTranslations.ts",
+    "i18n": "npm run extract-translations && npm run validate-translations",
+    "precommit": "npm run i18n"
   },
   "browserslist": {
     "production": [
@@ -48,11 +53,15 @@
     "@testing-library/react": "^16.2.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/jest": "^29.5.14",
+    "@types/node": "^18.0.0",
+    "@types/glob": "^8.0.0",
     "autoprefixer": "^10.4.20",
+    "glob": "^8.0.3",
     "jest": "^27.5.1",
     "jest-environment-jsdom": "^29.7.0",
     "postcss": "^8.5.1",
     "react-scripts": "^5.0.1",
-    "tailwindcss": "^3.4.17"
+    "tailwindcss": "^3.4.17",
+    "ts-node": "^10.9.1"
   }
 }
