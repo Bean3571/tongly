@@ -39,13 +39,13 @@ CREATE TABLE tutor_details (
     id SERIAL PRIMARY KEY,
     user_id INTEGER UNIQUE REFERENCES user_credentials(id) ON DELETE CASCADE,
     bio TEXT,
-    teaching_languages JSONB DEFAULT '[]'::jsonb,
+    teaching_languages JSONB ,
     education JSONB DEFAULT '[]'::jsonb,
     interests TEXT[] DEFAULT ARRAY[]::TEXT[],
-    hourly_rate DECIMAL(10,2) DEFAULT 25.00,
+    hourly_rate DECIMAL(10,2) ,
     introduction_video TEXT,
-    offers_trial BOOLEAN DEFAULT true,
-    approved BOOLEAN DEFAULT false,
+    offers_trial BOOLEAN ,
+    approved BOOLEAN ,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -123,4 +123,19 @@ CREATE INDEX idx_user_credentials_email ON user_credentials(email);
 CREATE INDEX idx_user_credentials_role ON user_credentials(role);
 CREATE INDEX idx_user_personal_user_id ON user_personal(user_id);
 CREATE INDEX idx_student_details_user_id ON student_details(user_id);
-CREATE INDEX idx_tutor_details_user_id ON tutor_details(user_id); 
+CREATE INDEX idx_tutor_details_user_id ON tutor_details(user_id);
+CREATE INDEX idx_tutor_details_hourly_rate ON tutor_details(hourly_rate);
+CREATE INDEX idx_tutor_details_approved ON tutor_details(approved);
+CREATE INDEX idx_lessons_student_id ON lessons(student_id);
+CREATE INDEX idx_lessons_tutor_id ON lessons(tutor_id);
+CREATE INDEX idx_lessons_start_time ON lessons(start_time);
+CREATE INDEX idx_lessons_end_time ON lessons(end_time);
+CREATE INDEX idx_lessons_status ON lessons(status);
+CREATE INDEX idx_lessons_language ON lessons(language);
+CREATE INDEX idx_lessons_price ON lessons(price);
+CREATE INDEX idx_reviews_lesson_id ON reviews(lesson_id);
+CREATE INDEX idx_reviews_tutor_id ON reviews(tutor_id);
+CREATE INDEX idx_reviews_rating ON reviews(rating);
+CREATE INDEX idx_wallet_transactions_user_id ON wallet_transactions(user_id);
+CREATE INDEX idx_wallet_transactions_status ON wallet_transactions(status);
+CREATE INDEX idx_wallet_transactions_type ON wallet_transactions(transaction_type); 

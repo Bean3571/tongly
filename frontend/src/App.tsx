@@ -20,6 +20,10 @@ import { Challenges } from './pages/Challenges';
 import { Leaderboard } from './pages/Leaderboard';
 import { useAuth } from './contexts/AuthContext';
 import { BookLesson } from './pages/BookLesson';
+import { TeachingProfile } from './pages/TeachingProfile';
+import { Schedule } from './pages/Schedule';
+import { Messages } from './pages/Messages';
+import { Settings } from './pages/Settings';
 
 const queryClient = new QueryClient();
 
@@ -80,14 +84,24 @@ const AppRoutes = () => {
                             <TutorDashboard />
                         </PrivateRoute>
                     } />
-                    <Route path="/tutors/:id/profile" element={
-                        <PrivateRoute role="student">
-                            <TutorProfile />
+                    <Route path="/tutor/profile" element={
+                        <PrivateRoute role="tutor">
+                            <TeachingProfile />
                         </PrivateRoute>
                     } />
-                    <Route path="/tutors/:id/book" element={
-                        <PrivateRoute role="student">
-                            <BookLesson />
+                    <Route path="/schedule" element={
+                        <PrivateRoute role="tutor">
+                            <Schedule />
+                        </PrivateRoute>
+                    } />
+                    <Route path="/messages" element={
+                        <PrivateRoute>
+                            <Messages />
+                        </PrivateRoute>
+                    } />
+                    <Route path="/settings" element={
+                        <PrivateRoute>
+                            <Settings />
                         </PrivateRoute>
                     } />
 

@@ -1,3 +1,26 @@
+-- Drop indexes
+DROP INDEX IF EXISTS idx_wallet_transactions_type;
+DROP INDEX IF EXISTS idx_wallet_transactions_status;
+DROP INDEX IF EXISTS idx_wallet_transactions_user_id;
+DROP INDEX IF EXISTS idx_reviews_rating;
+DROP INDEX IF EXISTS idx_reviews_tutor_id;
+DROP INDEX IF EXISTS idx_reviews_lesson_id;
+DROP INDEX IF EXISTS idx_lessons_price;
+DROP INDEX IF EXISTS idx_lessons_language;
+DROP INDEX IF EXISTS idx_lessons_status;
+DROP INDEX IF EXISTS idx_lessons_end_time;
+DROP INDEX IF EXISTS idx_lessons_start_time;
+DROP INDEX IF EXISTS idx_lessons_tutor_id;
+DROP INDEX IF EXISTS idx_lessons_student_id;
+DROP INDEX IF EXISTS idx_tutor_details_approved;
+DROP INDEX IF EXISTS idx_tutor_details_hourly_rate;
+DROP INDEX IF EXISTS idx_tutor_details_user_id;
+DROP INDEX IF EXISTS idx_student_details_user_id;
+DROP INDEX IF EXISTS idx_user_personal_user_id;
+DROP INDEX IF EXISTS idx_user_credentials_role;
+DROP INDEX IF EXISTS idx_user_credentials_email;
+DROP INDEX IF EXISTS idx_user_credentials_username;
+
 -- Drop triggers
 DROP TRIGGER IF EXISTS update_lessons_updated_at ON lessons;
 DROP TRIGGER IF EXISTS update_tutor_details_updated_at ON tutor_details;
