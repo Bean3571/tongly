@@ -133,7 +133,6 @@ type LessonRating struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-// ChatMessage represents a message sent during a lesson
 type ChatMessage struct {
 	ID        int       `json:"id"`
 	LessonID  int       `json:"lesson_id"`
