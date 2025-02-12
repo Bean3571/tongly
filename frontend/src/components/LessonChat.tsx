@@ -44,9 +44,10 @@ const LessonChat: React.FC<LessonChatProps> = ({ lessonId, userId, participants 
       });
       if (!response.ok) throw new Error('Failed to load chat history');
       const data = await response.json();
-      setMessages(data);
+      setMessages(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error loading chat history:', error);
+      setMessages([]);
     } finally {
       setIsLoading(false);
     }

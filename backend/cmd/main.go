@@ -112,7 +112,12 @@ func main() {
 		"Connection",
 	)
 	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
-	config.ExposeHeaders = []string{"Content-Length", "Sec-WebSocket-Accept"}
+	config.ExposeHeaders = []string{
+		"Content-Length",
+		"Sec-WebSocket-Accept",
+		"Upgrade",
+		"Connection",
+	}
 	r.Use(cors.New(config))
 
 	// Register WebRTC routes first (before other routes)

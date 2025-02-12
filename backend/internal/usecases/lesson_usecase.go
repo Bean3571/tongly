@@ -170,6 +170,12 @@ func (uc *lessonUseCase) StartVideoSession(ctx context.Context, lessonID int, us
 		return nil, err
 	}
 
+	// Check for existing session
+	existingSession, err := uc.lessonRepo.GetVideoSession(ctx, lessonID)
+	if err == nil && existingSession != nil {
+		return existingSession, nil
+	}
+
 	// Create video session
 	session := &entities.VideoSession{
 		LessonID:     lessonID,
@@ -221,7 +227,13 @@ func (uc *lessonUseCase) GetVideoSession(ctx context.Context, lessonID int, user
 		return nil, err
 	}
 
-	return uc.lessonRepo.GetVideoSession(ctx, lessonID)
+	session, err := uc.lessonRepo.GetVideoSession(ctx, lessonID)
+	if err != nil {
+		// Create a new session if one doesn't exist
+		return uc.StartVideoSession(ctx, lessonID, userID)
+	}
+
+	return session, nil
 }
 
 func (uc *lessonUseCase) SendChatMessage(ctx context.Context, lessonID int, userID int, content string) error {

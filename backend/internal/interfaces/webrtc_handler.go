@@ -10,6 +10,7 @@ import (
 	"tongly-backend/pkg/webrtc"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 )
 
 type WebRTCHandler struct {
@@ -63,7 +64,9 @@ func (h *WebRTCHandler) handleWebRTC(c *gin.Context) {
 
 	// Handle WebSocket connection
 	if err := h.signalingServer.HandleConnection(fmt.Sprintf("room_%d", lesson.ID), userID.(int), c.Writer, c.Request); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to establish WebSocket connection"})
+		if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to establish WebSocket connection"})
+		}
 		return
 	}
 }

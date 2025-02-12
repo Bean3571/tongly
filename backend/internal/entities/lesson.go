@@ -86,7 +86,7 @@ func (l *Lesson) CanCancel() error {
 
 // CanStart checks if the lesson can be started
 func (l *Lesson) CanStart() error {
-	if !l.Status.IsValidTransition(LessonStatusInProgress) {
+	if l.Status != LessonStatusScheduled && l.Status != LessonStatusInProgress {
 		return ErrInvalidStatusTransition
 	}
 
