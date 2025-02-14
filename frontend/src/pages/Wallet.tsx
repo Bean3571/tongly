@@ -39,10 +39,12 @@ export const Wallet: React.FC = () => {
                 walletService.getTransactions()
             ]);
 
-            setBalance(balanceData.balance);
-            setTransactions(transactionsData);
+            setBalance(balanceData?.balance || 0);
+            setTransactions(Array.isArray(transactionsData) ? transactionsData : []);
         } catch (error) {
             showNotification('error', 'Failed to load wallet data');
+            setTransactions([]);
+            setBalance(0);
         } finally {
             setLoading(false);
         }
