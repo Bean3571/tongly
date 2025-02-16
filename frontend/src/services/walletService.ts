@@ -28,23 +28,23 @@ class WalletService {
     }
 
     async getTransactions(): Promise<Transaction[]> {
-        const response = await apiClient.get<Transaction[]>('/api/wallet/transactions');
-        return response.data;
+        try {
+            const response = await apiClient.get<{ transactions: Transaction[] }>('/api/wallet/transactions');
+            // Ensure we always return an array
+            return Array.isArray(response.data.transactions) ? response.data.transactions : [];
+        } catch (error) {
+            console.error('Error fetching transactions:', error);
+            return [];
+        }
     }
 
     async deposit(amount: number): Promise<Transaction> {
-        const response = await apiClient.post<Transaction>('/api/wallet/deposit', {
-            amount,
-            currency: 'RUB'
-        });
+        const response = await apiClient.post<Transaction>('/api/wallet/deposit', { amount });
         return response.data;
     }
 
     async withdraw(amount: number): Promise<Transaction> {
-        const response = await apiClient.post<Transaction>('/api/wallet/withdraw', {
-            amount,
-            currency: 'RUB'
-        });
+        const response = await apiClient.post<Transaction>('/api/wallet/withdraw', { amount });
         return response.data;
     }
 

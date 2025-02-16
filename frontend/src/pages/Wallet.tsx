@@ -84,7 +84,7 @@ export const Wallet: React.FC = () => {
             showNotification('success', t('wallet.withdrawalSuccess'));
             setShowWithdrawModal(false);
             setWithdrawAmount('');
-            loadWalletData();
+            await loadWalletData();
         } catch (error) {
             showNotification('error', error instanceof Error ? error.message : t('wallet.errors.withdrawalFailed'));
         } finally {
