@@ -63,7 +63,6 @@ type UserPersonal struct {
 type StudentDetails struct {
 	ID                int             `json:"id"`
 	UserID            int             `json:"user_id"`
-	NativeLanguages   []string        `json:"native_languages"`
 	LearningLanguages []LanguageLevel `json:"learning_languages"`
 	LearningGoals     []string        `json:"learning_goals"`
 	Interests         []string        `json:"interests"`

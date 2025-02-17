@@ -25,7 +25,6 @@ export interface UserPersonal {
 export interface StudentDetails {
     id: number;
     user_id: number;
-    native_languages: string[];
     learning_languages: LanguageLevel[];
     learning_goals: string[];
     interests: string[];
@@ -105,8 +104,8 @@ export interface ProfileUpdateData {
     profile_picture?: string | null;
     age?: number | null;
     sex?: 'male' | 'female' | 'other' | null;
-    native_language?: string | null;
     languages?: LanguageLevel[];
     interests?: string[];
     learning_goals?: string[];
+    survey_complete?: boolean;
 } 

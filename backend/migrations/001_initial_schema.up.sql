@@ -26,7 +26,6 @@ CREATE TABLE user_personal (
 CREATE TABLE student_details (
     id SERIAL PRIMARY KEY,
     user_id INTEGER UNIQUE REFERENCES user_credentials(id) ON DELETE CASCADE,
-    native_languages TEXT[] CHECK (array_length(native_languages, 1) <= 3),
     learning_languages JSONB DEFAULT '[]'::jsonb,
     learning_goals TEXT[] DEFAULT ARRAY[]::TEXT[],
     interests TEXT[] DEFAULT ARRAY[]::TEXT[],
@@ -42,9 +41,9 @@ CREATE TABLE tutor_details (
     teaching_languages JSONB DEFAULT '[]'::jsonb,
     education JSONB DEFAULT '[]'::jsonb,
     interests TEXT[] DEFAULT ARRAY[]::TEXT[],
-    hourly_rate DECIMAL(10,2) ,
+    hourly_rate DECIMAL(10,2),
     introduction_video TEXT,
-    approved BOOLEAN ,
+    approved BOOLEAN,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -58,7 +57,7 @@ CREATE TABLE lessons (
     start_time TIMESTAMP WITH TIME ZONE NOT NULL,
     end_time TIMESTAMP WITH TIME ZONE NOT NULL,
     duration INTEGER NOT NULL, -- in minutes
-    status VARCHAR(20) NOT NULL CHECK (status IN ('scheduled', 'completed', 'cancelled')),
+    status VARCHAR(20) NOT NULL CHECK (status IN ('scheduled', 'in_progress', 'completed', 'cancelled')),
     price DECIMAL(10,2) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -72,6 +71,27 @@ CREATE TABLE reviews (
     tutor_id INTEGER REFERENCES user_credentials(id) ON DELETE CASCADE,
     rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
     comment TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Video sessions
+CREATE TABLE video_sessions (
+    id SERIAL PRIMARY KEY,
+    lesson_id INTEGER REFERENCES lessons(id) ON DELETE CASCADE,
+    room_id VARCHAR(255) NOT NULL,
+    session_token TEXT NOT NULL,
+    started_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    ended_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Chat messages
+CREATE TABLE chat_messages (
+    id SERIAL PRIMARY KEY,
+    lesson_id INTEGER REFERENCES lessons(id) ON DELETE CASCADE,
+    sender_id INTEGER REFERENCES user_credentials(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -133,6 +153,11 @@ CREATE TRIGGER update_tutor_details_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_video_sessions_updated_at
+    BEFORE UPDATE ON video_sessions
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
 -- Create indexes
 CREATE INDEX idx_user_credentials_username ON user_credentials(username);
 CREATE INDEX idx_user_credentials_email ON user_credentials(email);
@@ -156,4 +181,9 @@ CREATE INDEX idx_wallet_transactions_user_id ON wallet_transactions(user_id);
 CREATE INDEX idx_wallet_transactions_status ON wallet_transactions(status);
 CREATE INDEX idx_wallet_transactions_type ON wallet_transactions(transaction_type);
 CREATE INDEX idx_transaction_currency ON wallet_transactions(currency);
-CREATE INDEX idx_platform_earnings_transaction ON platform_earnings(transaction_id); 
+CREATE INDEX idx_platform_earnings_transaction ON platform_earnings(transaction_id);
+CREATE INDEX idx_video_sessions_lesson_id ON video_sessions(lesson_id);
+CREATE INDEX idx_video_sessions_room_id ON video_sessions(room_id);
+CREATE INDEX idx_chat_messages_lesson_id ON chat_messages(lesson_id);
+CREATE INDEX idx_chat_messages_sender_id ON chat_messages(sender_id);
+CREATE INDEX idx_chat_messages_created_at ON chat_messages(created_at); 

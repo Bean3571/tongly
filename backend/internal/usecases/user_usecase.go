@@ -100,9 +100,7 @@ func (uc *UserUseCase) UpdateUser(ctx context.Context, userID int, updateData en
 	}
 
 	// Handle student details if language or interests are updated
-	if updateData.NativeLanguage != nil || len(updateData.Languages) > 0 ||
-		len(updateData.Interests) > 0 || len(updateData.LearningGoals) > 0 {
-
+	if len(updateData.Languages) > 0 || len(updateData.Interests) > 0 || len(updateData.LearningGoals) > 0 {
 		// Get or create student details
 		student, err := uc.UserRepo.GetStudentDetails(ctx, userID)
 		if err != nil {
@@ -119,9 +117,6 @@ func (uc *UserUseCase) UpdateUser(ctx context.Context, userID int, updateData en
 		}
 
 		// Update student details
-		if updateData.NativeLanguage != nil {
-			student.NativeLanguages = []string{*updateData.NativeLanguage}
-		}
 		if len(updateData.Languages) > 0 {
 			student.LearningLanguages = updateData.Languages
 		}

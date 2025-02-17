@@ -134,14 +134,16 @@ export const Wallet: React.FC = () => {
                     <Title level={4} className="text-white mb-4">{t('wallet.availableBalance')}</Title>
                     <div className="text-3xl font-bold mb-4">{formatCurrency(balance)}</div>
                     <div className="flex space-x-2">
-                        <Button 
-                            type="primary" 
-                            ghost 
-                            onClick={() => setShowDepositModal(true)}
-                            className="flex-1"
-                        >
-                            {t('wallet.deposit')}
-                        </Button>
+                        {user?.credentials.role === 'student' && (
+                            <Button 
+                                type="primary" 
+                                ghost 
+                                onClick={() => setShowDepositModal(true)}
+                                className="flex-1"
+                            >
+                                {t('wallet.deposit')}
+                            </Button>
+                        )}
                         <Button 
                             ghost 
                             onClick={() => setShowWithdrawModal(true)}
@@ -216,39 +218,41 @@ export const Wallet: React.FC = () => {
             </Card>
 
             {/* Deposit Modal */}
-            <Modal
-                title={t('wallet.depositModal.title')}
-                open={showDepositModal}
-                onCancel={() => setShowDepositModal(false)}
-                footer={[
-                    <Button key="cancel" onClick={() => setShowDepositModal(false)}>
-                        {t('common.cancel')}
-                    </Button>,
-                    <Button
-                        key="submit"
-                        type="primary"
-                        loading={processingPayment}
-                        onClick={handleDeposit}
-                    >
-                        {t('wallet.deposit')}
-                    </Button>
-                ]}
-            >
-                <div className="space-y-4">
-                    <Input
-                        type="number"
-                        placeholder={t('wallet.depositModal.amountPlaceholder')}
-                        value={depositAmount}
-                        onChange={(e) => setDepositAmount(e.target.value)}
-                        min={0}
-                        step={100}
-                        prefix="₽"
-                    />
-                    <Text className="block text-gray-500">
-                        {t('wallet.depositModal.minAmount', { amount: formatCurrency(100) })}
-                    </Text>
-                </div>
-            </Modal>
+            {user?.credentials.role === 'student' && (
+                <Modal
+                    title={t('wallet.depositModal.title')}
+                    open={showDepositModal}
+                    onCancel={() => setShowDepositModal(false)}
+                    footer={[
+                        <Button key="cancel" onClick={() => setShowDepositModal(false)}>
+                            {t('common.cancel')}
+                        </Button>,
+                        <Button
+                            key="submit"
+                            type="primary"
+                            loading={processingPayment}
+                            onClick={handleDeposit}
+                        >
+                            {t('wallet.deposit')}
+                        </Button>
+                    ]}
+                >
+                    <div className="space-y-4">
+                        <Input
+                            type="number"
+                            placeholder={t('wallet.depositModal.amountPlaceholder')}
+                            value={depositAmount}
+                            onChange={(e) => setDepositAmount(e.target.value)}
+                            min={0}
+                            step={100}
+                            prefix="₽"
+                        />
+                        <Text className="block text-gray-500">
+                            {t('wallet.depositModal.minAmount', { amount: formatCurrency(100) })}
+                        </Text>
+                    </div>
+                </Modal>
+            )}
 
             {/* Withdraw Modal */}
             <Modal

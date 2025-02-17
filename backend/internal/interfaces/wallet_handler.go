@@ -57,6 +57,18 @@ func (h *WalletHandler) ProcessDeposit(c *gin.Context) {
 		return
 	}
 
+	role, exists := c.Get("user_role")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// Prevent tutors from making deposits
+	if role.(string) == "tutor" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Tutors are not allowed to make deposits"})
+		return
+	}
+
 	var request struct {
 		Amount float64 `json:"amount" binding:"required,gt=0"`
 	}

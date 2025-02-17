@@ -224,8 +224,8 @@ func (r *UserRepositoryImpl) UpdatePersonalInfo(ctx context.Context, info entiti
 // CreateStudentDetails creates student details for a user
 func (r *UserRepositoryImpl) CreateStudentDetails(ctx context.Context, details entities.StudentDetails) error {
 	query := `
-        INSERT INTO student_details (user_id, native_languages, learning_languages, learning_goals, interests)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO student_details (user_id, learning_languages, learning_goals, interests)
+        VALUES ($1, $2, $3, $4)
         RETURNING id`
 
 	learningLanguagesJSON, err := json.Marshal(details.LearningLanguages)
@@ -237,7 +237,6 @@ func (r *UserRepositoryImpl) CreateStudentDetails(ctx context.Context, details e
 		ctx,
 		query,
 		details.UserID,
-		pq.Array(details.NativeLanguages),
 		learningLanguagesJSON,
 		pq.Array(details.LearningGoals),
 		pq.Array(details.Interests),
@@ -257,14 +256,13 @@ func (r *UserRepositoryImpl) GetStudentDetails(ctx context.Context, userID int) 
 	var learningLanguagesJSON []byte
 
 	query := `
-        SELECT id, user_id, native_languages, learning_languages, learning_goals, interests
+        SELECT id, user_id, learning_languages, learning_goals, interests
         FROM student_details
         WHERE user_id = $1`
 
 	err := r.DB.QueryRowContext(ctx, query, userID).Scan(
 		&details.ID,
 		&details.UserID,
-		pq.Array(&details.NativeLanguages),
 		&learningLanguagesJSON,
 		pq.Array(&details.LearningGoals),
 		pq.Array(&details.Interests),
@@ -289,8 +287,8 @@ func (r *UserRepositoryImpl) GetStudentDetails(ctx context.Context, userID int) 
 func (r *UserRepositoryImpl) UpdateStudentDetails(ctx context.Context, details entities.StudentDetails) error {
 	query := `
         UPDATE student_details 
-        SET native_languages = $1, learning_languages = $2, learning_goals = $3, interests = $4
-        WHERE user_id = $5`
+        SET learning_languages = $1, learning_goals = $2, interests = $3
+        WHERE user_id = $4`
 
 	learningLanguagesJSON, err := json.Marshal(details.LearningLanguages)
 	if err != nil {
@@ -300,7 +298,6 @@ func (r *UserRepositoryImpl) UpdateStudentDetails(ctx context.Context, details e
 	result, err := r.DB.ExecContext(
 		ctx,
 		query,
-		pq.Array(details.NativeLanguages),
 		learningLanguagesJSON,
 		pq.Array(details.LearningGoals),
 		pq.Array(details.Interests),
