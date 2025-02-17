@@ -14,7 +14,6 @@ func SetupRouter(
 	r *gin.Engine,
 	authHandler *interfaces.AuthHandler,
 	tutorHandler *interfaces.TutorHandler,
-	gamificationHandler *interfaces.GamificationHandler,
 	userHandler *interfaces.UserHandler,
 	lessonHandler *interfaces.LessonHandler,
 	walletHandler *interfaces.WalletHandler,
@@ -49,8 +48,8 @@ func SetupRouter(
 		protected.Use(middleware.AuthMiddleware())
 		{
 			// User profile routes
-			protected.GET("/profile", userHandler.GetProfile)
-			protected.PUT("/profile", userHandler.UpdateProfile)
+			protected.GET("/profile", userHandler.GetUserProfile)
+			protected.PUT("/profile", userHandler.UpdateUserProfile)
 			protected.PUT("/profile/password", userHandler.UpdatePassword)
 			protected.POST("/profile/avatar", userHandler.UploadProfilePicture)
 
@@ -82,10 +81,6 @@ func SetupRouter(
 				lessons.POST("/:id/rate", lessonHandler.RateLesson)
 			}
 
-			// Gamification routes
-			protected.POST("/challenges/submit", gamificationHandler.SubmitChallenge)
-			protected.GET("/leaderboards", gamificationHandler.GetLeaderboard)
-
 			// Wallet routes
 			wallet := protected.Group("/wallet")
 			{
@@ -102,7 +97,6 @@ func NewRouter(
 	authHandler *interfaces.AuthHandler,
 	userHandler *interfaces.UserHandler,
 	tutorHandler *interfaces.TutorHandler,
-	gamificationHandler *interfaces.GamificationHandler,
 	lessonHandler *interfaces.LessonHandler,
 	walletHandler *interfaces.WalletHandler,
 ) *gin.Engine {
@@ -134,8 +128,8 @@ func NewRouter(
 	protected.Use(middleware.AuthMiddleware())
 	{
 		// User profile routes
-		protected.GET("/profile", userHandler.GetProfile)
-		protected.PUT("/profile", userHandler.UpdateProfile)
+		protected.GET("/profile", userHandler.GetUserProfile)
+		protected.PUT("/profile", userHandler.UpdateUserProfile)
 		protected.PUT("/profile/password", userHandler.UpdatePassword)
 		protected.POST("/profile/avatar", userHandler.UploadProfilePicture)
 
@@ -159,10 +153,6 @@ func NewRouter(
 		protected.POST("/lessons/:id/chat", lessonHandler.SendChatMessage)
 		protected.GET("/lessons/:id/chat", lessonHandler.GetChatHistory)
 		protected.POST("/lessons/:id/rate", lessonHandler.RateLesson)
-
-		// Gamification routes
-		protected.POST("/challenges/submit", gamificationHandler.SubmitChallenge)
-		protected.GET("/leaderboards", gamificationHandler.GetLeaderboard)
 
 		// Wallet routes
 		wallet := protected.Group("/wallet")

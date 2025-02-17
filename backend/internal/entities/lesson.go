@@ -114,16 +114,6 @@ func (l *Lesson) CanEnd() error {
 	return nil
 }
 
-// VideoSession represents the video conferencing details for a lesson
-type VideoSession struct {
-	ID           int       `json:"id"`
-	LessonID     int       `json:"lesson_id"`
-	RoomID       string    `json:"room_id"`
-	SessionToken string    `json:"session_token"`
-	StartedAt    time.Time `json:"started_at,omitempty"`
-	EndedAt      time.Time `json:"ended_at,omitempty"`
-}
-
 // LessonRating represents a student's rating for a completed lesson
 type LessonRating struct {
 	ID        int       `json:"id"`

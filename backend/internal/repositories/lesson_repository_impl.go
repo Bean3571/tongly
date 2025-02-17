@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"tongly-backend/internal/common"
 	"tongly-backend/internal/entities"
 
 	"github.com/lib/pq"
@@ -235,12 +236,12 @@ func (r *LessonRepositoryImpl) queryLessonsWithNames(ctx context.Context, query 
 
 func (r *LessonRepositoryImpl) CreateVideoSession(ctx context.Context, session *entities.VideoSession) error {
 	query := `
-		INSERT INTO video_sessions (lesson_id, room_id, session_token, started_at)
+		INSERT INTO video_sessions (lesson_id, room_id, token, start_time)
 		VALUES ($1, $2, $3, $4)
 		RETURNING id`
 
 	err := r.db.QueryRowContext(ctx, query,
-		session.LessonID, session.RoomID, session.SessionToken, session.StartedAt,
+		session.LessonID, session.RoomID, session.Token, session.StartTime,
 	).Scan(&session.ID)
 
 	if err != nil {
@@ -274,12 +275,12 @@ func (r *LessonRepositoryImpl) StartVideoSession(ctx context.Context, lesson *en
 
 		// Create video session
 		sessionQuery := `
-			INSERT INTO video_sessions (lesson_id, room_id, session_token, started_at)
+			INSERT INTO video_sessions (lesson_id, room_id, token, start_time)
 			VALUES ($1, $2, $3, $4)
 			RETURNING id`
 
 		err = tx.QueryRowContext(ctx, sessionQuery,
-			session.LessonID, session.RoomID, session.SessionToken, session.StartedAt,
+			session.LessonID, session.RoomID, session.Token, session.StartTime,
 		).Scan(&session.ID)
 
 		if err != nil {
@@ -295,10 +296,10 @@ func (r *LessonRepositoryImpl) EndVideoSession(ctx context.Context, lesson *enti
 		// Update video session
 		sessionQuery := `
 			UPDATE video_sessions
-			SET ended_at = $1
+			SET end_time = $1
 			WHERE id = $2`
 
-		result, err := tx.ExecContext(ctx, sessionQuery, session.EndedAt, session.ID)
+		result, err := tx.ExecContext(ctx, sessionQuery, session.EndTime, session.ID)
 		if err != nil {
 			return fmt.Errorf("failed to update video session: %v", err)
 		}
@@ -337,7 +338,7 @@ func (r *LessonRepositoryImpl) EndVideoSession(ctx context.Context, lesson *enti
 
 func (r *LessonRepositoryImpl) GetVideoSession(ctx context.Context, lessonID int) (*entities.VideoSession, error) {
 	query := `
-		SELECT id, lesson_id, room_id, session_token, started_at, ended_at
+		SELECT id, lesson_id, room_id, token, start_time, end_time, status
 		FROM video_sessions
 		WHERE lesson_id = $1
 		ORDER BY created_at DESC
@@ -345,8 +346,8 @@ func (r *LessonRepositoryImpl) GetVideoSession(ctx context.Context, lessonID int
 
 	session := &entities.VideoSession{}
 	err := r.db.QueryRowContext(ctx, query, lessonID).Scan(
-		&session.ID, &session.LessonID, &session.RoomID, &session.SessionToken,
-		&session.StartedAt, &session.EndedAt,
+		&session.ID, &session.LessonID, &session.RoomID, &session.Token,
+		&session.StartTime, &session.EndTime, &session.Status,
 	)
 	if err == sql.ErrNoRows {
 		return nil, errors.New("video session not found")
@@ -360,11 +361,11 @@ func (r *LessonRepositoryImpl) GetVideoSession(ctx context.Context, lessonID int
 func (r *LessonRepositoryImpl) UpdateVideoSession(ctx context.Context, session *entities.VideoSession) error {
 	query := `
 		UPDATE video_sessions
-		SET ended_at = $1, updated_at = $2
+		SET end_time = $1, updated_at = $2
 		WHERE id = $3`
 
 	result, err := r.db.ExecContext(ctx, query,
-		session.EndedAt, time.Now(), session.ID)
+		session.EndTime, time.Now(), session.ID)
 	if err != nil {
 		return fmt.Errorf("failed to update video session: %v", err)
 	}
@@ -478,4 +479,61 @@ func (r *LessonRepositoryImpl) DeleteLesson(ctx context.Context, id int) error {
 		return errors.New("lesson not found")
 	}
 	return nil
+}
+
+// Create implements common.Repository
+func (r *LessonRepositoryImpl) Create(ctx context.Context, lesson *entities.Lesson) error {
+	return r.CreateLesson(ctx, lesson)
+}
+
+// GetByID implements common.Repository
+func (r *LessonRepositoryImpl) GetByID(ctx context.Context, id int) (*entities.Lesson, error) {
+	return r.GetLesson(ctx, id)
+}
+
+// Update implements common.Repository
+func (r *LessonRepositoryImpl) Update(ctx context.Context, lesson *entities.Lesson) error {
+	return r.UpdateLesson(ctx, lesson)
+}
+
+// Delete implements common.Repository
+func (r *LessonRepositoryImpl) Delete(ctx context.Context, id int) error {
+	return r.DeleteLesson(ctx, id)
+}
+
+// List implements common.Repository
+func (r *LessonRepositoryImpl) List(ctx context.Context, pagination common.PaginationParams, filter common.FilterParams) ([]entities.Lesson, error) {
+	// TODO: Implement pagination and filtering
+	// For now, return all lessons
+	return r.GetLessonsByTutor(ctx, 0)
+}
+
+func (r *LessonRepositoryImpl) GetByTutorID(ctx context.Context, tutorID int) ([]entities.Lesson, error) {
+	return r.GetLessonsByTutor(ctx, tutorID)
+}
+
+func (r *LessonRepositoryImpl) GetByStudentID(ctx context.Context, studentID int) ([]entities.Lesson, error) {
+	query := `
+		SELECT 
+			l.id, l.student_id, l.tutor_id, l.start_time, l.end_time, 
+			l.duration, l.status, l.language, l.price, l.created_at, l.updated_at,
+			sp.first_name as student_first_name, sp.last_name as student_last_name,
+			tp.first_name as tutor_first_name, tp.last_name as tutor_last_name
+		FROM lessons l
+		LEFT JOIN user_credentials sc ON l.student_id = sc.id
+		LEFT JOIN user_personal sp ON sc.id = sp.user_id
+		LEFT JOIN user_credentials tc ON l.tutor_id = tc.id
+		LEFT JOIN user_personal tp ON tc.id = tp.user_id
+		WHERE l.student_id = $1
+		ORDER BY l.start_time DESC`
+
+	return r.queryLessonsWithNames(ctx, query, studentID)
+}
+
+func (r *LessonRepositoryImpl) GetCompletedByUserID(ctx context.Context, userID int) ([]entities.Lesson, error) {
+	return r.GetCompletedLessons(ctx, userID)
+}
+
+func (r *LessonRepositoryImpl) GetUpcomingByUserID(ctx context.Context, userID int) ([]entities.Lesson, error) {
+	return r.GetUpcomingLessons(ctx, userID)
 }

@@ -13,18 +13,26 @@ import (
 	"github.com/lib/pq"
 )
 
-type UserRepositoryImpl struct {
-	DB *sql.DB
+// userRepositoryImpl implements UserRepository interface
+type userRepositoryImpl struct {
+	db *sql.DB
+}
+
+// NewUserRepository creates a new UserRepository instance
+func NewUserRepository(db *sql.DB) UserRepository {
+	return &userRepositoryImpl{
+		db: db,
+	}
 }
 
 // CreateUserCredentials creates a new user's credentials
-func (r *UserRepositoryImpl) CreateUserCredentials(ctx context.Context, creds entities.UserCredentials) error {
+func (r *userRepositoryImpl) CreateUserCredentials(ctx context.Context, creds entities.UserCredentials) error {
 	query := `
         INSERT INTO user_credentials (username, email, password_hash, role)
         VALUES ($1, $2, $3, $4)
         RETURNING id`
 
-	err := r.DB.QueryRowContext(
+	err := r.db.QueryRowContext(
 		ctx,
 		query,
 		creds.Username,
@@ -42,13 +50,13 @@ func (r *UserRepositoryImpl) CreateUserCredentials(ctx context.Context, creds en
 }
 
 // GetUserByUsername retrieves a complete user by username
-func (r *UserRepositoryImpl) GetUserByUsername(ctx context.Context, username string) (*entities.User, error) {
+func (r *userRepositoryImpl) GetUserByUsername(ctx context.Context, username string) (*entities.User, error) {
 	user := &entities.User{
 		Credentials: &entities.UserCredentials{},
 	}
 
 	query := `SELECT id, username, email, password_hash, role FROM user_credentials WHERE username = $1`
-	err := r.DB.QueryRowContext(ctx, query, username).Scan(
+	err := r.db.QueryRowContext(ctx, query, username).Scan(
 		&user.Credentials.ID,
 		&user.Credentials.Username,
 		&user.Credentials.Email,
@@ -77,13 +85,13 @@ func (r *UserRepositoryImpl) GetUserByUsername(ctx context.Context, username str
 }
 
 // GetUserByID retrieves a complete user by ID
-func (r *UserRepositoryImpl) GetUserByID(ctx context.Context, id int) (*entities.User, error) {
+func (r *userRepositoryImpl) GetUserByID(ctx context.Context, id int) (*entities.User, error) {
 	user := &entities.User{
 		Credentials: &entities.UserCredentials{},
 	}
 
 	query := `SELECT id, username, email, password_hash, role FROM user_credentials WHERE id = $1`
-	err := r.DB.QueryRowContext(ctx, query, id).Scan(
+	err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&user.Credentials.ID,
 		&user.Credentials.Username,
 		&user.Credentials.Email,
@@ -112,13 +120,13 @@ func (r *UserRepositoryImpl) GetUserByID(ctx context.Context, id int) (*entities
 }
 
 // UpdateUserCredentials updates a user's credentials
-func (r *UserRepositoryImpl) UpdateUserCredentials(ctx context.Context, creds entities.UserCredentials) error {
+func (r *userRepositoryImpl) UpdateUserCredentials(ctx context.Context, creds entities.UserCredentials) error {
 	query := `
         UPDATE user_credentials 
         SET email = $1, password_hash = $2
         WHERE id = $3`
 
-	result, err := r.DB.ExecContext(ctx, query, creds.Email, creds.PasswordHash, creds.ID)
+	result, err := r.db.ExecContext(ctx, query, creds.Email, creds.PasswordHash, creds.ID)
 	if err != nil {
 		return err
 	}
@@ -135,13 +143,13 @@ func (r *UserRepositoryImpl) UpdateUserCredentials(ctx context.Context, creds en
 }
 
 // CreatePersonalInfo creates personal information for a user
-func (r *UserRepositoryImpl) CreatePersonalInfo(ctx context.Context, info entities.UserPersonal) error {
+func (r *userRepositoryImpl) CreatePersonalInfo(ctx context.Context, info entities.UserPersonal) error {
 	query := `
         INSERT INTO user_personal (user_id, first_name, last_name, profile_picture, age, sex)
         VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING id`
 
-	err := r.DB.QueryRowContext(
+	err := r.db.QueryRowContext(
 		ctx,
 		query,
 		info.UserID,
@@ -161,7 +169,7 @@ func (r *UserRepositoryImpl) CreatePersonalInfo(ctx context.Context, info entiti
 }
 
 // GetPersonalInfo retrieves personal information for a user
-func (r *UserRepositoryImpl) GetPersonalInfo(ctx context.Context, userID int) (*entities.UserPersonal, error) {
+func (r *userRepositoryImpl) GetPersonalInfo(ctx context.Context, userID int) (*entities.UserPersonal, error) {
 	info := &entities.UserPersonal{}
 
 	query := `
@@ -169,7 +177,7 @@ func (r *UserRepositoryImpl) GetPersonalInfo(ctx context.Context, userID int) (*
         FROM user_personal
         WHERE user_id = $1`
 
-	err := r.DB.QueryRowContext(ctx, query, userID).Scan(
+	err := r.db.QueryRowContext(ctx, query, userID).Scan(
 		&info.ID,
 		&info.UserID,
 		&info.FirstName,
@@ -190,13 +198,13 @@ func (r *UserRepositoryImpl) GetPersonalInfo(ctx context.Context, userID int) (*
 }
 
 // UpdatePersonalInfo updates personal information for a user
-func (r *UserRepositoryImpl) UpdatePersonalInfo(ctx context.Context, info entities.UserPersonal) error {
+func (r *userRepositoryImpl) UpdatePersonalInfo(ctx context.Context, info entities.UserPersonal) error {
 	query := `
         UPDATE user_personal 
         SET first_name = $1, last_name = $2, profile_picture = $3, age = $4, sex = $5
         WHERE user_id = $6`
 
-	result, err := r.DB.ExecContext(
+	result, err := r.db.ExecContext(
 		ctx,
 		query,
 		info.FirstName,
@@ -222,7 +230,7 @@ func (r *UserRepositoryImpl) UpdatePersonalInfo(ctx context.Context, info entiti
 }
 
 // CreateStudentDetails creates student details for a user
-func (r *UserRepositoryImpl) CreateStudentDetails(ctx context.Context, details entities.StudentDetails) error {
+func (r *userRepositoryImpl) CreateStudentDetails(ctx context.Context, details entities.StudentDetails) error {
 	query := `
         INSERT INTO student_details (user_id, learning_languages, learning_goals, interests)
         VALUES ($1, $2, $3, $4)
@@ -233,7 +241,7 @@ func (r *UserRepositoryImpl) CreateStudentDetails(ctx context.Context, details e
 		return err
 	}
 
-	err = r.DB.QueryRowContext(
+	err = r.db.QueryRowContext(
 		ctx,
 		query,
 		details.UserID,
@@ -251,7 +259,7 @@ func (r *UserRepositoryImpl) CreateStudentDetails(ctx context.Context, details e
 }
 
 // GetStudentDetails retrieves student details for a user
-func (r *UserRepositoryImpl) GetStudentDetails(ctx context.Context, userID int) (*entities.StudentDetails, error) {
+func (r *userRepositoryImpl) GetStudentDetails(ctx context.Context, userID int) (*entities.StudentDetails, error) {
 	details := &entities.StudentDetails{}
 	var learningLanguagesJSON []byte
 
@@ -260,7 +268,7 @@ func (r *UserRepositoryImpl) GetStudentDetails(ctx context.Context, userID int) 
         FROM student_details
         WHERE user_id = $1`
 
-	err := r.DB.QueryRowContext(ctx, query, userID).Scan(
+	err := r.db.QueryRowContext(ctx, query, userID).Scan(
 		&details.ID,
 		&details.UserID,
 		&learningLanguagesJSON,
@@ -284,7 +292,7 @@ func (r *UserRepositoryImpl) GetStudentDetails(ctx context.Context, userID int) 
 }
 
 // UpdateStudentDetails updates student details for a user
-func (r *UserRepositoryImpl) UpdateStudentDetails(ctx context.Context, details entities.StudentDetails) error {
+func (r *userRepositoryImpl) UpdateStudentDetails(ctx context.Context, details entities.StudentDetails) error {
 	query := `
         UPDATE student_details 
         SET learning_languages = $1, learning_goals = $2, interests = $3
@@ -295,7 +303,7 @@ func (r *UserRepositoryImpl) UpdateStudentDetails(ctx context.Context, details e
 		return err
 	}
 
-	result, err := r.DB.ExecContext(
+	result, err := r.db.ExecContext(
 		ctx,
 		query,
 		learningLanguagesJSON,
@@ -319,7 +327,7 @@ func (r *UserRepositoryImpl) UpdateStudentDetails(ctx context.Context, details e
 }
 
 // CreateTutorDetails creates tutor details for a user
-func (r *UserRepositoryImpl) CreateTutorDetails(ctx context.Context, details *entities.TutorDetails) error {
+func (r *userRepositoryImpl) CreateTutorDetails(ctx context.Context, details *entities.TutorDetails) error {
 	query := `
         INSERT INTO tutor_details (
             user_id, bio, teaching_languages, education,
@@ -338,7 +346,7 @@ func (r *UserRepositoryImpl) CreateTutorDetails(ctx context.Context, details *en
 		return fmt.Errorf("failed to marshal education: %v", err)
 	}
 
-	err = r.DB.QueryRowContext(
+	err = r.db.QueryRowContext(
 		ctx,
 		query,
 		details.UserID,
@@ -360,7 +368,7 @@ func (r *UserRepositoryImpl) CreateTutorDetails(ctx context.Context, details *en
 }
 
 // GetTutorDetails retrieves tutor details for a user
-func (r *UserRepositoryImpl) GetTutorDetails(ctx context.Context, userID int) (*entities.TutorDetails, error) {
+func (r *userRepositoryImpl) GetTutorDetails(ctx context.Context, userID int) (*entities.TutorDetails, error) {
 	query := `
         SELECT id, user_id, bio, teaching_languages, education,
                interests, hourly_rate, introduction_video, approved,
@@ -371,7 +379,7 @@ func (r *UserRepositoryImpl) GetTutorDetails(ctx context.Context, userID int) (*
 	var details entities.TutorDetails
 	var teachingLanguagesJSON, educationJSON []byte
 
-	err := r.DB.QueryRowContext(ctx, query, userID).Scan(
+	err := r.db.QueryRowContext(ctx, query, userID).Scan(
 		&details.ID,
 		&details.UserID,
 		&details.Bio,
@@ -405,7 +413,7 @@ func (r *UserRepositoryImpl) GetTutorDetails(ctx context.Context, userID int) (*
 }
 
 // UpdateTutorDetails updates tutor details for a user
-func (r *UserRepositoryImpl) UpdateTutorDetails(ctx context.Context, details *entities.TutorDetails) error {
+func (r *userRepositoryImpl) UpdateTutorDetails(ctx context.Context, details *entities.TutorDetails) error {
 	query := `
         UPDATE tutor_details
         SET bio = $1,
@@ -428,7 +436,7 @@ func (r *UserRepositoryImpl) UpdateTutorDetails(ctx context.Context, details *en
 		return fmt.Errorf("failed to marshal education: %v", err)
 	}
 
-	result, err := r.DB.ExecContext(
+	result, err := r.db.ExecContext(
 		ctx,
 		query,
 		details.Bio,
@@ -458,7 +466,7 @@ func (r *UserRepositoryImpl) UpdateTutorDetails(ctx context.Context, details *en
 }
 
 // ListTutors retrieves a list of tutors with optional filtering
-func (r *UserRepositoryImpl) ListTutors(ctx context.Context, limit, offset int, filters map[string]interface{}) ([]*entities.User, error) {
+func (r *userRepositoryImpl) ListTutors(ctx context.Context, limit, offset int, filters map[string]interface{}) ([]*entities.User, error) {
 	query := `
         WITH tutor_data AS (
             SELECT 
@@ -511,7 +519,7 @@ func (r *UserRepositoryImpl) ListTutors(ctx context.Context, limit, offset int, 
 		` OFFSET $` + strconv.Itoa(argPosition+1)
 	args = append(args, limit, offset)
 
-	rows, err := r.DB.QueryContext(ctx, query, args...)
+	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		logger.Error("Failed to list tutors", "error", err)
 		return nil, fmt.Errorf("failed to list tutors: %v", err)

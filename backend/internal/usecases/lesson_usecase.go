@@ -18,11 +18,6 @@ type LessonUseCase interface {
 	GetUpcomingLessons(ctx context.Context, userID int) ([]entities.Lesson, error)
 	GetCompletedLessons(ctx context.Context, userID int) ([]entities.Lesson, error)
 
-	// Video session management
-	StartVideoSession(ctx context.Context, lessonID int, userID int) (*entities.VideoSession, error)
-	EndVideoSession(ctx context.Context, lessonID int, userID int) error
-	GetVideoSession(ctx context.Context, lessonID int, userID int) (*entities.VideoSession, error)
-
 	// Chat functionality
 	SendChatMessage(ctx context.Context, lessonID int, userID int, content string) error
 	GetChatHistory(ctx context.Context, lessonID int, userID int) ([]*entities.ChatMessage, error)
@@ -33,20 +28,29 @@ type LessonUseCase interface {
 }
 
 type lessonUseCase struct {
-	lessonRepo repositories.LessonRepository
-	tutorRepo  repositories.TutorRepository
-	userRepo   repositories.UserRepository
+	lessonRepo     repositories.LessonRepository
+	tutorRepo      repositories.TutorRepository
+	userRepo       repositories.UserRepository
+	videoSessionUC VideoSessionUseCase
+	chatUseCase    ChatUseCase
+	ratingUseCase  RatingUseCase
 }
 
 func NewLessonUseCase(
 	lessonRepo repositories.LessonRepository,
 	tutorRepo repositories.TutorRepository,
 	userRepo repositories.UserRepository,
+	videoSessionUC VideoSessionUseCase,
+	chatUseCase ChatUseCase,
+	ratingUseCase RatingUseCase,
 ) LessonUseCase {
 	return &lessonUseCase{
-		lessonRepo: lessonRepo,
-		tutorRepo:  tutorRepo,
-		userRepo:   userRepo,
+		lessonRepo:     lessonRepo,
+		tutorRepo:      tutorRepo,
+		userRepo:       userRepo,
+		videoSessionUC: videoSessionUC,
+		chatUseCase:    chatUseCase,
+		ratingUseCase:  ratingUseCase,
 	}
 }
 
@@ -157,83 +161,6 @@ func (uc *lessonUseCase) GetUpcomingLessons(ctx context.Context, userID int) ([]
 
 func (uc *lessonUseCase) GetCompletedLessons(ctx context.Context, userID int) ([]entities.Lesson, error) {
 	return uc.lessonRepo.GetCompletedLessons(ctx, userID)
-}
-
-func (uc *lessonUseCase) StartVideoSession(ctx context.Context, lessonID int, userID int) (*entities.VideoSession, error) {
-	lesson, err := uc.GetLessonByID(ctx, userID, lessonID)
-	if err != nil {
-		return nil, err
-	}
-
-	// Check if lesson can be started
-	if err := lesson.CanStart(); err != nil {
-		return nil, err
-	}
-
-	// Check for existing session
-	existingSession, err := uc.lessonRepo.GetVideoSession(ctx, lessonID)
-	if err == nil && existingSession != nil {
-		return existingSession, nil
-	}
-
-	// Create video session
-	session := &entities.VideoSession{
-		LessonID:     lessonID,
-		RoomID:       generateRoomID(lessonID),
-		SessionToken: generateSessionToken(),
-		StartedAt:    time.Now(),
-	}
-
-	// Start video session with transaction
-	err = uc.lessonRepo.StartVideoSession(ctx, lesson, session)
-	if err != nil {
-		return nil, fmt.Errorf("failed to start video session: %v", err)
-	}
-
-	return session, nil
-}
-
-func (uc *lessonUseCase) EndVideoSession(ctx context.Context, lessonID int, userID int) error {
-	lesson, err := uc.GetLessonByID(ctx, userID, lessonID)
-	if err != nil {
-		return err
-	}
-
-	// Check if lesson can be ended
-	if err := lesson.CanEnd(); err != nil {
-		return err
-	}
-
-	session, err := uc.lessonRepo.GetVideoSession(ctx, lessonID)
-	if err != nil {
-		return err
-	}
-
-	session.EndedAt = time.Now()
-
-	// End video session with transaction
-	err = uc.lessonRepo.EndVideoSession(ctx, lesson, session)
-	if err != nil {
-		return fmt.Errorf("failed to end video session: %v", err)
-	}
-
-	return nil
-}
-
-func (uc *lessonUseCase) GetVideoSession(ctx context.Context, lessonID int, userID int) (*entities.VideoSession, error) {
-	// Verify user has access to the lesson
-	_, err := uc.GetLessonByID(ctx, userID, lessonID)
-	if err != nil {
-		return nil, err
-	}
-
-	session, err := uc.lessonRepo.GetVideoSession(ctx, lessonID)
-	if err != nil {
-		// Create a new session if one doesn't exist
-		return uc.StartVideoSession(ctx, lessonID, userID)
-	}
-
-	return session, nil
 }
 
 func (uc *lessonUseCase) SendChatMessage(ctx context.Context, lessonID int, userID int, content string) error {

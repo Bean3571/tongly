@@ -13,81 +13,46 @@ import (
 )
 
 type UserHandler struct {
-	UserUseCase usecases.UserUseCase
+	userUseCase usecases.UserUseCase
 }
 
-func (h *UserHandler) GetProfile(c *gin.Context) {
+func NewUserHandler(userUseCase usecases.UserUseCase) *UserHandler {
+	return &UserHandler{
+		userUseCase: userUseCase,
+	}
+}
+
+func (h *UserHandler) GetUserProfile(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
-	// Handle both float64 and int types for user ID
-	var userIDInt int
-	switch v := userID.(type) {
-	case float64:
-		userIDInt = int(v)
-	case int:
-		userIDInt = v
-	default:
-		logger.Error("Invalid user ID type", "user_id_type", fmt.Sprintf("%T", userID))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID format"})
-		return
-	}
-
-	user, err := h.UserUseCase.GetUserByID(c.Request.Context(), userIDInt)
+	user, err := h.userUseCase.GetUserByID(c.Request.Context(), userID.(int))
 	if err != nil {
-		logger.Error("Failed to get user profile", "error", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get profile"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, user)
 }
 
-func (h *UserHandler) UpdateProfile(c *gin.Context) {
+func (h *UserHandler) UpdateUserProfile(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
-		return
-	}
-
-	// Handle both float64 and int types for user ID
-	var userIDInt int
-	switch v := userID.(type) {
-	case float64:
-		userIDInt = int(v)
-	case int:
-		userIDInt = v
-	default:
-		logger.Error("Invalid user ID type", "user_id_type", fmt.Sprintf("%T", userID))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID format"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
 	var updateData entities.UserUpdateRequest
 	if err := c.ShouldBindJSON(&updateData); err != nil {
-		logger.Error("Failed to bind update data",
-			"error", err,
-			"error_type", fmt.Sprintf("%T", err),
-			"error_msg", err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
-	// Log received data
-	logger.Info("Received profile update request",
-		"user_id", userIDInt,
-		"data", updateData)
-
-	if err := h.UserUseCase.UpdateUser(c.Request.Context(), userIDInt, updateData); err != nil {
-		logger.Error("Failed to update user profile",
-			"error", err,
-			"error_type", fmt.Sprintf("%T", err),
-			"error_msg", err.Error(),
-			"user_id", userIDInt)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile: " + err.Error()})
+	if err := h.userUseCase.UpdateUser(c.Request.Context(), userID.(int), updateData); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -97,36 +62,21 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 func (h *UserHandler) UpdatePassword(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
-		return
-	}
-
-	// Handle both float64 and int types for user ID
-	var userIDInt int
-	switch v := userID.(type) {
-	case float64:
-		userIDInt = int(v)
-	case int:
-		userIDInt = v
-	default:
-		logger.Error("Invalid user ID type", "user_id_type", fmt.Sprintf("%T", userID))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID format"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
 	var passwordData struct {
-		CurrentPassword string `json:"current_password" binding:"required"`
-		NewPassword     string `json:"new_password" binding:"required,min=6"`
+		CurrentPassword string `json:"current_password"`
+		NewPassword     string `json:"new_password"`
 	}
-
 	if err := c.ShouldBindJSON(&passwordData); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
-	if err := h.UserUseCase.UpdatePassword(c.Request.Context(), userIDInt, passwordData.CurrentPassword, passwordData.NewPassword); err != nil {
-		logger.Error("Failed to update password", "error", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update password"})
+	if err := h.userUseCase.UpdatePassword(c.Request.Context(), userID.(int), passwordData.CurrentPassword, passwordData.NewPassword); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -174,7 +124,7 @@ func (h *UserHandler) UploadProfilePicture(c *gin.Context) {
 		ProfilePicture: &fileURL,
 	}
 
-	if err := h.UserUseCase.UpdateUser(c.Request.Context(), userID.(int), updateData); err != nil {
+	if err := h.userUseCase.UpdateUser(c.Request.Context(), userID.(int), updateData); err != nil {
 		logger.Error("Failed to update profile picture",
 			"error", err,
 			"user_id", userID)

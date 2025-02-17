@@ -2,11 +2,18 @@ package repositories
 
 import (
 	"context"
-
+	"tongly-backend/internal/common"
 	"tongly-backend/internal/entities"
 )
 
+// LessonRepository defines the interface for lesson persistence operations
 type LessonRepository interface {
+	common.Repository[entities.Lesson]
+	GetUpcomingByUserID(ctx context.Context, userID int) ([]entities.Lesson, error)
+	GetCompletedByUserID(ctx context.Context, userID int) ([]entities.Lesson, error)
+	GetByTutorID(ctx context.Context, tutorID int) ([]entities.Lesson, error)
+	GetByStudentID(ctx context.Context, studentID int) ([]entities.Lesson, error)
+
 	// Lesson management
 	CreateLesson(ctx context.Context, lesson *entities.Lesson) error
 	GetLesson(ctx context.Context, id int) (*entities.Lesson, error)

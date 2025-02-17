@@ -5,6 +5,7 @@ import (
 	"tongly-backend/internal/entities"
 )
 
+// UserRepository defines the interface for user-related database operations
 type UserRepository interface {
 	// User Credentials
 	CreateUserCredentials(ctx context.Context, creds entities.UserCredentials) error

@@ -12,12 +12,17 @@ import (
 )
 
 type LessonHandler struct {
-	lessonUseCase usecases.LessonUseCase
+	lessonUseCase       usecases.LessonUseCase
+	videoSessionUseCase usecases.VideoSessionUseCase
 }
 
-func NewLessonHandler(lessonUseCase usecases.LessonUseCase) *LessonHandler {
+func NewLessonHandler(
+	lessonUseCase usecases.LessonUseCase,
+	videoSessionUseCase usecases.VideoSessionUseCase,
+) *LessonHandler {
 	return &LessonHandler{
-		lessonUseCase: lessonUseCase,
+		lessonUseCase:       lessonUseCase,
+		videoSessionUseCase: videoSessionUseCase,
 	}
 }
 
@@ -160,21 +165,21 @@ func (h *LessonHandler) GetCompletedLessons(c *gin.Context) {
 }
 
 func (h *LessonHandler) StartVideoSession(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-
 	lessonID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid lesson ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid lesson ID"})
 		return
 	}
 
-	session, err := h.lessonUseCase.StartVideoSession(c.Request.Context(), lessonID, userID.(int))
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	session, err := h.videoSessionUseCase.StartSession(c.Request.Context(), lessonID, userID.(int))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -182,42 +187,43 @@ func (h *LessonHandler) StartVideoSession(c *gin.Context) {
 }
 
 func (h *LessonHandler) EndVideoSession(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-
 	lessonID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid lesson ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid lesson ID"})
 		return
 	}
 
-	if err := h.lessonUseCase.EndVideoSession(c.Request.Context(), lessonID, userID.(int)); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Video session ended successfully"})
+	err = h.videoSessionUseCase.EndSession(c.Request.Context(), lessonID, userID.(int))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.Status(http.StatusOK)
 }
 
 func (h *LessonHandler) GetVideoSession(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-
 	lessonID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid lesson ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid lesson ID"})
 		return
 	}
 
-	session, err := h.lessonUseCase.GetVideoSession(c.Request.Context(), lessonID, userID.(int))
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	session, err := h.videoSessionUseCase.GetSession(c.Request.Context(), lessonID, userID.(int))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 

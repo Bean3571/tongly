@@ -9,20 +9,60 @@ import (
 	"tongly-backend/internal/repositories"
 )
 
-type UserUseCase struct {
-	UserRepo repositories.UserRepository
+type UserUseCase interface {
+	GetUserByID(ctx context.Context, id int) (*entities.User, error)
+	UpdateUserProfile(ctx context.Context, user *entities.User) error
+	UpdatePassword(ctx context.Context, userID int, currentPassword, newPassword string) error
+	UpdateUser(ctx context.Context, userID int, updateData entities.UserUpdateRequest) error
 }
 
-func (uc *UserUseCase) GetUserByID(ctx context.Context, userID int) (*entities.User, error) {
-	return uc.UserRepo.GetUserByID(ctx, userID)
+type userUseCaseImpl struct {
+	userRepo repositories.UserRepository
 }
 
-func (uc *UserUseCase) UpdateUser(ctx context.Context, userID int, updateData entities.UserUpdateRequest) error {
+func NewUserUseCase(userRepo repositories.UserRepository) UserUseCase {
+	return &userUseCaseImpl{
+		userRepo: userRepo,
+	}
+}
+
+func (uc *userUseCaseImpl) GetUserByID(ctx context.Context, id int) (*entities.User, error) {
+	return uc.userRepo.GetUserByID(ctx, id)
+}
+
+func (uc *userUseCaseImpl) UpdateUserProfile(ctx context.Context, user *entities.User) error {
+	// Update user credentials if changed
+	if err := uc.userRepo.UpdateUserCredentials(ctx, *user.Credentials); err != nil {
+		return err
+	}
+
+	// Update personal info if exists
+	if user.Personal != nil {
+		if err := uc.userRepo.UpdatePersonalInfo(ctx, *user.Personal); err != nil {
+			return err
+		}
+	}
+
+	// Update role-specific details
+	if user.Credentials.Role == "student" && user.Student != nil {
+		if err := uc.userRepo.UpdateStudentDetails(ctx, *user.Student); err != nil {
+			return err
+		}
+	} else if user.Credentials.Role == "tutor" && user.Tutor != nil {
+		if err := uc.userRepo.UpdateTutorDetails(ctx, user.Tutor); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (uc *userUseCaseImpl) UpdateUser(ctx context.Context, userID int, updateData entities.UserUpdateRequest) error {
 	logger.Info("Starting user update process",
 		"user_id", userID,
 		"update_data", updateData)
 
-	user, err := uc.UserRepo.GetUserByID(ctx, userID)
+	user, err := uc.userRepo.GetUserByID(ctx, userID)
 	if err != nil {
 		logger.Error("Failed to get user for update",
 			"error", err,
@@ -38,7 +78,7 @@ func (uc *UserUseCase) UpdateUser(ctx context.Context, userID int, updateData en
 	// Update user credentials if email is provided
 	if updateData.Email != "" {
 		user.Credentials.Email = updateData.Email
-		if err := uc.UserRepo.UpdateUserCredentials(ctx, *user.Credentials); err != nil {
+		if err := uc.userRepo.UpdateUserCredentials(ctx, *user.Credentials); err != nil {
 			logger.Error("Failed to update user credentials",
 				"error", err,
 				"user_id", userID)
@@ -47,7 +87,7 @@ func (uc *UserUseCase) UpdateUser(ctx context.Context, userID int, updateData en
 	}
 
 	// Get or create personal info
-	personal, err := uc.UserRepo.GetPersonalInfo(ctx, userID)
+	personal, err := uc.userRepo.GetPersonalInfo(ctx, userID)
 	if err != nil {
 		logger.Error("Failed to get user personal info",
 			"error", err,
@@ -87,9 +127,9 @@ func (uc *UserUseCase) UpdateUser(ctx context.Context, userID int, updateData en
 
 	// Create or update personal info
 	if personal.ID == 0 {
-		err = uc.UserRepo.CreatePersonalInfo(ctx, *personal)
+		err = uc.userRepo.CreatePersonalInfo(ctx, *personal)
 	} else {
-		err = uc.UserRepo.UpdatePersonalInfo(ctx, *personal)
+		err = uc.userRepo.UpdatePersonalInfo(ctx, *personal)
 	}
 
 	if err != nil {
@@ -102,7 +142,7 @@ func (uc *UserUseCase) UpdateUser(ctx context.Context, userID int, updateData en
 	// Handle student details if language or interests are updated
 	if len(updateData.Languages) > 0 || len(updateData.Interests) > 0 || len(updateData.LearningGoals) > 0 {
 		// Get or create student details
-		student, err := uc.UserRepo.GetStudentDetails(ctx, userID)
+		student, err := uc.userRepo.GetStudentDetails(ctx, userID)
 		if err != nil {
 			logger.Error("Failed to get student details",
 				"error", err,
@@ -129,9 +169,9 @@ func (uc *UserUseCase) UpdateUser(ctx context.Context, userID int, updateData en
 
 		// Create or update student details
 		if student.ID == 0 {
-			err = uc.UserRepo.CreateStudentDetails(ctx, *student)
+			err = uc.userRepo.CreateStudentDetails(ctx, *student)
 		} else {
-			err = uc.UserRepo.UpdateStudentDetails(ctx, *student)
+			err = uc.userRepo.UpdateStudentDetails(ctx, *student)
 		}
 
 		if err != nil {
@@ -147,8 +187,8 @@ func (uc *UserUseCase) UpdateUser(ctx context.Context, userID int, updateData en
 	return nil
 }
 
-func (uc *UserUseCase) UpdatePassword(ctx context.Context, userID int, currentPassword, newPassword string) error {
-	user, err := uc.UserRepo.GetUserByID(ctx, userID)
+func (uc *userUseCaseImpl) UpdatePassword(ctx context.Context, userID int, currentPassword, newPassword string) error {
+	user, err := uc.userRepo.GetUserByID(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -161,5 +201,5 @@ func (uc *UserUseCase) UpdatePassword(ctx context.Context, userID int, currentPa
 		return err
 	}
 
-	return uc.UserRepo.UpdateUserCredentials(ctx, *user.Credentials)
+	return uc.userRepo.UpdateUserCredentials(ctx, *user.Credentials)
 }

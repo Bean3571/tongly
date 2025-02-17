@@ -8,12 +8,23 @@ import (
 	"tongly-backend/internal/repositories"
 )
 
-type AuthUseCase struct {
-	UserRepo repositories.UserRepository
+type AuthUseCase interface {
+	Register(ctx context.Context, username, email, password, role string) (*entities.User, error)
+	Authenticate(ctx context.Context, username, password string) (*entities.User, error)
+}
+
+type authUseCaseImpl struct {
+	userRepo repositories.UserRepository
+}
+
+func NewAuthUseCase(userRepo repositories.UserRepository) AuthUseCase {
+	return &authUseCaseImpl{
+		userRepo: userRepo,
+	}
 }
 
 // Register handles user registration
-func (uc *AuthUseCase) Register(ctx context.Context, username, email, password, role string) (*entities.User, error) {
+func (uc *authUseCaseImpl) Register(ctx context.Context, username, email, password, role string) (*entities.User, error) {
 	logger.Info("Starting user registration process",
 		"username", username,
 		"email", email,
@@ -33,7 +44,7 @@ func (uc *AuthUseCase) Register(ctx context.Context, username, email, password, 
 	}
 
 	// Create user credentials
-	if err := uc.UserRepo.CreateUserCredentials(ctx, creds); err != nil {
+	if err := uc.userRepo.CreateUserCredentials(ctx, creds); err != nil {
 		logger.Error("Failed to create user credentials",
 			"username", username,
 			"error", err)
@@ -41,7 +52,7 @@ func (uc *AuthUseCase) Register(ctx context.Context, username, email, password, 
 	}
 
 	// Get the complete user data
-	user, err := uc.UserRepo.GetUserByUsername(ctx, username)
+	user, err := uc.userRepo.GetUserByUsername(ctx, username)
 	if err != nil {
 		logger.Error("Failed to get user after creation",
 			"username", username,
@@ -56,11 +67,11 @@ func (uc *AuthUseCase) Register(ctx context.Context, username, email, password, 
 }
 
 // Authenticate handles user login
-func (uc *AuthUseCase) Authenticate(ctx context.Context, username, password string) (*entities.User, error) {
+func (uc *authUseCaseImpl) Authenticate(ctx context.Context, username, password string) (*entities.User, error) {
 	logger.Info("Starting authentication process", "username", username)
 
 	// Fetch the user by username
-	user, err := uc.UserRepo.GetUserByUsername(ctx, username)
+	user, err := uc.userRepo.GetUserByUsername(ctx, username)
 	if err != nil {
 		logger.Error("Failed to fetch user",
 			"username", username,

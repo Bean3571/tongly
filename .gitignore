@@ -1,3 +1,41 @@
+# Dependencies
 node_modules
 /frontend/node_modules
+
+# Production builds
+/frontend/build
+/frontend/dist
+/backend/bin
+/backend/dist
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Backend specific
 /backend/uploads
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+/backend/tmp
+
+# TypeScript
+*.tsbuildinfo
+
+# Testing
+/coverage
+/frontend/coverage
+
+# Misc
+.DS_Store
+*.pem
+.eslintcache
+.npm
+.yarn-integrity

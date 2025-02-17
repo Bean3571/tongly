@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strconv"
 	"time"
+	"tongly-backend/internal/common"
 	"tongly-backend/internal/entities"
 	"tongly-backend/internal/logger"
 
@@ -15,6 +16,12 @@ import (
 
 type TutorRepositoryImpl struct {
 	DB *sql.DB
+}
+
+func NewTutorRepository(db *sql.DB) TutorRepository {
+	return &TutorRepositoryImpl{
+		DB: db,
+	}
 }
 
 func (r *TutorRepositoryImpl) CreateTutorDetails(ctx context.Context, details *entities.TutorDetails) error {
@@ -641,4 +648,29 @@ func (r *TutorRepositoryImpl) SearchTutors(ctx context.Context, filters map[stri
 	}
 
 	return tutors, nil
+}
+
+func (r *TutorRepositoryImpl) Create(ctx context.Context, tutor *entities.TutorDetails) error {
+	// Implementation
+	return nil
+}
+
+func (r *TutorRepositoryImpl) GetByID(ctx context.Context, id int) (*entities.TutorDetails, error) {
+	// Implementation
+	return nil, nil
+}
+
+func (r *TutorRepositoryImpl) Update(ctx context.Context, tutor *entities.TutorDetails) error {
+	// Implementation
+	return nil
+}
+
+func (r *TutorRepositoryImpl) Delete(ctx context.Context, id int) error {
+	// Implementation
+	return nil
+}
+
+func (r *TutorRepositoryImpl) List(ctx context.Context, pagination common.PaginationParams, filter common.FilterParams) ([]entities.TutorDetails, error) {
+	// Implementation
+	return nil, nil
 }

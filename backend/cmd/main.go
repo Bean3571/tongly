@@ -66,27 +66,42 @@ func main() {
 	}
 	defer db.Close()
 
-	// Initialize repositories
-	userRepo := &repositories.UserRepositoryImpl{DB: db}
-	challengeRepo := &repositories.ChallengeRepositoryImpl{DB: db}
-	tutorRepo := &repositories.TutorRepositoryImpl{DB: db}
-	lessonRepo := repositories.NewLessonRepository(db)
-	walletRepo := repositories.NewWalletRepository(db)
+	// Initialize services
+	errorService := services.NewErrorService()
 
-	// Initialize use cases and services
-	authUseCase := usecases.AuthUseCase{UserRepo: userRepo}
-	tutorUseCase := &usecases.TutorUseCase{UserRepo: userRepo}
-	gamificationUseCase := usecases.GamificationUseCase{ChallengeRepo: challengeRepo}
-	userUseCase := usecases.UserUseCase{UserRepo: userRepo}
-	lessonUseCase := usecases.NewLessonUseCase(lessonRepo, tutorRepo, userRepo)
+	// Initialize repositories
+	userRepo := repositories.NewUserRepository(db)
+	tutorRepo := repositories.NewTutorRepository(db)
+	lessonRepo := repositories.NewLessonRepository(db)
+	videoSessionRepo := repositories.NewVideoSessionRepository(db)
+	walletRepo := repositories.NewWalletRepository(db)
+	chatRepo := repositories.NewChatRepository(db)
+	ratingRepo := repositories.NewRatingRepository(db)
+
+	// Initialize use cases
+	authUseCase := usecases.NewAuthUseCase(userRepo)
+	tutorUseCase := usecases.NewTutorUseCase(userRepo, tutorRepo)
+	userUseCase := usecases.NewUserUseCase(userRepo)
+	videoSessionUseCase := usecases.NewVideoSessionUseCase(lessonRepo, videoSessionRepo, errorService)
+	chatUseCase := usecases.NewChatUseCase(lessonRepo, chatRepo, errorService)
+	ratingUseCase := usecases.NewRatingUseCase(lessonRepo, ratingRepo, errorService)
+	lessonUseCase := usecases.NewLessonUseCase(
+		lessonRepo,
+		tutorRepo,
+		userRepo,
+		videoSessionUseCase,
+		chatUseCase,
+		ratingUseCase,
+	)
+
+	// Initialize services that depend on repositories
 	walletService := services.NewWalletService(walletRepo, lessonRepo)
 
 	// Initialize handlers
-	authHandler := interfaces.NewAuthHandler(&authUseCase, tutorUseCase)
-	tutorHandler := interfaces.TutorHandler{TutorUseCase: tutorUseCase}
-	gamificationHandler := interfaces.GamificationHandler{GamificationUseCase: gamificationUseCase}
-	userHandler := interfaces.UserHandler{UserUseCase: userUseCase}
-	lessonHandler := interfaces.NewLessonHandler(lessonUseCase)
+	authHandler := interfaces.NewAuthHandler(authUseCase, tutorUseCase)
+	tutorHandler := interfaces.NewTutorHandler(tutorUseCase)
+	userHandler := interfaces.NewUserHandler(userUseCase)
+	lessonHandler := interfaces.NewLessonHandler(lessonUseCase, videoSessionUseCase)
 	webrtcHandler := interfaces.NewWebRTCHandler(lessonUseCase)
 	walletHandler := interfaces.NewWalletHandler(walletService)
 
@@ -124,7 +139,7 @@ func main() {
 	webrtcHandler.RegisterRoutes(r)
 
 	// Register other routes
-	router.SetupRouter(r, authHandler, &tutorHandler, &gamificationHandler, &userHandler, lessonHandler, walletHandler)
+	router.SetupRouter(r, authHandler, tutorHandler, userHandler, lessonHandler, walletHandler)
 
 	// Start server with graceful shutdown
 	srv := &http.Server{

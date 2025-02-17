@@ -11,8 +11,8 @@ import (
 )
 
 type AuthHandler struct {
-	AuthUseCase  *usecases.AuthUseCase
-	TutorUseCase *usecases.TutorUseCase
+	authUseCase  usecases.AuthUseCase
+	tutorUseCase *usecases.TutorUseCase
 }
 
 type LoginCredentials struct {
@@ -27,10 +27,13 @@ type RegisterRequest struct {
 	Role     string `json:"role" binding:"required,oneof=student tutor"`
 }
 
-func NewAuthHandler(authUseCase *usecases.AuthUseCase, tutorUseCase *usecases.TutorUseCase) *AuthHandler {
+func NewAuthHandler(
+	authUseCase usecases.AuthUseCase,
+	tutorUseCase *usecases.TutorUseCase,
+) *AuthHandler {
 	return &AuthHandler{
-		AuthUseCase:  authUseCase,
-		TutorUseCase: tutorUseCase,
+		authUseCase:  authUseCase,
+		tutorUseCase: tutorUseCase,
 	}
 }
 
@@ -46,7 +49,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	// Register the user
-	user, err := h.AuthUseCase.Register(c.Request.Context(), req.Username, req.Email, req.Password, req.Role)
+	user, err := h.authUseCase.Register(c.Request.Context(), req.Username, req.Email, req.Password, req.Role)
 	if err != nil {
 		logger.Error("Registration failed", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register user"})
@@ -62,7 +65,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 			HourlyRate:        25.0, // Default hourly rate
 		}
 
-		if err := h.TutorUseCase.RegisterTutor(c.Request.Context(), user.Credentials.ID, tutorReq); err != nil {
+		if err := h.tutorUseCase.RegisterTutor(c.Request.Context(), user.Credentials.ID, tutorReq); err != nil {
 			logger.Error("Failed to create tutor profile", "error", err)
 			// Continue with registration even if tutor profile creation fails
 			// The user can create it later through the tutor registration endpoint
@@ -95,7 +98,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	user, err := h.AuthUseCase.Authenticate(c.Request.Context(), credentials.Username, credentials.Password)
+	user, err := h.authUseCase.Authenticate(c.Request.Context(), credentials.Username, credentials.Password)
 	if err != nil {
 		logger.Error("Authentication failed", "username", credentials.Username, "error", err)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
