@@ -10,7 +10,13 @@
         "confirm": "Confirm",
         "back": "Back",
         "try.again": "Try Again",
-        "toggleTheme": "Toggle theme"
+        "toggleTheme": "Toggle theme",
+        "platform.name": "Tongly",
+        "languages": {
+            "en": "English",
+            "ru": "Russian",
+            "es": "Spanish"
+        }
     },
     "validation": {
         "required": "This field is required",
@@ -396,6 +402,160 @@
             "register.button": "Create Account",
             "have.account": "Already have an account?",
             "sign.in": "Sign in"
+        },
+        "home": {
+            "welcome": "Welcome to Tongly! 🌍",
+            "description": "Learn languages with professional tutors at your convenience",
+            "get.started": "Get Started",
+            "sign.in": "Sign In",
+            "go.to.dashboard": "Go to Dashboard",
+            "features": {
+                "native.tutors": {
+                    "title": "Native Tutors",
+                    "description": "Learn from professional native-speaking tutors"
+                },
+                "personalized.learning": {
+                    "title": "Personalized Learning",
+                    "description": "Get a customized learning experience"
+                },
+                "track.progress": {
+                    "title": "Track Progress",
+                    "description": "Monitor your achievements and growth"
+                }
+            }
+        },
+        "challenges": {
+            "title": "Challenges",
+            "points": "{{points}} points",
+            "level": "Level {{level}}",
+            "points.to.next.level": "{{points}} points to next level",
+            "progress": {
+                "title": "Your Progress"
+            },
+            "daily.conversation": {
+                "title": "Daily Conversation",
+                "description": "Practice speaking every day"
+            },
+            "grammar.master": {
+                "title": "Grammar Master",
+                "description": "Perfect your grammar skills"
+            },
+            "cultural.explorer": {
+                "title": "Cultural Explorer",
+                "description": "Learn about the culture"
+            },
+            "deadline": {
+                "24h": "24 hours",
+                "3d": "3 days",
+                "2d": "2 days"
+            },
+            "progress.value": "{{current}}/{{total}}",
+            "achievements": {
+                "title": "Achievements",
+                "first.lesson": "First Lesson",
+                "perfect.week": "Perfect Week",
+                "quick.learner": "Quick Learner",
+                "social.butterfly": "Social Butterfly"
+            },
+            "date": {
+                "jan15": "Jan 15",
+                "jan20": "Jan 20",
+                "jan22": "Jan 22",
+                "jan25": "Jan 25"
+            }
+        },
+        "leaderboard": {
+            "title": "Leaderboard",
+            "filter": {
+                "global": "Global",
+                "friends": "Friends",
+                "country": "Country",
+                "all.languages": "All Languages",
+                "english": "English",
+                "spanish": "Spanish",
+                "french": "French",
+                "this.week": "This Week",
+                "this.month": "This Month",
+                "all.time": "All Time"
+            },
+            "first.place": "First Place",
+            "second.place": "Second Place",
+            "third.place": "Third Place",
+            "points": "{{points}} points",
+            "position": "Position {{position}}",
+            "user": {
+                "name": "User {{position}}",
+                "stats": "{{points}} points • Level {{level}}"
+            }
+        },
+        "messages": {
+            "title": "Messages",
+            "search.placeholder": "Search messages...",
+            "no.messages": "No messages",
+            "type.message": "Type your message..."
+        },
+        "schedule": {
+            "title": "Teaching Schedule",
+            "quick.actions": {
+                "title": "Quick Actions",
+                "set.hours": "Set Weekly Hours",
+                "block.time": "Block Time Off",
+                "timezone": "Time Zone"
+            }
+        },
+        "settings": {
+            "title": "Settings",
+            "notifications": {
+                "title": "Notifications",
+                "email": {
+                    "title": "Email Notifications",
+                    "description": "Receive email updates about your lessons"
+                },
+                "sms": {
+                    "title": "SMS Notifications",
+                    "description": "Get text messages for lesson reminders"
+                },
+                "marketing": {
+                    "title": "Marketing Updates",
+                    "description": "Stay informed about new features and promotions"
+                }
+            },
+            "security": {
+                "title": "Security",
+                "current.password": "Current Password",
+                "new.password": "New Password",
+                "confirm.password": "Confirm Password"
+            },
+            "preferences": {
+                "title": "Preferences",
+                "language": "Language",
+                "timezone": "Time Zone"
+            },
+            "billing": {
+                "title": "Billing",
+                "add.payment": "Add Payment Method",
+                "history": "Billing History",
+                "no.history": "No billing history available"
+            }
+        },
+        "book.lesson": {
+            "title": "Book a Lesson with {{name}}",
+            "select": {
+                "language": "Select Language",
+                "date": "Select Date",
+                "time": "Select Time",
+                "duration": "Lesson Duration"
+            },
+            "lesson.details": {
+                "title": "Lesson Details",
+                "duration": "Duration: {{duration}} minutes",
+                "price": "Price: {{price}}",
+                "language": "Language: {{language}}"
+            },
+            "buttons": {
+                "book": "Book Lesson",
+                "cancel": "Cancel"
+            }
         }
     },
     "components": {

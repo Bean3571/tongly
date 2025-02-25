@@ -8,6 +8,7 @@ interface VideoControlsProps {
   onToggleMute: () => void;
   onToggleVideo: () => void;
   onToggleScreenShare: () => void;
+  isScreenShareEnabled?: boolean;
 }
 
 const VideoControls: React.FC<VideoControlsProps> = ({
@@ -17,6 +18,7 @@ const VideoControls: React.FC<VideoControlsProps> = ({
   onToggleMute,
   onToggleVideo,
   onToggleScreenShare,
+  isScreenShareEnabled = true,
 }) => {
   return (
     <Container>
@@ -26,9 +28,11 @@ const VideoControls: React.FC<VideoControlsProps> = ({
       <ControlButton onClick={onToggleVideo} title={isVideoOff ? 'Turn on camera' : 'Turn off camera'}>
         {isVideoOff ? '📵' : '📹'}
       </ControlButton>
-      <ControlButton onClick={onToggleScreenShare} title={isScreenSharing ? 'Stop sharing' : 'Share screen'}>
-        {isScreenSharing ? '🔄' : '💻'}
-      </ControlButton>
+      {isScreenShareEnabled && (
+        <ControlButton onClick={onToggleScreenShare} title={isScreenSharing ? 'Stop sharing' : 'Share screen'}>
+          {isScreenSharing ? '🔄' : '💻'}
+        </ControlButton>
+      )}
     </Container>
   );
 };

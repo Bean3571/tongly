@@ -1,12 +1,14 @@
 import React, { useEffect, useState, ReactNode } from 'react';
-import { useI18n } from '../contexts/I18nContext';
+import { useTranslation } from '../contexts/I18nContext';
 import { Language } from '../services/i18n/types';
 import enTranslations from '../locales/en.json';
 import ruTranslations from '../locales/ru.json';
+import esTranslations from '../locales/es.json';
 
 const translations = {
     en: enTranslations,
-    ru: ruTranslations
+    ru: ruTranslations,
+    es: esTranslations
 };
 
 interface TranslationLoaderProps {
@@ -18,9 +20,9 @@ interface TranslationLoaderProps {
 export const TranslationLoader = ({
     children,
     fallback = null,
-    locales = ['ru', 'en'],
+    locales = ['en', 'ru', 'es'],
 }: TranslationLoaderProps): JSX.Element => {
-    const { currentLocale, loading, error } = useI18n();
+    const { currentLanguage } = useTranslation();
     const [loadingLocales, setLoadingLocales] = useState<boolean>(true);
     const [loadingError, setLoadingError] = useState<string | null>(null);
 
@@ -47,7 +49,7 @@ export const TranslationLoader = ({
         loadLocales();
     }, [locales]);
 
-    if (loading || loadingLocales) {
+    if (loadingLocales) {
         return fallback as JSX.Element || (
             <div className="flex justify-center items-center min-h-screen">
                 <div className="text-gray-600 dark:text-gray-400">
@@ -57,11 +59,11 @@ export const TranslationLoader = ({
         );
     }
 
-    if (error || loadingError) {
+    if (loadingError) {
         return (
             <div className="flex justify-center items-center min-h-screen">
                 <div className="text-red-600 dark:text-red-400">
-                    {error || loadingError}
+                    {loadingError}
                 </div>
             </div>
         );

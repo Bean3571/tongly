@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Tooltip, Button, Space, Empty, notification } from 'antd';
+import { Tooltip, Button, Space, Empty, notification, Spin } from 'antd';
 import { LessonStatusBadge } from './LessonStatusBadge';
 import { Lesson } from '../../hooks/useLessons';
 import { formatDateTime, getTimeStatus, getHoursUntilStart } from '../../utils/dateUtils';
 import { useTranslation } from '../../contexts/I18nContext';
+import { api } from '../../utils/api';
 
 interface LessonListProps {
     lessons: Lesson[];
@@ -15,32 +16,24 @@ interface LessonListProps {
 export const LessonList: React.FC<LessonListProps> = ({ lessons, userRole, onCancelLesson }) => {
     const navigate = useNavigate();
     const { t } = useTranslation();
+    const [joiningLesson, setJoiningLesson] = useState<number | null>(null);
+    const [joinError, setJoinError] = useState<string | null>(null);
 
     const handleJoinLesson = async (lessonId: number) => {
         try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                notification.error({
-                    message: t('lessons.error.auth.title'),
-                    description: t('lessons.error.auth.description'),
-                });
-                navigate('/login');
-                return;
-            }
-
+            setJoiningLesson(lessonId);
+            setJoinError(null);
+            
+            console.log(`Attempting to join lesson ${lessonId}...`);
+            
             // First check if the lesson exists and is in a valid state
-            const lessonResponse = await fetch(`http://localhost:8080/api/lessons/${lessonId}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-
-            if (!lessonResponse.ok) {
-                throw new Error(t('lessons.error.verify.status'));
+            const response = await api.get(`/lessons/${lessonId}`);
+            if (!response || !response.data) {
+                throw new Error('Failed to retrieve lesson data');
             }
-
-            const lessonData = await lessonResponse.json();
+            
+            const lessonData = response.data;
+            console.log('Lesson data:', lessonData);
             
             // Allow joining if the lesson is scheduled or in progress
             if (lessonData.status !== 'scheduled' && lessonData.status !== 'in_progress') {
@@ -66,48 +59,42 @@ export const LessonList: React.FC<LessonListProps> = ({ lessons, userRole, onCan
             }
 
             // Try to get existing video session
-            const sessionResponse = await fetch(`http://localhost:8080/api/lessons/${lessonId}/video`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-
-            let videoSession;
-            
-            if (sessionResponse.status === 404) {
-                // No existing session, create a new one
-                const startResponse = await fetch(`http://localhost:8080/api/lessons/${lessonId}/video/start`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-
-                if (!startResponse.ok) {
-                    const errorData = await startResponse.json();
-                    throw new Error(errorData.error || t('lessons.error.start.session'));
+            try {
+                console.log('Checking for existing video session...');
+                const videoResponse = await api.get(`/lessons/${lessonId}/video`);
+                if (!videoResponse || !videoResponse.data) {
+                    throw new Error('No video session data received');
                 }
-
-                videoSession = await startResponse.json();
-            } else if (sessionResponse.ok) {
-                videoSession = await sessionResponse.json();
-            } else {
-                throw new Error(t('lessons.error.check.session'));
+                
+                console.log('Found existing video session:', videoResponse.data);
+                navigate(`/lessons/${lessonId}/room`, { state: { videoSession: videoResponse.data } });
+            } catch (error: any) {
+                console.log('Error getting video session:', error);
+                
+                if (error.response?.status === 404) {
+                    // No existing session, create a new one
+                    console.log('Creating new video session...');
+                    const createResponse = await api.post(`/lessons/${lessonId}/video/start`);
+                    if (!createResponse || !createResponse.data) {
+                        throw new Error('Failed to create video session');
+                    }
+                    
+                    console.log('Created new video session:', createResponse.data);
+                    navigate(`/lessons/${lessonId}/room`, { state: { videoSession: createResponse.data } });
+                } else {
+                    throw new Error(
+                        error.response?.data?.message || 
+                        t('lessons.error.check.session')
+                    );
+                }
             }
-
-            // Navigate to the lesson room with the session info
-            navigate(`/lessons/${lessonId}/room`, {
-                state: { videoSession }
-            });
-
         } catch (error) {
             console.error('Error joining lesson:', error);
             
             let errorMessage = t('lessons.error.join.default');
             if (error instanceof Error) {
                 errorMessage = error.message;
+                setJoinError(errorMessage);
             }
             
             notification.error({
@@ -115,6 +102,8 @@ export const LessonList: React.FC<LessonListProps> = ({ lessons, userRole, onCan
                 description: errorMessage,
                 duration: 5,
             });
+        } finally {
+            setJoiningLesson(null);
         }
     };
 
@@ -153,6 +142,7 @@ export const LessonList: React.FC<LessonListProps> = ({ lessons, userRole, onCan
         const startTime = new Date(lesson.start_time);
         const endTime = new Date(lesson.end_time);
         const hoursUntilStart = getHoursUntilStart(lesson.start_time);
+        const isCurrentlyJoining = joiningLesson === lesson.id;
 
         // Show Join button if lesson is joinable
         if (isLessonJoinable(lesson)) {
@@ -161,9 +151,16 @@ export const LessonList: React.FC<LessonListProps> = ({ lessons, userRole, onCan
                 <Button
                     type="primary"
                     onClick={() => handleJoinLesson(lesson.id)}
+                    loading={isCurrentlyJoining}
                     className={isInProgress ? 'bg-green-600 hover:bg-green-700' : ''}
+                    disabled={isCurrentlyJoining}
                 >
-                    {isInProgress ? t('lessons.actions.join.ongoing') : t('lessons.actions.join')}
+                    {isCurrentlyJoining 
+                        ? t('lessons.actions.joining') 
+                        : isInProgress 
+                            ? t('lessons.actions.join.ongoing') 
+                            : t('lessons.actions.join')
+                    }
                 </Button>
             );
         }
@@ -179,6 +176,7 @@ export const LessonList: React.FC<LessonListProps> = ({ lessons, userRole, onCan
                         <Button
                             danger
                             onClick={() => onCancelLesson(lesson)}
+                            disabled={isCurrentlyJoining}
                         >
                             {t('lessons.actions.cancel')}
                         </Button>
@@ -210,6 +208,12 @@ export const LessonList: React.FC<LessonListProps> = ({ lessons, userRole, onCan
 
     return (
         <div className="overflow-x-auto">
+            {joinError && (
+                <div className="p-3 mb-4 bg-red-50 text-red-700 border border-red-200 rounded">
+                    <p className="font-medium">Error joining lesson:</p>
+                    <p>{joinError}</p>
+                </div>
+            )}
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gray-50 dark:bg-gray-900">
                     <tr>

@@ -1,6 +1,7 @@
 import { Language, LocaleConfig, LocaleData, TranslationVariables, PluralRules } from './types';
 import enTranslations from '../../locales/en.json';
 import ruTranslations from '../../locales/ru.json';
+import esTranslations from '../../locales/es.json';
 
 export const SUPPORTED_LOCALES: Record<Language, LocaleConfig> = {
     en: {
@@ -17,11 +18,19 @@ export const SUPPORTED_LOCALES: Record<Language, LocaleConfig> = {
         flag: '🇷🇺',
         rtl: false,
     },
+    es: {
+        code: 'es',
+        name: 'Spanish',
+        nativeName: 'Español',
+        flag: '🇪🇸',
+        rtl: false,
+    }
 };
 
 const TRANSLATIONS = {
     en: enTranslations,
-    ru: ruTranslations
+    ru: ruTranslations,
+    es: esTranslations
 };
 
 type PluralRule = 'zero' | 'one' | 'few' | 'many' | 'other';

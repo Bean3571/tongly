@@ -1,90 +1,139 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
+import { useTranslation } from '../contexts/I18nContext';
+import { FaSun, FaMoon } from 'react-icons/fa';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
-const Navbar = () => {
+const DEFAULT_AVATAR = 'https://secure.gravatar.com/avatar/default?s=200&d=mp';
+
+export const Navbar = () => {
     const { user, logout } = useAuth();
-    const DEFAULT_AVATAR = 'https://via.placeholder.com/32';
+    const { isDarkMode, toggleTheme } = useTheme();
+    const { t, formatCurrency } = useTranslation();
+    const location = useLocation();
+
+    const getNavLinks = () => {
+        if (!user) return [];
+
+        const commonLinks = [
+            { to: '/lessons', label: t('navbar.lessons') },
+            { to: '/wallet', label: t('navbar.wallet') }
+        ];
+
+        if (user.credentials.role === 'student') {
+            return [
+                { to: '/student/dashboard', label: t('navbar.home') },
+                { to: '/tutors', label: t('navbar.tutors') },
+                ...commonLinks
+            ];
+        }
+
+        if (user.credentials.role === 'tutor') {
+            return [
+                { to: '/tutor/dashboard', label: t('navbar.home') },
+                ...commonLinks
+            ];
+        }
+
+        return commonLinks;
+    };
+
+    const isActive = (path: string) => {
+        return location.pathname.startsWith(path);
+    };
 
     return (
-        <nav className="bg-white dark:bg-gray-800 shadow-md">
-            <div className="container mx-auto px-4 py-3">
-                <div className="flex justify-between items-center">
-                    <Link to="/" className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                        Tongly
-                    </Link>
-                    
-                    <div className="flex items-center space-x-6">
+        <nav className="bg-surface border-b border-border sticky top-0 z-sticky">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex justify-between h-16">
+                    <div className="flex items-center">
+                        <Link to="/" className="text-2xl font-bold text-accent-primary">
+                            Языкус👅
+                        </Link>
+                        
+                        <div className="hidden md:flex ml-10 space-x-8">
+                            {getNavLinks().map(link => (
+                                <Link
+                                    key={link.to}
+                                    to={link.to}
+                                    className={`text-text-secondary hover:text-text-primary transition-colors
+                                        ${isActive(link.to) ? 'text-accent-primary font-medium' : ''}`}
+                                >
+                                    {link.label}
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="flex items-center space-x-4">
+                        <LanguageSwitcher />
+                        
+                        <button
+                            onClick={toggleTheme}
+                            className="p-2 rounded-lg hover:bg-overlay-light transition-colors"
+                            aria-label={t('common.toggleTheme')}
+                        >
+                            {isDarkMode ? (
+                                <FaSun className="w-5 h-5" />
+                            ) : (
+                                <FaMoon className="w-5 h-5" />
+                            )}
+                        </button>
+
                         {user ? (
-                            <>
-                                <Link 
-                                    to="/dashboard" 
-                                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                                >
-                                    Dashboard
-                                </Link>
-                                <Link 
-                                    to="/tutors" 
-                                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                                >
-                                    Tutors
-                                </Link>
-                                <Link 
-                                    to="/leaderboard" 
-                                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                                >
-                                    Leaderboard
-                                </Link>
+                            <div className="flex items-center space-x-4">
                                 <div className="relative group">
-                                    <div className="flex items-center cursor-pointer">
+                                    <button className="flex items-center space-x-2 p-2 rounded-lg hover:bg-overlay-light transition-colors">
                                         <img
                                             src={user.personal?.profile_picture || DEFAULT_AVATAR}
                                             alt={user.credentials?.username}
-                                            className="w-8 h-8 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700"
+                                            className="h-8 w-8 rounded-full object-cover border-2 border-border"
                                             onError={(e) => {
                                                 const target = e.target as HTMLImageElement;
                                                 target.src = DEFAULT_AVATAR;
                                             }}
                                         />
-                                    </div>
-                                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 hidden group-hover:block">
-                                        <Link 
-                                            to="/profile" 
-                                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        <span className="text-text-primary font-medium">
+                                            {user.credentials?.username}
+                                        </span>
+                                    </button>
+                                    <div className="absolute right-0 w-48 mt-2 py-2 bg-surface rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                                        <Link
+                                            to="/profile"
+                                            className="block px-4 py-2 text-sm text-text-secondary hover:bg-overlay-light hover:text-text-primary w-full text-left"
                                         >
-                                            Profile
+                                            {t('navbar.profile')}
                                         </Link>
                                         <button
                                             onClick={logout}
-                                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            className="block px-4 py-2 text-sm text-error hover:bg-overlay-light w-full text-left"
                                         >
-                                            Logout
+                                            {t('auth.logout')}
                                         </button>
                                     </div>
                                 </div>
-                            </>
+                            </div>
                         ) : (
-                            <>
-                                <Link 
-                                    to="/login" 
-                                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                            <div className="flex items-center space-x-4">
+                                <Link
+                                    to="/login"
+                                    className="px-4 py-2 text-accent-primary hover:text-accent-primary-hover font-medium transition-colors"
                                 >
-                                    Login
+                                    {t('auth.login')}
                                 </Link>
-                                <Link 
-                                    to="/register" 
-                                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 
-                                             transition duration-300 font-medium"
+                                <Link
+                                    to="/register"
+                                    className="px-4 py-2 bg-accent-primary hover:bg-accent-primary-hover text-white rounded-lg font-medium transition-colors"
                                 >
-                                    Register
+                                    {t('auth.register')}
                                 </Link>
-                            </>
+                            </div>
                         )}
                     </div>
                 </div>
             </div>
         </nav>
     );
-};
-
-export default Navbar;
+}; 

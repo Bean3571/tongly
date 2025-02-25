@@ -347,7 +347,7 @@ func (r *LessonRepositoryImpl) GetVideoSession(ctx context.Context, lessonID int
 	session := &entities.VideoSession{}
 	err := r.db.QueryRowContext(ctx, query, lessonID).Scan(
 		&session.ID, &session.LessonID, &session.RoomID, &session.Token,
-		&session.StartTime, &session.EndTime, &session.Status,
+		&session.StartTime, &session.EndTime,
 	)
 	if err == sql.ErrNoRows {
 		return nil, errors.New("video session not found")

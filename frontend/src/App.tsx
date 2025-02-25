@@ -2,11 +2,11 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
-import { ThemeProvider } from './contexts/ThemeContext';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { I18nProvider } from './contexts/I18nContext';
 import { TranslationLoader } from './components/TranslationLoader';
-import { Navbar } from './components/Layout/Navbar';
+import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
@@ -18,13 +18,10 @@ import TutorSearch from './pages/TutorSearch';
 import { Lessons } from './pages/Lessons';
 import LessonRoom from './pages/LessonRoom';
 import { Wallet } from './pages/Wallet';
-import { Challenges } from './pages/Challenges';
-import { Leaderboard } from './pages/Leaderboard';
 import { useAuth } from './contexts/AuthContext';
 import { BookLesson } from './pages/BookLesson';
 import { TeachingProfile } from './pages/TeachingProfile';
 import { Schedule } from './pages/Schedule';
-import { Messages } from './pages/Messages';
 import { Settings } from './pages/Settings';
 import { PlatformEarnings } from './pages/admin/PlatformEarnings';
 
@@ -41,10 +38,11 @@ const PrivateRoute = ({ children, role }: { children: React.ReactNode, role?: st
 
 const AppRoutes = () => {
     const { user } = useAuth();
+    const { isDarkMode } = useTheme();
     const defaultRoute = user?.credentials.role === 'tutor' ? '/tutor/dashboard' : '/student/dashboard';
 
     return (
-        <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+        <div className={`min-h-screen flex flex-col bg-surface text-text-primary`}>
             <Navbar />
             <main className="container mx-auto px-4 py-8 flex-grow">
                 <Routes>
@@ -102,11 +100,6 @@ const AppRoutes = () => {
                             <Schedule />
                         </PrivateRoute>
                     } />
-                    <Route path="/messages" element={
-                        <PrivateRoute>
-                            <Messages />
-                        </PrivateRoute>
-                    } />
                     <Route path="/settings" element={
                         <PrivateRoute>
                             <Settings />
@@ -144,9 +137,9 @@ const AppRoutes = () => {
 
 const App = () => {
     return (
-        <QueryClientProvider client={queryClient}>
-            <Router>
-                <ThemeProvider>
+        <ThemeProvider>
+            <QueryClientProvider client={queryClient}>
+                <Router>
                     <NotificationProvider>
                         <I18nProvider>
                             <TranslationLoader>
@@ -156,9 +149,9 @@ const App = () => {
                             </TranslationLoader>
                         </I18nProvider>
                     </NotificationProvider>
-                </ThemeProvider>
-            </Router>
-        </QueryClientProvider>
+                </Router>
+            </QueryClientProvider>
+        </ThemeProvider>
     );
 };
 

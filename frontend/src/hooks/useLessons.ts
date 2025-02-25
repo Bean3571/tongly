@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { notification } from 'antd';
+import { api } from '../utils/api';
+import { envConfig } from '../config/env';
 
 export interface Lesson {
     id: number;
@@ -18,71 +20,147 @@ export interface Lesson {
 
 interface UseLessonsProps {
     type: 'upcoming' | 'completed';
+    autoRefresh?: boolean;
 }
 
-export const useLessons = ({ type }: UseLessonsProps) => {
+// Helper to get current time, using mock time in development if lesson dates are far in future
+const getCurrentTime = (lessonStartTime: string): Date => {
+    const now = new Date();
+    const startTime = new Date(lessonStartTime);
+    
+    // If we're in development and the lesson is more than a year in the future
+    if (envConfig.environment === 'development' && startTime.getTime() - now.getTime() > 365 * 24 * 60 * 60 * 1000) {
+        // Use a time 5 minutes after the lesson start for testing
+        return new Date(startTime.getTime() + 5 * 60 * 1000);
+    }
+    
+    return now;
+};
+
+export const useLessons = ({ type, autoRefresh = false }: UseLessonsProps) => {
     const navigate = useNavigate();
     const [lessons, setLessons] = useState<Lesson[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+    const isLoadingRef = useRef(false); // Prevent concurrent requests
+    const abortControllerRef = useRef<AbortController | null>(null);
 
-    const loadLessons = async () => {
+    const loadLessons = useCallback(async (silent = false) => {
+        // Prevent concurrent requests
+        if (isLoadingRef.current) {
+            console.log('Already loading lessons, skipping request');
+            return;
+        }
+
+        // Cancel any in-flight requests
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+        
+        // Create new abort controller for this request
+        abortControllerRef.current = new AbortController();
+        
         try {
-            setLoading(true);
+            isLoadingRef.current = true;
+            if (!silent) setLoading(true);
             setError(null);
-            const token = localStorage.getItem('token');
-            const apiUrl = 'http://localhost:8080/api';
-            const endpoint = type === 'upcoming' ? '/lessons/upcoming' : '/lessons/completed';
 
-            const response = await fetch(`${apiUrl}${endpoint}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
+            console.log(`Fetching ${type} lessons...`);
+            const endpoint = `/lessons/${type}`;
+            
+            const response = await api.get(endpoint, {
+                signal: abortControllerRef.current.signal
             });
+            
+            console.log('Lessons API Response:', response);
 
-            if (response.status === 401) {
-                notification.error({
-                    message: 'Session Expired',
-                    description: 'Please log in again to continue.',
+            if (!response || !response.data) {
+                throw new Error('No data received from server');
+            }
+
+            let lessonsData = response.data;
+            
+            // If response is an object with a data property, use that
+            if (!Array.isArray(lessonsData) && lessonsData.data) {
+                lessonsData = lessonsData.data;
+            }
+
+            // Final check if we have an array
+            if (!Array.isArray(lessonsData)) {
+                console.error('Response is not an array:', lessonsData);
+                throw new Error('Invalid response format from server');
+            }
+
+            // Update lesson status for any lessons that should be in progress
+            const updatedLessons = lessonsData
+                .filter((lesson): lesson is Lesson => {
+                    if (!lesson || typeof lesson !== 'object') {
+                        console.error('Invalid lesson data:', lesson);
+                        return false;
+                    }
+                    
+                    return (
+                        typeof lesson.id === 'number' &&
+                        typeof lesson.status === 'string'
+                    );
+                })
+                .map((lesson: Lesson) => {
+                    try {
+                        const now = getCurrentTime(lesson.start_time);
+                        const startTime = new Date(lesson.start_time);
+                        const endTime = new Date(lesson.end_time);
+                        
+                        if (lesson.status === 'scheduled' && now >= startTime && now <= endTime) {
+                            console.log(`Marking lesson ${lesson.id} as in_progress (now: ${now.toISOString()}, start: ${startTime.toISOString()}, end: ${endTime.toISOString()})`);
+                            return { ...lesson, status: 'in_progress' as const };
+                        }
+                        return lesson;
+                    } catch (error) {
+                        console.error('Error processing lesson:', lesson, error);
+                        return lesson;
+                    }
                 });
-                navigate('/login');
+
+            console.log('Processed lessons:', updatedLessons);
+            setLessons(updatedLessons);
+        } catch (error: any) {
+            // Don't update state if request was aborted
+            if (error.name === 'AbortError') {
+                console.log('Request aborted');
                 return;
             }
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            
+            console.error('Error loading lessons:', {
+                error,
+                response: error?.response,
+                message: error?.message,
+                stack: error?.stack
+            });
+            
+            const message = error?.response?.data?.message || error?.message || 'Failed to load lessons';
+            setError(message);
+            
+            if (!silent) {
+                notification.error({
+                    message: 'Error Loading Lessons',
+                    description: message,
+                });
             }
 
-            const data = await response.json();
-            setLessons(data);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Failed to load lessons';
-            setError(message);
-            notification.error({
-                message: 'Error Loading Lessons',
-                description: message,
-            });
+            // If unauthorized, redirect to login
+            if (error?.response?.status === 401) {
+                navigate('/login');
+            }
         } finally {
-            setLoading(false);
+            isLoadingRef.current = false;
+            if (!silent) setLoading(false);
         }
-    };
+    }, [type, navigate]);
 
     const cancelLesson = async (lessonId: number, reason: string) => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:8080/api/lessons/${lessonId}/cancel`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ reason }),
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to cancel lesson');
-            }
+            await api.post(`/lessons/${lessonId}/cancel`, { reason });
 
             notification.success({
                 message: 'Lesson Cancelled',
@@ -91,25 +169,68 @@ export const useLessons = ({ type }: UseLessonsProps) => {
 
             // Reload lessons to update the list
             loadLessons();
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Failed to cancel lesson';
+        } catch (error: any) {
+            console.error('Error cancelling lesson:', error);
+            const message = error?.response?.data?.message || error?.message || 'Failed to cancel lesson';
             notification.error({
                 message: 'Error',
                 description: message,
             });
+            
+            // If unauthorized, redirect to login
+            if (error?.response?.status === 401) {
+                navigate('/login');
+            }
             throw error;
         }
     };
 
+    // Set up auto-refresh if enabled
+    useEffect(() => {
+        // Clear any existing interval
+        if (refreshIntervalRef.current) {
+            clearInterval(refreshIntervalRef.current);
+            refreshIntervalRef.current = null;
+        }
+        
+        if (autoRefresh) {
+            // Refresh every 30 seconds if auto-refresh is enabled, but use silent loading
+            refreshIntervalRef.current = setInterval(() => {
+                loadLessons(true); // Silent refresh
+            }, 30000);
+        }
+        
+        return () => {
+            if (refreshIntervalRef.current) {
+                clearInterval(refreshIntervalRef.current);
+                refreshIntervalRef.current = null;
+            }
+        };
+    }, [autoRefresh, loadLessons]);
+
+    // Initial load
     useEffect(() => {
         loadLessons();
-    }, [type]);
+        
+        return () => {
+            // Clean up on unmount
+            if (refreshIntervalRef.current) {
+                clearInterval(refreshIntervalRef.current);
+                refreshIntervalRef.current = null;
+            }
+            
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+                abortControllerRef.current = null;
+            }
+        };
+    }, [type, loadLessons]);
 
     return {
         lessons,
         loading,
         error,
-        refreshLessons: loadLessons,
+        refreshLessons: () => loadLessons(false),
         cancelLesson,
     };
 }; 

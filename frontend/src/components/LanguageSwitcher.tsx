@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useI18n } from '../contexts/I18nContext';
+import { useTranslation } from '../contexts/I18nContext';
 import { SUPPORTED_LOCALES } from '../services/i18n/i18nService';
 import { Language } from '../services/i18n/types';
 
 export const LanguageSwitcher: React.FC = () => {
-    const { currentLocale, setLocale } = useI18n();
+    const { currentLanguage, changeLanguage } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -24,7 +24,7 @@ export const LanguageSwitcher: React.FC = () => {
             case ' ':
             case 'Enter':
                 event.preventDefault();
-                setLocale(locale);
+                changeLanguage(locale);
                 setIsOpen(false);
                 break;
             case 'Escape':
@@ -47,7 +47,7 @@ export const LanguageSwitcher: React.FC = () => {
         }
     };
 
-    const currentLanguage = SUPPORTED_LOCALES[currentLocale];
+    const currentLocaleConfig = SUPPORTED_LOCALES[currentLanguage as Language];
 
     return (
         <div className="relative" ref={dropdownRef}>
@@ -58,8 +58,8 @@ export const LanguageSwitcher: React.FC = () => {
                 aria-haspopup="listbox"
                 aria-label="Select language"
             >
-                <span className="text-xl" aria-hidden="true">{currentLanguage.flag}</span>
-                <span className="hidden sm:inline">{currentLanguage.name}</span>
+                <span className="text-xl" aria-hidden="true">{currentLocaleConfig.flag}</span>
+                <span className="hidden sm:inline">{currentLocaleConfig.name}</span>
             </button>
 
             {isOpen && (
@@ -68,22 +68,22 @@ export const LanguageSwitcher: React.FC = () => {
                     role="listbox"
                     aria-label="Languages"
                 >
-                    {Object.values(SUPPORTED_LOCALES).map((locale) => (
+                    {Object.entries(SUPPORTED_LOCALES).map(([code, locale]) => (
                         <div
-                            key={locale.code}
+                            key={code}
                             className={`flex items-center px-4 py-2 text-sm cursor-pointer
-                                ${currentLocale === locale.code
+                                ${currentLanguage === code
                                     ? 'bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-200'
                                     : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
                                 }`}
                             role="option"
-                            aria-selected={currentLocale === locale.code}
+                            aria-selected={currentLanguage === code}
                             tabIndex={0}
                             onClick={() => {
-                                setLocale(locale.code);
+                                changeLanguage(code as Language);
                                 setIsOpen(false);
                             }}
-                            onKeyDown={(e) => handleKeyDown(e, locale.code)}
+                            onKeyDown={(e) => handleKeyDown(e, code as Language)}
                         >
                             <span className="text-xl mr-3" aria-hidden="true">
                                 {locale.flag}

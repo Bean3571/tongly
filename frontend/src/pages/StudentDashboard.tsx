@@ -86,7 +86,7 @@ const StudentDashboard: React.FC = () => {
                 last_name: user?.personal?.last_name || null,
                 profile_picture: user?.personal?.profile_picture || null,
                 age: user?.personal?.age || null,
-                sex: user?.personal?.sex || null,
+                sex: user?.personal?.sex || null
             });
             await refreshUser();
             setIsEditingLanguages(false);   

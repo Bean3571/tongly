@@ -19,7 +19,7 @@ func NewVideoSessionRepository(db *sql.DB) VideoSessionRepository {
 
 func (r *videoSessionRepositoryImpl) Create(ctx context.Context, session *entities.VideoSession) error {
 	query := `
-		INSERT INTO video_sessions (lesson_id, room_id, token, start_time)
+		INSERT INTO video_sessions (lesson_id, room_id, session_token, started_at)
 		VALUES ($1, $2, $3, $4)
 		RETURNING id`
 
@@ -30,14 +30,14 @@ func (r *videoSessionRepositoryImpl) Create(ctx context.Context, session *entiti
 
 func (r *videoSessionRepositoryImpl) GetByID(ctx context.Context, id int) (*entities.VideoSession, error) {
 	query := `
-		SELECT id, lesson_id, room_id, token, start_time, end_time, status
+		SELECT id, lesson_id, room_id, session_token, started_at, ended_at
 		FROM video_sessions
 		WHERE id = $1`
 
 	session := &entities.VideoSession{}
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&session.ID, &session.LessonID, &session.RoomID, &session.Token,
-		&session.StartTime, &session.EndTime, &session.Status,
+		&session.StartTime, &session.EndTime,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -48,11 +48,11 @@ func (r *videoSessionRepositoryImpl) GetByID(ctx context.Context, id int) (*enti
 func (r *videoSessionRepositoryImpl) Update(ctx context.Context, session *entities.VideoSession) error {
 	query := `
 		UPDATE video_sessions
-		SET end_time = $1, status = $2
-		WHERE id = $3`
+		SET ended_at = $1
+		WHERE id = $2`
 
 	result, err := r.db.ExecContext(ctx, query,
-		session.EndTime, session.Status, session.ID)
+		session.EndTime, session.ID)
 	if err != nil {
 		return err
 	}
@@ -90,7 +90,7 @@ func (r *videoSessionRepositoryImpl) List(ctx context.Context, pagination common
 
 func (r *videoSessionRepositoryImpl) GetByLessonID(ctx context.Context, lessonID int) (*entities.VideoSession, error) {
 	query := `
-		SELECT id, lesson_id, room_id, token, start_time, end_time, status
+		SELECT id, lesson_id, room_id, session_token, started_at, ended_at
 		FROM video_sessions
 		WHERE lesson_id = $1
 		ORDER BY created_at DESC
@@ -99,7 +99,7 @@ func (r *videoSessionRepositoryImpl) GetByLessonID(ctx context.Context, lessonID
 	session := &entities.VideoSession{}
 	err := r.db.QueryRowContext(ctx, query, lessonID).Scan(
 		&session.ID, &session.LessonID, &session.RoomID, &session.Token,
-		&session.StartTime, &session.EndTime, &session.Status,
+		&session.StartTime, &session.EndTime,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -109,10 +109,10 @@ func (r *videoSessionRepositoryImpl) GetByLessonID(ctx context.Context, lessonID
 
 func (r *videoSessionRepositoryImpl) GetActiveByTutorID(ctx context.Context, tutorID int) ([]entities.VideoSession, error) {
 	query := `
-		SELECT vs.id, vs.lesson_id, vs.room_id, vs.token, vs.start_time, vs.end_time, vs.status
+		SELECT vs.id, vs.lesson_id, vs.room_id, vs.session_token, vs.started_at, vs.ended_at
 		FROM video_sessions vs
 		JOIN lessons l ON vs.lesson_id = l.id
-		WHERE l.tutor_id = $1 AND vs.end_time IS NULL`
+		WHERE l.tutor_id = $1 AND vs.ended_at IS NULL`
 
 	rows, err := r.db.QueryContext(ctx, query, tutorID)
 	if err != nil {
@@ -125,7 +125,7 @@ func (r *videoSessionRepositoryImpl) GetActiveByTutorID(ctx context.Context, tut
 		var session entities.VideoSession
 		err := rows.Scan(
 			&session.ID, &session.LessonID, &session.RoomID, &session.Token,
-			&session.StartTime, &session.EndTime, &session.Status,
+			&session.StartTime, &session.EndTime,
 		)
 		if err != nil {
 			return nil, err

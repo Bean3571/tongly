@@ -85,49 +85,6 @@ const TutorDashboard: React.FC = () => {
                             />
                         )}
                     </Card>
-
-                    {/* Recent Activity */}
-                    <Card 
-                        title={
-                            <div className="flex items-center !text-gray-800 dark:!text-gray-100">
-                                <CheckCircleOutlined className="mr-2" />
-                                Recent Activity
-                            </div>
-                        }
-                        className="mt-6 shadow-md dark:bg-gray-800 dark:border-gray-700"
-                        bordered={false}
-                    >
-                        <div className="space-y-4">
-                            {stats.recentActivity?.map((activity, index) => (
-                                <div 
-                                    key={index}
-                                    className="flex items-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
-                                >
-                                    <div className="flex-1">
-                                        <Text className="!text-gray-800 dark:!text-gray-100">
-                                            {activity.description}
-                                        </Text>
-                                        <Text className="block text-sm !text-gray-500 dark:!text-gray-400">
-                                            {activity.time}
-                                        </Text>
-                                    </div>
-                                    {activity.action && (
-                                        <Button 
-                                            size="small" 
-                                            onClick={() => {
-                                                if (activity.action) {
-                                                    navigate(activity.action.path);
-                                                }
-                                            }}
-                                            className="dark:border-gray-600 dark:text-gray-300 dark:hover:text-white"
-                                        >
-                                            {activity.action.label}
-                                        </Button>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </Card>
                 </Col>
                 
                 <Col xs={24} xl={8}>

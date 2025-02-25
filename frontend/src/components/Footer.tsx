@@ -12,7 +12,7 @@ export const Footer = () => {
                     {/* Company Info */}
                     <div className="col-span-1">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                            Tongly
+                            Языкус👅
                         </h3>
                         <p className="text-gray-600 dark:text-gray-400 mb-4">
                             Connect with native speakers and learn languages naturally.
@@ -139,7 +139,7 @@ export const Footer = () => {
 
                 <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
                     <p className="text-center text-gray-600 dark:text-gray-400">
-                        © {new Date().getFullYear()} Tongly. All rights reserved.
+                        © {new Date().getFullYear()} Tongly.
                     </p>
                 </div>
             </div>

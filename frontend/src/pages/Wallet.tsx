@@ -144,13 +144,15 @@ export const Wallet: React.FC = () => {
                                 {t('wallet.deposit')}
                             </Button>
                         )}
-                        <Button 
-                            ghost 
-                            onClick={() => setShowWithdrawModal(true)}
-                            className="flex-1"
-                        >
-                            {t('wallet.withdraw')}
-                        </Button>
+                        {user?.credentials.role === 'tutor' && (
+                            <Button 
+                                ghost 
+                                onClick={() => setShowWithdrawModal(true)}
+                                className="flex-1"
+                            >
+                                {t('wallet.withdraw')}
+                            </Button>
+                        )}
                     </div>
                 </Card>
 
@@ -268,7 +270,6 @@ export const Wallet: React.FC = () => {
                         type="primary"
                         loading={processingPayment}
                         onClick={handleWithdraw}
-                        danger
                     >
                         {t('wallet.withdraw')}
                     </Button>
@@ -281,18 +282,16 @@ export const Wallet: React.FC = () => {
                         value={withdrawAmount}
                         onChange={(e) => setWithdrawAmount(e.target.value)}
                         min={0}
-                        max={balance}
-                        step={100}
                         prefix="₽"
                     />
                     <Text className="block text-gray-500">
                         {t('wallet.withdrawModal.availableBalance', { balance: formatCurrency(balance) })}
                     </Text>
-                    <Alert
-                        message={t('wallet.withdrawModal.processingTime')}
-                        type="info"
-                        showIcon
-                    />
+                    {user?.credentials.role === 'tutor' && (
+                        <Text className="block text-gray-500">
+                            {t('wallet.withdrawModal.processingTime')}
+                        </Text>
+                    )}
                 </div>
             </Modal>
         </div>

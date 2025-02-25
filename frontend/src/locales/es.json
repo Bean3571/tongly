@@ -1,0 +1,414 @@
+{
+    "common": {
+        "loading": "Cargando...",
+        "error": "Error",
+        "success": "Éxito",
+        "cancel": "Cancelar",
+        "save": "Guardar",
+        "edit": "Editar",
+        "delete": "Eliminar",
+        "confirm": "Confirmar",
+        "back": "Atrás",
+        "try.again": "Intentar de nuevo",
+        "toggleTheme": "Cambiar tema",
+        "platform.name": "Tongly",
+        "languages": {
+            "en": "Inglés",
+            "ru": "Ruso",
+            "es": "Español"
+        }
+    },
+    "validation": {
+        "required": "Este campo es obligatorio",
+        "email.invalid": "Dirección de correo electrónico inválida",
+        "username.min.length": "El nombre de usuario debe tener al menos 3 caracteres",
+        "password.min.length": "La contraseña debe tener al menos 6 caracteres",
+        "password.match": "Las contraseñas deben coincidir",
+        "role.invalid": "Rol seleccionado inválido"
+    },
+    "auth": {
+        "login": "Iniciar sesión",
+        "register": "Registrarse",
+        "logout": "Cerrar sesión",
+        "email": "Correo electrónico",
+        "password": "Contraseña",
+        "username": "Nombre de usuario",
+        "forgotPassword": "¿Olvidaste tu contraseña?",
+        "rememberMe": "Recordarme",
+        "errors": {
+            "invalidCredentials": "Correo electrónico o contraseña inválidos",
+            "emailRequired": "El correo electrónico es obligatorio",
+            "passwordRequired": "La contraseña es obligatoria",
+            "usernameRequired": "El nombre de usuario es obligatorio"
+        }
+    },
+    "navbar": {
+        "home": "Inicio",
+        "tutors": "Encontrar tutores",
+        "lessons": "Mis clases",
+        "wallet": "Billetera",
+        "profile": "Perfil",
+        "settings": "Configuración",
+        "earnings": "Ganancias",
+        "balance": "Balance"
+    },
+    "wallet": {
+        "title": "Billetera",
+        "balance": "Balance",
+        "deposit": "Depositar",
+        "withdraw": "Retirar",
+        "transactions": {
+            "deposit": "Depósito",
+            "withdrawal": "Retiro",
+            "lessonPayment": "Pago de clase"
+        },
+        "commission": {
+            "title": "Comisión",
+            "description": "La comisión de la plataforma es {{rate}}% del precio de la clase",
+            "student": "La comisión está incluida en el precio de la clase",
+            "tutor": "La comisión se deduce del precio de la clase",
+            "amount": "Comisión: {{amount}}"
+        },
+        "errors": {
+            "insufficientFunds": "Fondos insuficientes",
+            "invalidAmount": "Monto inválido",
+            "minAmount": "El monto mínimo es {{amount}}",
+            "depositFailed": "Error al depositar fondos",
+            "withdrawalFailed": "Error al retirar fondos"
+        },
+        "depositModal": {
+            "title": "Depositar fondos",
+            "amountPlaceholder": "Ingrese el monto a depositar",
+            "minAmount": "Monto mínimo de depósito: {{amount}}"
+        },
+        "withdrawModal": {
+            "title": "Retirar fondos",
+            "amountPlaceholder": "Ingrese el monto a retirar",
+            "availableBalance": "Balance disponible: {{balance}}",
+            "processingTime": "Los retiros se procesan típicamente en 1-3 días hábiles"
+        },
+        "transactionHistory": "Historial de transacciones",
+        "availableBalance": "Balance disponible",
+        "depositSuccess": "Depósito exitoso",
+        "withdrawalSuccess": "Solicitud de retiro enviada",
+        "earnings": "Ganancias"
+    },
+    "lessons": {
+        "title": "Mis clases",
+        "subtitle": {
+            "upcoming": "Administra tus próximas clases",
+            "completed": "Ver historial de clases"
+        },
+        "empty": "No se encontraron clases",
+        "loading": "Cargando tus clases...",
+        "upcoming": "Próximas clases",
+        "completed": "Clases completadas",
+        "status": {
+            "scheduled": "Programada",
+            "in_progress": "En progreso",
+            "completed": "Completada",
+            "cancelled": "Cancelada"
+        },
+        "actions": {
+            "join": "Unirse a la clase",
+            "join.ongoing": "Unirse a la clase en curso",
+            "cancel": "Cancelar clase",
+            "rate": "Calificar clase"
+        },
+        "count": {
+            "one": "{{count}} clase",
+            "other": "{{count}} clases"
+        },
+        "table": {
+            "tutor": "Tutor",
+            "student": "Estudiante",
+            "language.duration": "Idioma y duración",
+            "date.time": "Fecha y hora",
+            "status": "Estado",
+            "price": "Precio",
+            "actions": "Acciones"
+        },
+        "duration": "{{minutes}} minutos",
+        "price": "${{price}}",
+        "participant": {
+            "tutor": "Tutor",
+            "student": "Estudiante"
+        },
+        "filter": {
+            "all": "Todos los estados",
+            "scheduled": "Programadas",
+            "completed": "Completadas",
+            "cancelled": "Canceladas"
+        },
+        "tabs": {
+            "upcoming": "Próximas",
+            "completed": "Pasadas"
+        },
+        "error": {
+            "auth": {
+                "title": "Error de autenticación",
+                "description": "Por favor, inicia sesión nuevamente para continuar."
+            },
+            "verify.status": "Error al verificar el estado de la clase",
+            "cannot.join": "No es posible unirse a esta clase en este momento",
+            "ended": "Esta clase ya ha terminado",
+            "start.session": "Error al iniciar la sesión de video",
+            "check.session": "Error al verificar el estado de la sesión de video",
+            "join": {
+                "title": "Error al unirse a la clase",
+                "default": "Error al unirse a la clase"
+            }
+        },
+        "warning": {
+            "too.early": {
+                "title": "Muy temprano",
+                "description": "Puedes unirte a la clase 5 minutos antes de la hora programada."
+            }
+        },
+        "cancel": {
+            "modal": {
+                "title": "Cancelar clase",
+                "confirm": "¿Estás seguro de que deseas cancelar esta clase?",
+                "warning": "Esta acción no se puede deshacer.",
+                "confirm.button": "Sí, cancelar clase",
+                "keep.button": "No, mantener clase"
+            },
+            "reason": "Cancelada por {{role}}"
+        }
+    },
+    "tutors": {
+        "search": {
+            "title": "Encuentra tu tutor perfecto",
+            "placeholder": "Buscar por nombre, idioma o biografía...",
+            "filters": {
+                "language": "Idioma",
+                "price": "Rango de precio",
+                "rating": "Calificación mínima"
+            }
+        },
+        "profile": {
+            "title": "Perfil de enseñanza",
+            "about": "Sobre mí",
+            "about.placeholder": "Cuéntales a los estudiantes sobre ti, tu experiencia enseñando y qué hace únicas tus clases...",
+            "about.tip": "Consejo: Incluye información sobre tu experiencia enseñando, metodología y qué pueden esperar los estudiantes de tus clases.",
+            "education": {
+                "add": "Agregar educación",
+                "institution.placeholder": "Ingresa el nombre de la institución",
+                "field.placeholder": "Ingresa el campo de estudio",
+                "start": "Año de inicio",
+                "end": "Año de finalización"
+            },
+            "languages": "Idiomas que enseño",
+            "pricing": "Precios",
+            "reviews": "Reseñas",
+            "schedule": "Horario"
+        }
+    },
+    "pages": {
+        "login": {
+            "title": "Inicia sesión en tu cuenta",
+            "username": "Nombre de usuario",
+            "username.placeholder": "Ingresa tu nombre de usuario",
+            "password": "Contraseña",
+            "password.placeholder": "Ingresa tu contraseña",
+            "sign.in.button": "Iniciar sesión",
+            "no.account": "¿No tienes una cuenta?",
+            "sign.up": "Regístrate"
+        },
+        "dashboard": {
+            "student": {
+                "title": "Panel de estudiante",
+                "welcome": "¡Bienvenido de nuevo, {{name}}!",
+                "progress": {
+                    "title": "Tu progreso",
+                    "level": "Nivel {{level}}",
+                    "points": "{{points}} puntos",
+                    "next.level": "{{points}} puntos para el siguiente nivel"
+                },
+                "upcoming.lessons": "Próximas clases",
+                "completed.lessons": "Clases completadas",
+                "no.lessons": "No hay clases programadas",
+                "quick.actions": {
+                    "title": "Acciones rápidas",
+                    "find.tutor": "Encontrar un tutor",
+                    "schedule.lesson": "Programar clase",
+                    "view.all.lessons": "Ver todas las clases"
+                },
+                "stats": {
+                    "total.lessons": "Total de clases",
+                    "hours.learned": "Horas aprendidas",
+                    "languages": "Idiomas",
+                    "streak": "Días consecutivos"
+                }
+            },
+            "tutor": {
+                "title": "Panel de tutor",
+                "welcome": "¡Bienvenido de nuevo, {{name}}!",
+                "earnings": {
+                    "title": "Ganancias",
+                    "total": "Ganancias totales",
+                    "this.month": "Este mes",
+                    "pending": "Pendiente"
+                },
+                "schedule": {
+                    "title": "Horario de hoy",
+                    "no.lessons": "No hay clases programadas para hoy"
+                }
+            }
+        },
+        "home": {
+            "welcome": "¡Bienvenido a Tongly! 🌍",
+            "description": "Aprende idiomas con tutores profesionales a tu conveniencia",
+            "get.started": "Comenzar",
+            "sign.in": "Iniciar Sesión",
+            "go.to.dashboard": "Ir al Panel",
+            "features": {
+                "native.tutors": {
+                    "title": "Tutores Nativos",
+                    "description": "Aprende con tutores nativos profesionales"
+                },
+                "personalized.learning": {
+                    "title": "Aprendizaje Personalizado",
+                    "description": "Obtén una experiencia de aprendizaje personalizada"
+                },
+                "track.progress": {
+                    "title": "Seguimiento de Progreso",
+                    "description": "Monitorea tus logros y crecimiento"
+                }
+            }
+        },
+        "challenges": {
+            "title": "Desafíos",
+            "points": "{{points}} puntos",
+            "level": "Nivel {{level}}",
+            "points.to.next.level": "{{points}} puntos para el siguiente nivel",
+            "progress": {
+                "title": "Tu Progreso"
+            },
+            "daily.conversation": {
+                "title": "Conversación Diaria",
+                "description": "Practica hablando todos los días"
+            },
+            "grammar.master": {
+                "title": "Maestro de Gramática",
+                "description": "Perfecciona tus habilidades gramaticales"
+            },
+            "cultural.explorer": {
+                "title": "Explorador Cultural",
+                "description": "Aprende sobre la cultura"
+            },
+            "deadline": {
+                "24h": "24 horas",
+                "3d": "3 días",
+                "2d": "2 días"
+            },
+            "progress.value": "{{current}}/{{total}}",
+            "achievements": {
+                "title": "Logros",
+                "first.lesson": "Primera Lección",
+                "perfect.week": "Semana Perfecta",
+                "quick.learner": "Aprendiz Rápido",
+                "social.butterfly": "Mariposa Social"
+            },
+            "date": {
+                "jan15": "15 de enero",
+                "jan20": "20 de enero",
+                "jan22": "22 de enero",
+                "jan25": "25 de enero"
+            }
+        },
+        "leaderboard": {
+            "title": "Tabla de Clasificación",
+            "filter": {
+                "global": "Global",
+                "friends": "Amigos",
+                "country": "País",
+                "all.languages": "Todos los Idiomas",
+                "english": "Inglés",
+                "spanish": "Español",
+                "french": "Francés",
+                "this.week": "Esta Semana",
+                "this.month": "Este Mes",
+                "all.time": "Todo el Tiempo"
+            },
+            "first.place": "Primer Lugar",
+            "second.place": "Segundo Lugar",
+            "third.place": "Tercer Lugar",
+            "points": "{{points}} puntos",
+            "position": "Posición {{position}}",
+            "user": {
+                "name": "Usuario {{position}}",
+                "stats": "{{points}} puntos • Nivel {{level}}"
+            }
+        },
+        "messages": {
+            "title": "Mensajes",
+            "search.placeholder": "Buscar mensajes...",
+            "no.messages": "No hay mensajes",
+            "type.message": "Escribe tu mensaje..."
+        },
+        "schedule": {
+            "title": "Horario de Clases",
+            "quick.actions": {
+                "title": "Acciones Rápidas",
+                "set.hours": "Establecer Horas Semanales",
+                "block.time": "Bloquear Tiempo",
+                "timezone": "Zona Horaria"
+            }
+        },
+        "settings": {
+            "title": "Configuración",
+            "notifications": {
+                "title": "Notificaciones",
+                "email": {
+                    "title": "Notificaciones por Email",
+                    "description": "Recibe actualizaciones sobre tus clases por email"
+                },
+                "sms": {
+                    "title": "Notificaciones SMS",
+                    "description": "Recibe recordatorios de clases por SMS"
+                },
+                "marketing": {
+                    "title": "Actualizaciones de Marketing",
+                    "description": "Mantente informado sobre nuevas funciones y promociones"
+                }
+            },
+            "security": {
+                "title": "Seguridad",
+                "current.password": "Contraseña Actual",
+                "new.password": "Nueva Contraseña",
+                "confirm.password": "Confirmar Contraseña"
+            },
+            "preferences": {
+                "title": "Preferencias",
+                "language": "Idioma",
+                "timezone": "Zona Horaria"
+            },
+            "billing": {
+                "title": "Facturación",
+                "add.payment": "Agregar Método de Pago",
+                "history": "Historial de Facturación",
+                "no.history": "No hay historial de facturación disponible"
+            }
+        },
+        "book.lesson": {
+            "title": "Reservar una Clase con {{name}}",
+            "select": {
+                "language": "Seleccionar Idioma",
+                "date": "Seleccionar Fecha",
+                "time": "Seleccionar Hora",
+                "duration": "Duración de la Clase"
+            },
+            "lesson.details": {
+                "title": "Detalles de la Clase",
+                "duration": "Duración: {{duration}} minutos",
+                "price": "Precio: {{price}}",
+                "language": "Idioma: {{language}}"
+            },
+            "buttons": {
+                "book": "Reservar Clase",
+                "cancel": "Cancelar"
+            }
+        }
+    }
+} 

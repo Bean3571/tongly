@@ -47,6 +47,9 @@ func SetupRouter(
 		protected := api.Group("/")
 		protected.Use(middleware.AuthMiddleware())
 		{
+			// Auth routes that require authentication
+			protected.POST("/auth/refresh", authHandler.RefreshToken)
+
 			// User profile routes
 			protected.GET("/profile", userHandler.GetUserProfile)
 			protected.PUT("/profile", userHandler.UpdateUserProfile)
@@ -127,6 +130,9 @@ func NewRouter(
 	protected := router.Group("/api")
 	protected.Use(middleware.AuthMiddleware())
 	{
+		// Auth routes that require authentication
+		protected.POST("/auth/refresh", authHandler.RefreshToken)
+
 		// User profile routes
 		protected.GET("/profile", userHandler.GetUserProfile)
 		protected.PUT("/profile", userHandler.UpdateUserProfile)

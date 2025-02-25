@@ -6,11 +6,18 @@ import {
     GlobalOutlined, 
     DollarOutlined 
 } from '@ant-design/icons';
+import { useTranslation } from '../contexts/I18nContext';
 
 const { Title } = Typography;
 const { TabPane } = Tabs;
 
 export const Settings: React.FC = () => {
+    const { t, currentLanguage, changeLanguage } = useTranslation();
+
+    const handleLanguageChange = (value: string) => {
+        changeLanguage(value);
+    };
+
     return (
         <div className="max-w-4xl mx-auto p-6">
             <Alert
@@ -20,7 +27,7 @@ export const Settings: React.FC = () => {
                 className="mb-6"
             />
             
-            <Title level={2} className="mb-6">Settings</Title>
+            <Title level={2} className="mb-6">{t('pages.settings.title')}</Title>
             
             <Card>
                 <Tabs defaultActiveKey="notifications">
@@ -28,7 +35,7 @@ export const Settings: React.FC = () => {
                         tab={
                             <span>
                                 <BellOutlined />
-                                Notifications
+                                {t('pages.settings.notifications.title')}
                             </span>
                         }
                         key="notifications"
@@ -36,22 +43,22 @@ export const Settings: React.FC = () => {
                         <div className="space-y-6">
                             <div className="flex justify-between items-center">
                                 <div>
-                                    <h3 className="font-medium">Email Notifications</h3>
-                                    <p className="text-gray-500">Receive email updates about your lessons</p>
+                                    <h3 className="font-medium">{t('pages.settings.notifications.email.title')}</h3>
+                                    <p className="text-gray-500">{t('pages.settings.notifications.email.description')}</p>
                                 </div>
                                 <Switch defaultChecked />
                             </div>
                             <div className="flex justify-between items-center">
                                 <div>
-                                    <h3 className="font-medium">SMS Notifications</h3>
-                                    <p className="text-gray-500">Get text messages for lesson reminders</p>
+                                    <h3 className="font-medium">{t('pages.settings.notifications.sms.title')}</h3>
+                                    <p className="text-gray-500">{t('pages.settings.notifications.sms.description')}</p>
                                 </div>
                                 <Switch />
                             </div>
                             <div className="flex justify-between items-center">
                                 <div>
-                                    <h3 className="font-medium">Marketing Updates</h3>
-                                    <p className="text-gray-500">Stay informed about new features and promotions</p>
+                                    <h3 className="font-medium">{t('pages.settings.notifications.marketing.title')}</h3>
+                                    <p className="text-gray-500">{t('pages.settings.notifications.marketing.description')}</p>
                                 </div>
                                 <Switch defaultChecked />
                             </div>
@@ -62,74 +69,26 @@ export const Settings: React.FC = () => {
                         tab={
                             <span>
                                 <LockOutlined />
-                                Security
+                                {t('pages.settings.security.title')}
                             </span>
                         }
                         key="security"
                     >
                         <Form layout="vertical">
-                            <Form.Item label="Current Password">
+                            <Form.Item label={t('pages.settings.security.current.password')}>
                                 <Input.Password />
                             </Form.Item>
-                            <Form.Item label="New Password">
+                            <Form.Item label={t('pages.settings.security.new.password')}>
                                 <Input.Password />
                             </Form.Item>
-                            <Form.Item label="Confirm New Password">
+                            <Form.Item label={t('pages.settings.security.confirm.password')}>
                                 <Input.Password />
                             </Form.Item>
                             <Button type="primary">Update Password</Button>
                         </Form>
                     </TabPane>
 
-                    <TabPane
-                        tab={
-                            <span>
-                                <GlobalOutlined />
-                                Preferences
-                            </span>
-                        }
-                        key="preferences"
-                    >
-                        <div className="space-y-6">
-                            <div>
-                                <h3 className="font-medium mb-2">Language</h3>
-                                <Select defaultValue="en" style={{ width: 200 }}>
-                                    <Select.Option value="en">English</Select.Option>
-                                    <Select.Option value="es">Spanish</Select.Option>
-                                    <Select.Option value="fr">French</Select.Option>
-                                </Select>
-                            </div>
-                            <div>
-                                <h3 className="font-medium mb-2">Time Zone</h3>
-                                <Select defaultValue="utc" style={{ width: 200 }}>
-                                    <Select.Option value="utc">UTC</Select.Option>
-                                    <Select.Option value="est">Eastern Time</Select.Option>
-                                    <Select.Option value="pst">Pacific Time</Select.Option>
-                                </Select>
-                            </div>
-                        </div>
-                    </TabPane>
-
-                    <TabPane
-                        tab={
-                            <span>
-                                <DollarOutlined />
-                                Billing
-                            </span>
-                        }
-                        key="billing"
-                    >
-                        <div className="space-y-6">
-                            <div>
-                                <h3 className="font-medium mb-2">Payment Method</h3>
-                                <Button>Add Payment Method</Button>
-                            </div>
-                            <div>
-                                <h3 className="font-medium mb-2">Billing History</h3>
-                                <p className="text-gray-500">No billing history available</p>
-                            </div>
-                        </div>
-                    </TabPane>
+                    
                 </Tabs>
             </Card>
         </div>
