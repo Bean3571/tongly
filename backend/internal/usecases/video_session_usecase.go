@@ -16,6 +16,9 @@ type VideoSessionUseCase interface {
 	EndSession(ctx context.Context, lessonID int, userID int) error
 	GetSession(ctx context.Context, lessonID int, userID int) (*entities.VideoSession, error)
 	GetActiveSessionsByTutor(ctx context.Context, tutorID int) ([]entities.VideoSession, error)
+	AddParticipant(ctx context.Context, lessonID int, userID int) error
+	RemoveParticipant(ctx context.Context, lessonID int, userID int) error
+	GetParticipants(ctx context.Context, lessonID int) ([]entities.RoomParticipant, error)
 }
 
 type videoSessionUseCase struct {
@@ -66,7 +69,8 @@ func (uc *videoSessionUseCase) EndSession(ctx context.Context, lessonID int, use
 		return err
 	}
 
-	session.EndTime = time.Now()
+	now := time.Now()
+	session.EndTime = &now
 
 	return uc.videoSessionRepo.Update(ctx, session)
 }
@@ -75,6 +79,11 @@ func (uc *videoSessionUseCase) GetSession(ctx context.Context, lessonID int, use
 	session, err := uc.videoSessionRepo.GetByLessonID(ctx, lessonID)
 	if err != nil {
 		return nil, uc.errorService.WrapError(err, "failed to get video session")
+	}
+
+	// If no session exists, return nil without error
+	if session == nil {
+		return nil, nil
 	}
 
 	lesson, err := uc.lessonRepo.GetByID(ctx, lessonID)
@@ -91,6 +100,18 @@ func (uc *videoSessionUseCase) GetSession(ctx context.Context, lessonID int, use
 
 func (uc *videoSessionUseCase) GetActiveSessionsByTutor(ctx context.Context, tutorID int) ([]entities.VideoSession, error) {
 	return uc.videoSessionRepo.GetActiveByTutorID(ctx, tutorID)
+}
+
+func (uc *videoSessionUseCase) AddParticipant(ctx context.Context, lessonID int, userID int) error {
+	return uc.videoSessionRepo.AddParticipant(ctx, lessonID, userID)
+}
+
+func (uc *videoSessionUseCase) RemoveParticipant(ctx context.Context, lessonID int, userID int) error {
+	return uc.videoSessionRepo.RemoveParticipant(ctx, lessonID, userID)
+}
+
+func (uc *videoSessionUseCase) GetParticipants(ctx context.Context, lessonID int) ([]entities.RoomParticipant, error) {
+	return uc.videoSessionRepo.GetParticipants(ctx, lessonID)
 }
 
 func (uc *videoSessionUseCase) canStartSession(lesson *entities.Lesson, userID int) bool {

@@ -73,10 +73,10 @@ func main() {
 	userRepo := repositories.NewUserRepository(db)
 	tutorRepo := repositories.NewTutorRepository(db)
 	lessonRepo := repositories.NewLessonRepository(db)
-	videoSessionRepo := repositories.NewVideoSessionRepository(db)
 	walletRepo := repositories.NewWalletRepository(db)
 	chatRepo := repositories.NewChatRepository(db)
 	ratingRepo := repositories.NewRatingRepository(db)
+	videoSessionRepo := repositories.NewVideoSessionRepository(db)
 
 	// Initialize use cases
 	authUseCase := usecases.NewAuthUseCase(userRepo)

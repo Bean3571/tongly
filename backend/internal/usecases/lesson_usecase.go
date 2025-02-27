@@ -15,8 +15,8 @@ type LessonUseCase interface {
 	BookLesson(ctx context.Context, studentID int, request *entities.LessonBookingRequest) (*entities.Lesson, error)
 	CancelLesson(ctx context.Context, userID int, lessonID int, request *entities.LessonCancellationRequest) error
 	GetLessonByID(ctx context.Context, userID int, lessonID int) (*entities.Lesson, error)
-	GetUpcomingLessons(ctx context.Context, userID int) ([]entities.Lesson, error)
-	GetCompletedLessons(ctx context.Context, userID int) ([]entities.Lesson, error)
+	GetLessons(ctx context.Context, userID int) ([]entities.Lesson, error)
+	UpdateLessonStatus(ctx context.Context, lesson *entities.Lesson) error
 
 	// Chat functionality
 	SendChatMessage(ctx context.Context, lessonID int, userID int, content string) error
@@ -155,12 +155,8 @@ func (uc *lessonUseCase) GetLessonByID(ctx context.Context, userID int, lessonID
 	return lesson, nil
 }
 
-func (uc *lessonUseCase) GetUpcomingLessons(ctx context.Context, userID int) ([]entities.Lesson, error) {
-	return uc.lessonRepo.GetUpcomingLessons(ctx, userID)
-}
-
-func (uc *lessonUseCase) GetCompletedLessons(ctx context.Context, userID int) ([]entities.Lesson, error) {
-	return uc.lessonRepo.GetCompletedLessons(ctx, userID)
+func (uc *lessonUseCase) GetLessons(ctx context.Context, userID int) ([]entities.Lesson, error) {
+	return uc.lessonRepo.GetLessons(ctx, userID)
 }
 
 func (uc *lessonUseCase) SendChatMessage(ctx context.Context, lessonID int, userID int, content string) error {
@@ -226,6 +222,10 @@ func (uc *lessonUseCase) RateLesson(ctx context.Context, lessonID int, studentID
 
 func (uc *lessonUseCase) GetTutorRating(ctx context.Context, tutorID int) (float64, error) {
 	return uc.lessonRepo.GetTutorAverageRating(ctx, tutorID)
+}
+
+func (uc *lessonUseCase) UpdateLessonStatus(ctx context.Context, lesson *entities.Lesson) error {
+	return uc.lessonRepo.UpdateLesson(ctx, lesson)
 }
 
 // Helper functions

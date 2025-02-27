@@ -1,283 +1,161 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
-import VideoRoom from '../components/VideoRoom';
-import LessonChat from '../components/LessonChat';
-
-interface Participant {
-  id: number;
-  name: string;
-  role: 'student' | 'tutor';
-}
-
-interface LessonDetails {
-  id: number;
-  student_id: number;
-  tutor_id: number;
-  start_time: string;
-  end_time: string;
-  status: string;
-  language: string;
-  student_name?: string;
-  tutor_name?: string;
-}
-
-interface TimerProps {
-  $warning: boolean;
-}
+import { useTranslation } from '../contexts/I18nContext';
+import { Button } from '../components/ui/Button';
+import { lessonService, RoomParticipant } from '../services/api';
+import { Lesson } from '../types/lesson';
+import { useNotification } from '../contexts/NotificationContext';
+import { Box, Typography, List, ListItem, ListItemAvatar, ListItemText, Avatar, Paper } from '@mui/material';
+import axios from 'axios';
 
 const LessonRoom: React.FC = () => {
   const { lessonId } = useParams<{ lessonId: string }>();
   const navigate = useNavigate();
-  const [lesson, setLesson] = useState<LessonDetails | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [timeRemaining, setTimeRemaining] = useState<number>(0);
-  const [showWarning, setShowWarning] = useState(false);
+  const { t } = useTranslation();
+  const { showNotification } = useNotification();
+  const [lesson, setLesson] = useState<Lesson | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [participants, setParticipants] = useState<RoomParticipant[]>([]);
 
   useEffect(() => {
-    loadLessonDetails();
-  }, [lessonId]);
+    const fetchLessonAndJoinRoom = async () => {
+      try {
+        if (!lessonId) {
+          console.error('No lesson ID provided');
+          showNotification('error', t('lessons.errors.invalid.id'));
+          navigate('/lessons');
+          return;
+        }
 
-  useEffect(() => {
-    if (lesson) {
-      const timer = setInterval(updateTimeRemaining, 1000);
-      return () => clearInterval(timer);
-    }
-  }, [lesson]);
+        console.log('Fetching lesson details for lesson:', lessonId);
+        // Get lesson details
+        const lessonData = await lessonService.getLesson(Number(lessonId));
+        console.log('Lesson details:', lessonData);
+        setLesson(lessonData);
 
-  const loadLessonDetails = async () => {
+        console.log('Joining lesson room:', lessonId);
+        // Join the room
+        try {
+          const roomInfo = await lessonService.joinLesson(Number(lessonId));
+          console.log('Successfully joined room. Room info:', roomInfo);
+          setParticipants(roomInfo.participants);
+        } catch (error) {
+          if (axios.isAxiosError(error)) {
+            console.error('Failed to join room:', {
+              status: error.response?.status,
+              data: error.response?.data,
+              message: error.message
+            });
+            const errorMessage = error.response?.data?.error || t('lessons.errors.join.room');
+            showNotification('error', errorMessage);
+          } else {
+            console.error('Unexpected error joining room:', error);
+            showNotification('error', t('lessons.errors.join.room'));
+          }
+          navigate('/lessons');
+          return;
+        }
+
+        // Start polling for participants
+        console.log('Starting participant polling for lesson:', lessonId);
+        const pollInterval = setInterval(async () => {
+          try {
+            const roomData = await lessonService.getRoomInfo(Number(lessonId));
+            console.log('Updated participants:', roomData.participants);
+            setParticipants(roomData.participants);
+          } catch (error) {
+            console.error('Error polling room info:', error);
+          }
+        }, 5000);
+
+        return () => {
+          console.log('Cleaning up room connection');
+          clearInterval(pollInterval);
+          // Leave room when component unmounts
+          lessonService.leaveLesson(Number(lessonId))
+            .catch(error => console.error('Error leaving room during cleanup:', error));
+        };
+      } catch (error) {
+        console.error('Error in room setup:', error);
+        if (axios.isAxiosError(error)) {
+          const errorMessage = error.response?.data?.error || t('lessons.errors.join.room');
+          showNotification('error', errorMessage);
+        } else {
+          showNotification('error', t('lessons.errors.join.room'));
+        }
+        navigate('/lessons');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLessonAndJoinRoom();
+  }, [lessonId, navigate, showNotification, t]);
+
+  const handleLeaveRoom = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8080/api/lessons/${lessonId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to load lesson details');
-      }
-
-      const data = await response.json();
-      setLesson({
-        ...data,
-        start_time: data.start_time,
-        end_time: data.end_time,
-      });
-      updateTimeRemaining();
+      console.log('Leaving room:', lessonId);
+      await lessonService.leaveLesson(Number(lessonId));
+      console.log('Successfully left room');
+      navigate('/lessons');
     } catch (error) {
-      setError('Failed to load lesson. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const updateTimeRemaining = () => {
-    if (lesson) {
-      const endTime = new Date(lesson.end_time).getTime();
-      const now = new Date().getTime();
-      const remaining = Math.max(0, endTime - now);
-      setTimeRemaining(remaining);
-
-      // Show warning when 10 minutes remaining
-      if (remaining <= 10 * 60 * 1000 && remaining > 0 && !showWarning) {
-        setShowWarning(true);
-        showTimeWarning();
-      }
-
-      // Redirect when lesson ends
-      if (remaining <= 0) {
-        handleLessonEnd();
+      console.error('Error leaving room:', error);
+      if (axios.isAxiosError(error)) {
+        const errorMessage = error.response?.data?.error || t('lessons.errors.leave.room');
+        showNotification('error', errorMessage);
+      } else {
+        showNotification('error', t('lessons.errors.leave.room'));
       }
     }
   };
 
-  const showTimeWarning = () => {
-    // Show browser notification if permitted
-    if (Notification.permission === 'granted') {
-      new Notification('10 minutes remaining', {
-        body: 'Your lesson will end in 10 minutes.',
-        icon: '/logo.png',
-      });
-    }
-  };
-
-  const handleLessonEnd = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      // End video session
-      await fetch(`http://localhost:8080/api/lessons/${lessonId}/video/end`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      // Redirect to rating page
-      navigate(`/lessons/${lessonId}/rate`);
-    } catch (error) {
-      console.error('Error ending lesson:', error);
-    }
-  };
-
-  const formatTimeRemaining = (ms: number) => {
-    const minutes = Math.floor(ms / 60000);
-    const seconds = Math.floor((ms % 60000) / 1000);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
-
-  if (isLoading) {
-    return <LoadingContainer>Loading lesson room...</LoadingContainer>;
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
   }
 
-  if (error || !lesson) {
-    return <ErrorContainer>{error || 'Failed to load lesson'}</ErrorContainer>;
+  if (!lesson) {
+    return null;
   }
 
   return (
-    <Container>
-      <Header>
-        <LessonInfo>
-          <Title>{`${lesson.language} Lesson`}</Title>
-          <Subtitle>
-            {lesson.tutor_name ? `with ${lesson.tutor_name}` : ''}
-          </Subtitle>
-        </LessonInfo>
-        <Timer $warning={timeRemaining <= 10 * 60 * 1000}>
-          {formatTimeRemaining(timeRemaining)}
-        </Timer>
-      </Header>
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+        <Typography variant="h4">{t('lessons.room.title')}</Typography>
+        <Button onClick={handleLeaveRoom} variant="outline" color="error">
+          {t('lessons.room.leave')}
+        </Button>
+      </Box>
 
-      <Content>
-        <VideoSection>
-          <VideoRoom
-            lessonId={parseInt(lessonId!, 10)}
-            userId={lesson.student_id}
-          />
-        </VideoSection>
-
-        <ChatSection>
-          <LessonChat
-            lessonId={parseInt(lessonId!, 10)}
-            userId={lesson.student_id}
-            participants={[
-              { id: lesson.student_id, name: lesson.student_name || 'Student' },
-              { id: lesson.tutor_id, name: lesson.tutor_name || 'Tutor' }
-            ]}
-          />
-        </ChatSection>
-      </Content>
-
-      {showWarning && (
-        <WarningBanner>
-          10 minutes remaining in your lesson
-        </WarningBanner>
-      )}
-    </Container>
+      <Box sx={{ display: 'flex', gap: 2 }}>
+        <Box sx={{ flex: 1 }}>
+          <Paper sx={{ p: 2, mb: 2, minHeight: '400px' }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              {t('lessons.room.participants')}
+            </Typography>
+            <List>
+              {participants.map((participant) => (
+                <ListItem key={participant.id}>
+                  <ListItemAvatar>
+                    <Avatar src={participant.avatar_url || undefined} alt={participant.username}>
+                      {participant.first_name?.[0] || participant.username[0]}
+                    </Avatar>
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={`${participant.first_name || ''} ${participant.last_name || ''}`}
+                    secondary={participant.username}
+                  />
+                </ListItem>
+              ))}
+            </List>
+          </Paper>
+        </Box>
+      </Box>
+    </Box>
   );
 };
-
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background: #f8f9fa;
-`;
-
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  background: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-`;
-
-const LessonInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-const Title = styled.h1`
-  margin: 0;
-  font-size: 1.5rem;
-  color: #2c3e50;
-`;
-
-const Subtitle = styled.div`
-  color: #666;
-  font-size: 1rem;
-`;
-
-const Timer = styled.div<{ $warning: boolean }>`
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: ${(props) => props.$warning ? '#e74c3c' : '#2c3e50'};
-  transition: color 0.3s;
-`;
-
-const Content = styled.div`
-  display: flex;
-  flex: 1;
-  gap: 1rem;
-  padding: 1rem;
-  height: calc(100vh - 80px);
-`;
-
-const VideoSection = styled.div`
-  flex: 1;
-  min-width: 0;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-`;
-
-const ChatSection = styled.div`
-  width: 350px;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-`;
-
-const WarningBanner = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: #e74c3c;
-  color: white;
-  text-align: center;
-  padding: 0.5rem;
-  animation: slideDown 0.5s ease-out;
-
-  @keyframes slideDown {
-    from {
-      transform: translateY(-100%);
-    }
-    to {
-      transform: translateY(0);
-    }
-  }
-`;
-
-const LoadingContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  font-size: 1.2rem;
-  color: #666;
-`;
-
-const ErrorContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  font-size: 1.2rem;
-  color: #e74c3c;
-`;
 
 export default LessonRoom; 

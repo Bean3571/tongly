@@ -54,21 +54,29 @@ func (s LessonStatus) IsValidTransition(newStatus LessonStatus) bool {
 	return false
 }
 
+// Participant represents a user in a lesson (student or tutor)
+type Participant struct {
+	FirstName *string `json:"first_name,omitempty"`
+	LastName  *string `json:"last_name,omitempty"`
+	Username  string  `json:"username"`
+	AvatarURL *string `json:"avatar_url,omitempty"`
+}
+
 // Lesson represents a scheduled or completed lesson
 type Lesson struct {
-	ID          int          `json:"id"`
-	StudentID   int          `json:"student_id"`
-	TutorID     int          `json:"tutor_id"`
-	StartTime   time.Time    `json:"start_time"`
-	EndTime     time.Time    `json:"end_time"`
-	Duration    int          `json:"duration"` // in minutes
-	Status      LessonStatus `json:"status"`
-	Language    string       `json:"language"`
-	Price       float64      `json:"price"`
-	CreatedAt   time.Time    `json:"created_at"`
-	UpdatedAt   time.Time    `json:"updated_at"`
-	StudentName string       `json:"student_name,omitempty"`
-	TutorName   string       `json:"tutor_name,omitempty"`
+	ID        int          `json:"id"`
+	StudentID int          `json:"student_id"`
+	TutorID   int          `json:"tutor_id"`
+	Student   Participant  `json:"student"`
+	Tutor     Participant  `json:"tutor"`
+	StartTime time.Time    `json:"start_time"`
+	EndTime   time.Time    `json:"end_time"`
+	Duration  int          `json:"duration"` // in minutes
+	Status    LessonStatus `json:"status"`
+	Language  string       `json:"language"`
+	Price     float64      `json:"price"`
+	CreatedAt time.Time    `json:"created_at"`
+	UpdatedAt time.Time    `json:"updated_at"`
 }
 
 // CanCancel checks if the lesson can be cancelled

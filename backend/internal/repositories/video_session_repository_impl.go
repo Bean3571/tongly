@@ -90,21 +90,31 @@ func (r *videoSessionRepositoryImpl) List(ctx context.Context, pagination common
 
 func (r *videoSessionRepositoryImpl) GetByLessonID(ctx context.Context, lessonID int) (*entities.VideoSession, error) {
 	query := `
-		SELECT id, lesson_id, room_id, session_token, started_at, ended_at
+		SELECT id, lesson_id, room_id, session_token, started_at, ended_at, created_at, updated_at
 		FROM video_sessions
 		WHERE lesson_id = $1
 		ORDER BY created_at DESC
 		LIMIT 1`
 
-	session := &entities.VideoSession{}
+	var session entities.VideoSession
+	var endedAt sql.NullTime
 	err := r.db.QueryRowContext(ctx, query, lessonID).Scan(
 		&session.ID, &session.LessonID, &session.RoomID, &session.Token,
-		&session.StartTime, &session.EndTime,
+		&session.StartTime, &endedAt, &session.CreatedAt, &session.UpdatedAt,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
-	return session, err
+	if err != nil {
+		return nil, err
+	}
+
+	if endedAt.Valid {
+		t := endedAt.Time
+		session.EndTime = &t
+	}
+
+	return &session, nil
 }
 
 func (r *videoSessionRepositoryImpl) GetActiveByTutorID(ctx context.Context, tutorID int) ([]entities.VideoSession, error) {
@@ -133,4 +143,72 @@ func (r *videoSessionRepositoryImpl) GetActiveByTutorID(ctx context.Context, tut
 		sessions = append(sessions, session)
 	}
 	return sessions, nil
+}
+
+func (r *videoSessionRepositoryImpl) AddParticipant(ctx context.Context, lessonID int, userID int) error {
+	query := `
+		INSERT INTO room_participants (lesson_id, user_id)
+		VALUES ($1, $2)
+		ON CONFLICT (lesson_id, user_id) 
+		DO UPDATE SET left_at = NULL, joined_at = CURRENT_TIMESTAMP`
+
+	_, err := r.db.ExecContext(ctx, query, lessonID, userID)
+	return err
+}
+
+func (r *videoSessionRepositoryImpl) RemoveParticipant(ctx context.Context, lessonID int, userID int) error {
+	query := `
+		UPDATE room_participants
+		SET left_at = CURRENT_TIMESTAMP
+		WHERE lesson_id = $1 AND user_id = $2 AND left_at IS NULL`
+
+	_, err := r.db.ExecContext(ctx, query, lessonID, userID)
+	return err
+}
+
+func (r *videoSessionRepositoryImpl) GetParticipants(ctx context.Context, lessonID int) ([]entities.RoomParticipant, error) {
+	query := `
+		SELECT 
+			rp.id, rp.lesson_id, rp.user_id, rp.joined_at,
+			uc.username,
+			up.first_name, up.last_name, up.profile_picture as avatar_url
+		FROM room_participants rp
+		JOIN user_credentials uc ON uc.id = rp.user_id
+		LEFT JOIN user_personal up ON up.user_id = uc.id
+		WHERE rp.lesson_id = $1 AND rp.left_at IS NULL
+		ORDER BY rp.joined_at ASC`
+
+	rows, err := r.db.QueryContext(ctx, query, lessonID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var participants []entities.RoomParticipant
+	for rows.Next() {
+		var p entities.RoomParticipant
+		var firstName, lastName, avatarURL sql.NullString
+		err := rows.Scan(
+			&p.ID, &p.LessonID, &p.UserID, &p.JoinedAt,
+			&p.Username,
+			&firstName, &lastName, &avatarURL,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		if firstName.Valid {
+			p.FirstName = &firstName.String
+		}
+		if lastName.Valid {
+			p.LastName = &lastName.String
+		}
+		if avatarURL.Valid {
+			p.AvatarURL = &avatarURL.String
+		}
+
+		participants = append(participants, p)
+	}
+
+	return participants, nil
 }

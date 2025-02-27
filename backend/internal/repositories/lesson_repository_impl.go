@@ -81,37 +81,60 @@ func (r *LessonRepositoryImpl) GetLesson(ctx context.Context, id int) (*entities
 		SELECT 
 			l.id, l.student_id, l.tutor_id, l.start_time, l.end_time, 
 			l.duration, l.status, l.language, l.price, l.created_at, l.updated_at,
-			sp.first_name as student_first_name, sp.last_name as student_last_name,
-			tp.first_name as tutor_first_name, tp.last_name as tutor_last_name
+			-- Student info
+			lp.student_username, lp.student_first_name, lp.student_last_name, lp.student_avatar_url,
+			-- Tutor info
+			lp.tutor_username, lp.tutor_first_name, lp.tutor_last_name, lp.tutor_avatar_url
 		FROM lessons l
-		LEFT JOIN user_credentials sc ON l.student_id = sc.id
-		LEFT JOIN user_personal sp ON sc.id = sp.user_id
-		LEFT JOIN user_credentials tc ON l.tutor_id = tc.id
-		LEFT JOIN user_personal tp ON tc.id = tp.user_id
+		LEFT JOIN lesson_participants lp ON l.id = lp.lesson_id
 		WHERE l.id = $1`
 
 	lesson := &entities.Lesson{}
-	var studentFirstName, studentLastName, tutorFirstName, tutorLastName sql.NullString
+	var studentFirstName, studentLastName, studentAvatarURL sql.NullString
+	var tutorFirstName, tutorLastName, tutorAvatarURL sql.NullString
+	var studentUsername, tutorUsername string
+
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&lesson.ID, &lesson.StudentID, &lesson.TutorID, &lesson.StartTime,
 		&lesson.EndTime, &lesson.Duration, &lesson.Status, &lesson.Language,
 		&lesson.Price, &lesson.CreatedAt, &lesson.UpdatedAt,
-		&studentFirstName, &studentLastName,
-		&tutorFirstName, &tutorLastName,
+		&studentUsername, &studentFirstName, &studentLastName, &studentAvatarURL,
+		&tutorUsername, &tutorFirstName, &tutorLastName, &tutorAvatarURL,
 	)
-	if err == sql.ErrNoRows {
-		return nil, errors.New("lesson not found")
-	}
+
 	if err != nil {
-		return nil, err
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("lesson not found: %v", err)
+		}
+		return nil, fmt.Errorf("error fetching lesson: %v", err)
 	}
 
-	// Set the names in the lesson struct
-	if studentFirstName.Valid && studentLastName.Valid {
-		lesson.StudentName = studentFirstName.String + " " + studentLastName.String
+	// Set student info
+	lesson.Student = entities.Participant{
+		Username: studentUsername,
 	}
-	if tutorFirstName.Valid && tutorLastName.Valid {
-		lesson.TutorName = tutorFirstName.String + " " + tutorLastName.String
+	if studentFirstName.Valid {
+		lesson.Student.FirstName = &studentFirstName.String
+	}
+	if studentLastName.Valid {
+		lesson.Student.LastName = &studentLastName.String
+	}
+	if studentAvatarURL.Valid {
+		lesson.Student.AvatarURL = &studentAvatarURL.String
+	}
+
+	// Set tutor info
+	lesson.Tutor = entities.Participant{
+		Username: tutorUsername,
+	}
+	if tutorFirstName.Valid {
+		lesson.Tutor.FirstName = &tutorFirstName.String
+	}
+	if tutorLastName.Valid {
+		lesson.Tutor.LastName = &tutorLastName.String
+	}
+	if tutorAvatarURL.Valid {
+		lesson.Tutor.AvatarURL = &tutorAvatarURL.String
 	}
 
 	return lesson, nil
@@ -139,44 +162,19 @@ func (r *LessonRepositoryImpl) UpdateLesson(ctx context.Context, lesson *entitie
 	return nil
 }
 
-func (r *LessonRepositoryImpl) GetUpcomingLessons(ctx context.Context, userID int) ([]entities.Lesson, error) {
+func (r *LessonRepositoryImpl) GetLessons(ctx context.Context, userID int) ([]entities.Lesson, error) {
 	query := `
 		SELECT 
 			l.id, l.student_id, l.tutor_id, l.start_time, l.end_time, 
 			l.duration, l.status, l.language, l.price, l.created_at, l.updated_at,
-			sp.first_name as student_first_name, sp.last_name as student_last_name,
-			tp.first_name as tutor_first_name, tp.last_name as tutor_last_name
+			-- Student info
+			lp.student_username, lp.student_first_name, lp.student_last_name, lp.student_avatar_url,
+			-- Tutor info
+			lp.tutor_username, lp.tutor_first_name, lp.tutor_last_name, lp.tutor_avatar_url
 		FROM lessons l
-		LEFT JOIN user_credentials sc ON l.student_id = sc.id
-		LEFT JOIN user_personal sp ON sc.id = sp.user_id
-		LEFT JOIN user_credentials tc ON l.tutor_id = tc.id
-		LEFT JOIN user_personal tp ON tc.id = tp.user_id
-		WHERE (l.student_id = $1 OR l.tutor_id = $1) 
-			AND (
-				(l.start_time > NOW() AND l.status = 'scheduled')
-				OR l.status = 'in_progress'
-			)
-			AND l.status != 'cancelled'
+		LEFT JOIN lesson_participants lp ON l.id = lp.lesson_id
+		WHERE l.student_id = $1 OR l.tutor_id = $1
 		ORDER BY l.start_time ASC`
-
-	return r.queryLessonsWithNames(ctx, query, userID)
-}
-
-func (r *LessonRepositoryImpl) GetCompletedLessons(ctx context.Context, userID int) ([]entities.Lesson, error) {
-	query := `
-		SELECT 
-			l.id, l.student_id, l.tutor_id, l.start_time, l.end_time, 
-			l.duration, l.status, l.language, l.price, l.created_at, l.updated_at,
-			sp.first_name as student_first_name, sp.last_name as student_last_name,
-			tp.first_name as tutor_first_name, tp.last_name as tutor_last_name
-		FROM lessons l
-		LEFT JOIN user_credentials sc ON l.student_id = sc.id
-		LEFT JOIN user_personal sp ON sc.id = sp.user_id
-		LEFT JOIN user_credentials tc ON l.tutor_id = tc.id
-		LEFT JOIN user_personal tp ON tc.id = tp.user_id
-		WHERE (l.student_id = $1 OR l.tutor_id = $1) 
-			AND l.status = 'completed'
-		ORDER BY l.start_time DESC`
 
 	return r.queryLessonsWithNames(ctx, query, userID)
 }
@@ -186,13 +184,12 @@ func (r *LessonRepositoryImpl) GetLessonsByTutor(ctx context.Context, tutorID in
 		SELECT 
 			l.id, l.student_id, l.tutor_id, l.start_time, l.end_time, 
 			l.duration, l.status, l.language, l.price, l.created_at, l.updated_at,
-			sp.first_name as student_first_name, sp.last_name as student_last_name,
-			tp.first_name as tutor_first_name, tp.last_name as tutor_last_name
+			-- Student info
+			lp.student_username, lp.student_first_name, lp.student_last_name, lp.student_avatar_url,
+			-- Tutor info
+			lp.tutor_username, lp.tutor_first_name, lp.tutor_last_name, lp.tutor_avatar_url
 		FROM lessons l
-		LEFT JOIN user_credentials sc ON l.student_id = sc.id
-		LEFT JOIN user_personal sp ON sc.id = sp.user_id
-		LEFT JOIN user_credentials tc ON l.tutor_id = tc.id
-		LEFT JOIN user_personal tp ON tc.id = tp.user_id
+		LEFT JOIN lesson_participants lp ON l.id = lp.lesson_id
 		WHERE l.tutor_id = $1
 		ORDER BY l.start_time ASC`
 
@@ -202,35 +199,63 @@ func (r *LessonRepositoryImpl) GetLessonsByTutor(ctx context.Context, tutorID in
 func (r *LessonRepositoryImpl) queryLessonsWithNames(ctx context.Context, query string, args ...interface{}) ([]entities.Lesson, error) {
 	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error executing query: %v", err)
 	}
 	defer rows.Close()
 
 	var lessons []entities.Lesson
 	for rows.Next() {
 		var lesson entities.Lesson
-		var studentFirstName, studentLastName, tutorFirstName, tutorLastName sql.NullString
+		var studentFirstName, studentLastName, studentAvatarURL sql.NullString
+		var tutorFirstName, tutorLastName, tutorAvatarURL sql.NullString
+		var studentUsername, tutorUsername string
+
 		err := rows.Scan(
 			&lesson.ID, &lesson.StudentID, &lesson.TutorID, &lesson.StartTime,
 			&lesson.EndTime, &lesson.Duration, &lesson.Status, &lesson.Language,
 			&lesson.Price, &lesson.CreatedAt, &lesson.UpdatedAt,
-			&studentFirstName, &studentLastName,
-			&tutorFirstName, &tutorLastName,
+			&studentUsername, &studentFirstName, &studentLastName, &studentAvatarURL,
+			&tutorUsername, &tutorFirstName, &tutorLastName, &tutorAvatarURL,
 		)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error scanning lesson row: %v", err)
 		}
 
-		// Set the names in the lesson struct
-		if studentFirstName.Valid && studentLastName.Valid {
-			lesson.StudentName = studentFirstName.String + " " + studentLastName.String
+		// Set student info
+		lesson.Student = entities.Participant{
+			Username: studentUsername,
 		}
-		if tutorFirstName.Valid && tutorLastName.Valid {
-			lesson.TutorName = tutorFirstName.String + " " + tutorLastName.String
+		if studentFirstName.Valid {
+			lesson.Student.FirstName = &studentFirstName.String
+		}
+		if studentLastName.Valid {
+			lesson.Student.LastName = &studentLastName.String
+		}
+		if studentAvatarURL.Valid {
+			lesson.Student.AvatarURL = &studentAvatarURL.String
+		}
+
+		// Set tutor info
+		lesson.Tutor = entities.Participant{
+			Username: tutorUsername,
+		}
+		if tutorFirstName.Valid {
+			lesson.Tutor.FirstName = &tutorFirstName.String
+		}
+		if tutorLastName.Valid {
+			lesson.Tutor.LastName = &tutorLastName.String
+		}
+		if tutorAvatarURL.Valid {
+			lesson.Tutor.AvatarURL = &tutorAvatarURL.String
 		}
 
 		lessons = append(lessons, lesson)
 	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating over rows: %v", err)
+	}
+
 	return lessons, nil
 }
 
@@ -517,13 +542,12 @@ func (r *LessonRepositoryImpl) GetByStudentID(ctx context.Context, studentID int
 		SELECT 
 			l.id, l.student_id, l.tutor_id, l.start_time, l.end_time, 
 			l.duration, l.status, l.language, l.price, l.created_at, l.updated_at,
-			sp.first_name as student_first_name, sp.last_name as student_last_name,
-			tp.first_name as tutor_first_name, tp.last_name as tutor_last_name
+			-- Student info
+			lp.student_username, lp.student_first_name, lp.student_last_name, lp.student_avatar_url,
+			-- Tutor info
+			lp.tutor_username, lp.tutor_first_name, lp.tutor_last_name, lp.tutor_avatar_url
 		FROM lessons l
-		LEFT JOIN user_credentials sc ON l.student_id = sc.id
-		LEFT JOIN user_personal sp ON sc.id = sp.user_id
-		LEFT JOIN user_credentials tc ON l.tutor_id = tc.id
-		LEFT JOIN user_personal tp ON tc.id = tp.user_id
+		LEFT JOIN lesson_participants lp ON l.id = lp.lesson_id
 		WHERE l.student_id = $1
 		ORDER BY l.start_time DESC`
 
@@ -531,9 +555,102 @@ func (r *LessonRepositoryImpl) GetByStudentID(ctx context.Context, studentID int
 }
 
 func (r *LessonRepositoryImpl) GetCompletedByUserID(ctx context.Context, userID int) ([]entities.Lesson, error) {
-	return r.GetCompletedLessons(ctx, userID)
+	query := `
+		SELECT 
+			l.id, l.student_id, l.tutor_id, l.start_time, l.end_time, 
+			l.duration, l.status, l.language, l.price, l.created_at, l.updated_at,
+			-- Student info
+			lp.student_username, lp.student_first_name, lp.student_last_name, lp.student_avatar_url,
+			-- Tutor info
+			lp.tutor_username, lp.tutor_first_name, lp.tutor_last_name, lp.tutor_avatar_url
+		FROM lessons l
+		LEFT JOIN lesson_participants lp ON l.id = lp.lesson_id
+		WHERE (l.student_id = $1 OR l.tutor_id = $1)
+		AND l.status = $2
+		ORDER BY l.start_time DESC`
+
+	return r.queryLessonsWithNames(ctx, query, userID, entities.LessonStatusCompleted)
 }
 
 func (r *LessonRepositoryImpl) GetUpcomingByUserID(ctx context.Context, userID int) ([]entities.Lesson, error) {
-	return r.GetUpcomingLessons(ctx, userID)
+	query := `
+		SELECT 
+			l.id, l.student_id, l.tutor_id, l.start_time, l.end_time, 
+			l.duration, l.status, l.language, l.price, l.created_at, l.updated_at,
+			-- Student info
+			lp.student_username, lp.student_first_name, lp.student_last_name, lp.student_avatar_url,
+			-- Tutor info
+			lp.tutor_username, lp.tutor_first_name, lp.tutor_last_name, lp.tutor_avatar_url
+		FROM lessons l
+		LEFT JOIN lesson_participants lp ON l.id = lp.lesson_id
+		WHERE (l.student_id = $1 OR l.tutor_id = $1)
+		AND l.status = $2
+		AND l.start_time > NOW()
+		ORDER BY l.start_time ASC`
+
+	return r.queryLessonsWithNames(ctx, query, userID, entities.LessonStatusScheduled)
+}
+
+// UpdateLessonStatuses updates the status of lessons based on their time
+func (r *LessonRepositoryImpl) UpdateLessonStatuses(ctx context.Context) error {
+	query := `
+		UPDATE lessons
+		SET status = 
+			CASE
+				WHEN cancelled_at IS NOT NULL THEN 'cancelled'
+				WHEN NOW() BETWEEN start_time - INTERVAL '5 minutes' AND end_time THEN 'in_progress'
+				WHEN NOW() > end_time THEN 'completed'
+				ELSE 'scheduled'
+			END,
+			updated_at = NOW()
+		WHERE status != 'cancelled'
+		  AND status != 'completed'
+		  AND (
+			  NOW() BETWEEN start_time - INTERVAL '5 minutes' AND end_time
+			  OR NOW() > end_time
+		  )`
+
+	_, err := r.db.ExecContext(ctx, query)
+	if err != nil {
+		return fmt.Errorf("error updating lesson statuses: %v", err)
+	}
+
+	return nil
+}
+
+// CancelLesson cancels a lesson and sets the cancelled_at timestamp
+func (r *LessonRepositoryImpl) CancelLesson(ctx context.Context, lessonID int) error {
+	return r.withTx(ctx, func(tx *sql.Tx) error {
+		// First check if the lesson can be cancelled
+		var startTime time.Time
+		var status entities.LessonStatus
+		err := tx.QueryRowContext(ctx, `
+			SELECT start_time, status
+			FROM lessons
+			WHERE id = $1`, lessonID).Scan(&startTime, &status)
+		if err != nil {
+			return fmt.Errorf("error fetching lesson: %v", err)
+		}
+
+		if status != entities.LessonStatusScheduled {
+			return entities.ErrInvalidStatusTransition
+		}
+
+		if time.Until(startTime) < 24*time.Hour {
+			return entities.ErrLessonNotCancellable
+		}
+
+		// If checks pass, cancel the lesson
+		query := `
+			UPDATE lessons
+			SET status = $1, cancelled_at = NOW(), updated_at = NOW()
+			WHERE id = $2`
+
+		_, err = tx.ExecContext(ctx, query, entities.LessonStatusCancelled, lessonID)
+		if err != nil {
+			return fmt.Errorf("error cancelling lesson: %v", err)
+		}
+
+		return nil
+	})
 }

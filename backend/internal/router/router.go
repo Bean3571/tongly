@@ -69,13 +69,14 @@ func SetupRouter(
 			lessons := protected.Group("/lessons")
 			{
 				// List endpoints must come before parameterized routes
-				lessons.GET("/upcoming", lessonHandler.GetUpcomingLessons)
-				lessons.GET("/completed", lessonHandler.GetCompletedLessons)
+				lessons.GET("/upcoming", lessonHandler.GetLessons)
+				lessons.GET("/completed", lessonHandler.GetLessons)
 
 				// Parameterized routes
 				lessons.POST("", lessonHandler.BookLesson)
 				lessons.GET("/:id", lessonHandler.GetLesson)
 				lessons.POST("/:id/cancel", lessonHandler.CancelLesson)
+				lessons.POST("/:id/room/join", lessonHandler.JoinLessonRoom)
 				lessons.POST("/:id/video/start", lessonHandler.StartVideoSession)
 				lessons.POST("/:id/video/end", lessonHandler.EndVideoSession)
 				lessons.GET("/:id/video", lessonHandler.GetVideoSession)
@@ -148,11 +149,12 @@ func NewRouter(
 		protected.POST("/tutors/video", tutorHandler.UploadVideo)
 
 		// Lesson routes
-		protected.GET("/lessons/upcoming", lessonHandler.GetUpcomingLessons)
-		protected.GET("/lessons/completed", lessonHandler.GetCompletedLessons)
+		protected.GET("/lessons/upcoming", lessonHandler.GetLessons)
+		protected.GET("/lessons/completed", lessonHandler.GetLessons)
 		protected.POST("/lessons", lessonHandler.BookLesson)
 		protected.GET("/lessons/:id", lessonHandler.GetLesson)
 		protected.POST("/lessons/:id/cancel", lessonHandler.CancelLesson)
+		protected.POST("/lessons/:id/room/join", lessonHandler.JoinLessonRoom)
 		protected.POST("/lessons/:id/video/start", lessonHandler.StartVideoSession)
 		protected.POST("/lessons/:id/video/end", lessonHandler.EndVideoSession)
 		protected.GET("/lessons/:id/video", lessonHandler.GetVideoSession)

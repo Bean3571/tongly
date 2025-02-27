@@ -1,9 +1,10 @@
 import axios from 'axios';
 import { User, LoginCredentials, RegisterData, ProfileUpdateData } from '../types';
+import { Lesson } from '../types/lesson';
 
 const baseURL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
-const apiClient = axios.create({
+export const apiClient = axios.create({
     baseURL,
     headers: {
         'Content-Type': 'application/json',
@@ -70,7 +71,72 @@ export const userService = {
     }
 };
 
+export interface RoomParticipant {
+    id: number;
+    lesson_id: number;
+    user_id: number;
+    username: string;
+    first_name?: string;
+    last_name?: string;
+    avatar_url?: string;
+    joined_at: string;
+    left_at?: string;
+}
+
+export interface RoomInfo {
+    room_id: string;
+    token: string;
+    participants: RoomParticipant[];
+}
+
+// Lesson Service
+export const lessonService = {
+    getLessons: async (): Promise<Lesson[]> => {
+        try {
+            const [upcomingResponse, completedResponse] = await Promise.all([
+                apiClient.get('/api/lessons/upcoming'),
+                apiClient.get('/api/lessons/completed')
+            ]);
+            
+            const upcomingLessons = Array.isArray(upcomingResponse.data) ? upcomingResponse.data : [];
+            const completedLessons = Array.isArray(completedResponse.data) ? completedResponse.data : [];
+            
+            const allLessons = [...upcomingLessons, ...completedLessons];
+            console.log('All lessons:', allLessons);
+            return allLessons;
+        } catch (error) {
+            console.error('Error fetching lessons:', error);
+            throw error;
+        }
+    },
+
+    getLesson: async (lessonId: number): Promise<Lesson> => {
+        const response = await apiClient.get(`/api/lessons/${lessonId}`);
+        console.log('Lesson data from API:', response.data);
+        return response.data;
+    },
+
+    cancelLesson: async (lessonId: number): Promise<void> => {
+        await apiClient.post(`/api/lessons/${lessonId}/cancel`);
+    },
+
+    joinLesson: async (lessonId: number): Promise<RoomInfo> => {
+        const response = await apiClient.post<RoomInfo>(`/api/lessons/${lessonId}/room/join`);
+        return response.data;
+    },
+
+    getRoomInfo: async (lessonId: number): Promise<RoomInfo> => {
+        const response = await apiClient.get<RoomInfo>(`/api/lessons/${lessonId}/room`);
+        return response.data;
+    },
+
+    leaveLesson: async (lessonId: number): Promise<void> => {
+        await apiClient.post(`/api/lessons/${lessonId}/room/leave`);
+    }
+};
+
 export default {
     auth: authService,
-    user: userService
+    user: userService,
+    lesson: lessonService
 }; 
