@@ -1,1 +1,0 @@
-DROP VIEW IF EXISTS lesson_participants; 

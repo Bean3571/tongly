@@ -17,40 +17,24 @@ type LessonUseCase interface {
 	GetLessonByID(ctx context.Context, userID int, lessonID int) (*entities.Lesson, error)
 	GetLessons(ctx context.Context, userID int) ([]entities.Lesson, error)
 	UpdateLessonStatus(ctx context.Context, lesson *entities.Lesson) error
-
-	// Chat functionality
-	SendChatMessage(ctx context.Context, lessonID int, userID int, content string) error
-	GetChatHistory(ctx context.Context, lessonID int, userID int) ([]*entities.ChatMessage, error)
-
-	// Rating system
-	RateLesson(ctx context.Context, lessonID int, studentID int, rating int, comment string) error
-	GetTutorRating(ctx context.Context, tutorID int) (float64, error)
 }
 
 type lessonUseCase struct {
-	lessonRepo     repositories.LessonRepository
-	tutorRepo      repositories.TutorRepository
-	userRepo       repositories.UserRepository
-	videoSessionUC VideoSessionUseCase
-	chatUseCase    ChatUseCase
-	ratingUseCase  RatingUseCase
+	lessonRepo repositories.LessonRepository
+	tutorRepo  repositories.TutorRepository
+	userRepo   repositories.UserRepository
 }
 
 func NewLessonUseCase(
 	lessonRepo repositories.LessonRepository,
 	tutorRepo repositories.TutorRepository,
 	userRepo repositories.UserRepository,
-	videoSessionUC VideoSessionUseCase,
-	chatUseCase ChatUseCase,
-	ratingUseCase RatingUseCase,
+
 ) LessonUseCase {
 	return &lessonUseCase{
-		lessonRepo:     lessonRepo,
-		tutorRepo:      tutorRepo,
-		userRepo:       userRepo,
-		videoSessionUC: videoSessionUC,
-		chatUseCase:    chatUseCase,
-		ratingUseCase:  ratingUseCase,
+		lessonRepo: lessonRepo,
+		tutorRepo:  tutorRepo,
+		userRepo:   userRepo,
 	}
 }
 
@@ -157,71 +141,6 @@ func (uc *lessonUseCase) GetLessonByID(ctx context.Context, userID int, lessonID
 
 func (uc *lessonUseCase) GetLessons(ctx context.Context, userID int) ([]entities.Lesson, error) {
 	return uc.lessonRepo.GetLessons(ctx, userID)
-}
-
-func (uc *lessonUseCase) SendChatMessage(ctx context.Context, lessonID int, userID int, content string) error {
-	// Verify user has access to the lesson
-	lesson, err := uc.GetLessonByID(ctx, userID, lessonID)
-	if err != nil {
-		return err
-	}
-
-	// Only allow chat when lesson is in progress
-	if lesson.Status != entities.LessonStatusInProgress {
-		return errors.New("chat is only available during in-progress lessons")
-	}
-
-	message := &entities.ChatMessage{
-		LessonID: lessonID,
-		SenderID: userID,
-		Content:  content,
-	}
-
-	return uc.lessonRepo.SaveChatMessage(ctx, message)
-}
-
-func (uc *lessonUseCase) GetChatHistory(ctx context.Context, lessonID int, userID int) ([]*entities.ChatMessage, error) {
-	// Verify user has access to the lesson
-	_, err := uc.GetLessonByID(ctx, userID, lessonID)
-	if err != nil {
-		return nil, err
-	}
-
-	return uc.lessonRepo.GetChatHistory(ctx, lessonID)
-}
-
-func (uc *lessonUseCase) RateLesson(ctx context.Context, lessonID int, studentID int, rating int, comment string) error {
-	lesson, err := uc.GetLessonByID(ctx, studentID, lessonID)
-	if err != nil {
-		return err
-	}
-
-	// Verify the user is the student
-	if lesson.StudentID != studentID {
-		return errors.New("only students can rate lessons")
-	}
-
-	// Verify lesson is completed
-	if lesson.Status != entities.LessonStatusCompleted {
-		return errors.New("can only rate completed lessons")
-	}
-
-	// Verify rating is between 1 and 5
-	if rating < 1 || rating > 5 {
-		return errors.New("rating must be between 1 and 5")
-	}
-
-	lessonRating := &entities.LessonRating{
-		LessonID: lessonID,
-		Rating:   rating,
-		Comment:  comment,
-	}
-
-	return uc.lessonRepo.SaveLessonRating(ctx, lessonRating)
-}
-
-func (uc *lessonUseCase) GetTutorRating(ctx context.Context, tutorID int) (float64, error) {
-	return uc.lessonRepo.GetTutorAverageRating(ctx, tutorID)
 }
 
 func (uc *lessonUseCase) UpdateLessonStatus(ctx context.Context, lesson *entities.Lesson) error {

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { notification } from 'antd';
 import { api } from '../utils/api';
-import { envConfig } from '../config/env';
+import { envConfig } from '@/config/env';
 
 export interface Lesson {
     id: number;

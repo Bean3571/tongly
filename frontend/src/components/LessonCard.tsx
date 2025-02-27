@@ -9,10 +9,9 @@ import { Avatar } from './ui/Avatar';
 interface LessonCardProps {
   lesson: Lesson;
   onCancel: (lessonId: number) => void;
-  onJoin: (lessonId: number) => void;
 }
 
-const LessonCard: React.FC<LessonCardProps> = ({ lesson, onCancel, onJoin }) => {
+const LessonCard: React.FC<LessonCardProps> = ({ lesson, onCancel }) => {
   const { user } = useAuth();
   const { t } = useTranslation();
   const isStudent = user?.credentials.role === 'student';
@@ -22,19 +21,6 @@ const LessonCard: React.FC<LessonCardProps> = ({ lesson, onCancel, onJoin }) => 
   const displayName = participant.first_name && participant.last_name 
     ? `${participant.first_name} ${participant.last_name}`
     : participant.username;
-
-  const canJoin = () => {
-    if (lesson.status === LessonStatus.CANCELLED || lesson.status === LessonStatus.COMPLETED) {
-      return false;
-    }
-    
-    const now = new Date();
-    const startTime = new Date(lesson.start_time);
-    const endTime = new Date(lesson.end_time);
-    const fiveMinutesBefore = new Date(startTime.getTime() - 5 * 60000);
-    
-    return now >= fiveMinutesBefore && now <= endTime;
-  };
 
   const canCancel = () => {
     if (lesson.status !== LessonStatus.SCHEDULED) {
@@ -116,14 +102,6 @@ const LessonCard: React.FC<LessonCardProps> = ({ lesson, onCancel, onJoin }) => 
               className="text-red-600 border-red-600 hover:bg-red-50"
             >
               {t('lessons.actions.cancel')}
-            </Button>
-          )}
-          {canJoin() && (
-            <Button
-              variant="primary"
-              onClick={() => onJoin(lesson.id)}
-            >
-              {t('lessons.actions.join')}
             </Button>
           )}
         </div>

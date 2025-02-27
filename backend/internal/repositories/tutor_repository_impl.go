@@ -541,38 +541,37 @@ func (r *TutorRepositoryImpl) CreateTutor(ctx context.Context, details *entities
 // UpdateTutor updates an existing tutor profile
 func (r *TutorRepositoryImpl) UpdateTutor(ctx context.Context, details *entities.TutorDetails) error {
 	query := `
-		UPDATE tutors SET
-			teaching_languages = $2,
-			education = $3,
-			interests = $4,
-			hourly_rate = $5,
-			introduction_video = $6,
-			approved = $7,
-			updated_at = CURRENT_TIMESTAMP
-		WHERE id = $1
+		UPDATE tutors
+		SET teaching_languages = $1,
+			education = $2,
+			interests = $3,
+			hourly_rate = $4,
+			introduction_video = $5,
+			approved = $6
+		WHERE id = $7
 	`
 
 	result, err := r.DB.ExecContext(ctx, query,
-		details.ID,
 		details.TeachingLanguages,
 		details.Education,
 		details.Interests,
 		details.HourlyRate,
 		details.IntroductionVideo,
 		details.Approved,
+		details.ID,
 	)
 
 	if err != nil {
 		return err
 	}
 
-	rowsAffected, err := result.RowsAffected()
+	rows, err := result.RowsAffected()
 	if err != nil {
 		return err
 	}
 
-	if rowsAffected == 0 {
-		return fmt.Errorf("tutor not found")
+	if rows == 0 {
+		return fmt.Errorf("tutor with ID %d not found", details.ID)
 	}
 
 	return nil

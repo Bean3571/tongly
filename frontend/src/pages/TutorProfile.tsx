@@ -106,7 +106,6 @@ const TutorProfilePage: React.FC = () => {
       <ProfileSection>
         <AvatarSection>
           <Avatar src={tutor.avatarUrl} alt={tutor.name} />
-          <Rating>⭐ {tutor.rating.toFixed(1)}</Rating>
           <TotalLessons>{tutor.totalLessons} lessons</TotalLessons>
         </AvatarSection>
 
@@ -222,12 +221,6 @@ const Avatar = styled.img`
   border-radius: 50%;
   object-fit: cover;
   margin-bottom: 1rem;
-`;
-
-const Rating = styled.div`
-  font-size: 1.2rem;
-  color: #ffc107;
-  margin-bottom: 0.5rem;
 `;
 
 const TotalLessons = styled.div`

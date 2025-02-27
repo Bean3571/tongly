@@ -118,7 +118,6 @@ export const Lessons: React.FC = () => {
               key={lesson.id}
               lesson={lesson}
               onCancel={handleCancel}
-              onJoin={handleJoin}
             />
           ))}
         </div>

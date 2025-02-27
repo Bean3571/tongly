@@ -62,8 +62,6 @@ func SetupRouter(
 			protected.PUT("/tutors/profile", tutorHandler.UpdateTutorProfile)
 			protected.GET("/tutors/profile", tutorHandler.GetTutorProfile)
 			protected.PUT("/tutors/:id/approval", tutorHandler.UpdateTutorApprovalStatus)
-			protected.POST("/tutors/video", tutorHandler.UploadVideo)
-			protected.GET("/tutors/:id/rating", lessonHandler.GetTutorRating)
 
 			// Lesson routes
 			lessons := protected.Group("/lessons")
@@ -76,13 +74,6 @@ func SetupRouter(
 				lessons.POST("", lessonHandler.BookLesson)
 				lessons.GET("/:id", lessonHandler.GetLesson)
 				lessons.POST("/:id/cancel", lessonHandler.CancelLesson)
-				lessons.POST("/:id/room/join", lessonHandler.JoinLessonRoom)
-				lessons.POST("/:id/video/start", lessonHandler.StartVideoSession)
-				lessons.POST("/:id/video/end", lessonHandler.EndVideoSession)
-				lessons.GET("/:id/video", lessonHandler.GetVideoSession)
-				lessons.POST("/:id/chat", lessonHandler.SendChatMessage)
-				lessons.GET("/:id/chat", lessonHandler.GetChatHistory)
-				lessons.POST("/:id/rate", lessonHandler.RateLesson)
 			}
 
 			// Wallet routes
@@ -146,7 +137,6 @@ func NewRouter(
 		protected.PUT("/tutors/profile", tutorHandler.UpdateTutorProfile)
 		protected.GET("/tutors/profile", tutorHandler.GetTutorProfile)
 		protected.PUT("/tutors/:id/approval", tutorHandler.UpdateTutorApprovalStatus)
-		protected.POST("/tutors/video", tutorHandler.UploadVideo)
 
 		// Lesson routes
 		protected.GET("/lessons/upcoming", lessonHandler.GetLessons)
@@ -154,13 +144,6 @@ func NewRouter(
 		protected.POST("/lessons", lessonHandler.BookLesson)
 		protected.GET("/lessons/:id", lessonHandler.GetLesson)
 		protected.POST("/lessons/:id/cancel", lessonHandler.CancelLesson)
-		protected.POST("/lessons/:id/room/join", lessonHandler.JoinLessonRoom)
-		protected.POST("/lessons/:id/video/start", lessonHandler.StartVideoSession)
-		protected.POST("/lessons/:id/video/end", lessonHandler.EndVideoSession)
-		protected.GET("/lessons/:id/video", lessonHandler.GetVideoSession)
-		protected.POST("/lessons/:id/chat", lessonHandler.SendChatMessage)
-		protected.GET("/lessons/:id/chat", lessonHandler.GetChatHistory)
-		protected.POST("/lessons/:id/rate", lessonHandler.RateLesson)
 
 		// Wallet routes
 		wallet := protected.Group("/wallet")

@@ -266,9 +266,6 @@ func (uc *TutorUseCase) SearchTutors(ctx context.Context, filters entities.Tutor
 	if filters.MaxPrice > 0 {
 		filterMap["max_price"] = filters.MaxPrice
 	}
-	if filters.MinRating > 0 {
-		filterMap["min_rating"] = filters.MinRating
-	}
 
 	return uc.TutorRepo.SearchTutors(ctx, filterMap)
 }

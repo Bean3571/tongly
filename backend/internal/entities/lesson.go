@@ -122,23 +122,6 @@ func (l *Lesson) CanEnd() error {
 	return nil
 }
 
-// LessonRating represents a student's rating for a completed lesson
-type LessonRating struct {
-	ID        int       `json:"id"`
-	LessonID  int       `json:"lesson_id"`
-	Rating    int       `json:"rating"`
-	Comment   string    `json:"comment"`
-	CreatedAt time.Time `json:"created_at"`
-}
-
-type ChatMessage struct {
-	ID        int       `json:"id"`
-	LessonID  int       `json:"lesson_id"`
-	SenderID  int       `json:"sender_id"`
-	Content   string    `json:"content"`
-	CreatedAt time.Time `json:"created_at"`
-}
-
 // LessonBookingRequest represents the data needed to book a new lesson
 type LessonBookingRequest struct {
 	TutorID   int       `json:"tutor_id"`
@@ -153,16 +136,20 @@ func (r *LessonBookingRequest) Validate() error {
 		return errors.New("invalid tutor ID")
 	}
 
+	if r.StartTime.IsZero() {
+		return errors.New("start time is required")
+	}
+
 	if r.StartTime.Before(time.Now()) {
 		return errors.New("start time must be in the future")
 	}
 
-	if r.Duration <= 0 {
-		return errors.New("duration must be positive")
-	}
-
 	if r.Language == "" {
 		return errors.New("language is required")
+	}
+
+	if r.Duration <= 0 {
+		return errors.New("duration must be positive")
 	}
 
 	return nil
@@ -176,7 +163,7 @@ type LessonCancellationRequest struct {
 // Validate checks if the cancellation request is valid
 func (r *LessonCancellationRequest) Validate() error {
 	if r.Reason == "" {
-		return errors.New("cancellation reason is required")
+		return errors.New("reason is required")
 	}
 	return nil
 }

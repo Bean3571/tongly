@@ -3,7 +3,6 @@ import { Typography, Row, Col, Card, Button, Progress, Empty, Spin } from 'antd'
 import { useNavigate } from 'react-router-dom';
 import { useTutorDashboard } from '../hooks/useTutorDashboard';
 import { StatsCards } from '../components/dashboard/StatsCards';
-import { UpcomingLessonsTable } from '../components/dashboard/UpcomingLessonsTable';
 import { RecentReviews } from '../components/dashboard/RecentReviews';
 import { QuickActions } from '../components/dashboard/QuickActions';
 import { 
@@ -46,46 +45,6 @@ const TutorDashboard: React.FC = () => {
             <StatsCards stats={stats} loading={loading} />
             
             <Row gutter={[24, 24]} className="mt-6">
-                <Col xs={24} xl={16}>
-                    <Card 
-                        title={
-                            <div className="flex items-center !text-gray-800 dark:!text-gray-100">
-                                <CalendarOutlined className="mr-2" />
-                                Upcoming Lessons
-                            </div>
-                        }
-                        extra={
-                            <Button onClick={() => navigate('/schedule')}>
-                                Manage Schedule
-                            </Button>
-                        }
-                        className="shadow-md dark:bg-gray-800 dark:border-gray-700"
-                        bordered={false}
-                    >
-                        {upcomingLessons.length > 0 ? (
-                            <UpcomingLessonsTable 
-                                lessons={upcomingLessons} 
-                                loading={loading} 
-                            />
-                        ) : (
-                            <Empty
-                                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                                description={
-                                    <div className="text-gray-500 dark:text-gray-400">
-                                        No upcoming lessons
-                                        <Button 
-                                            type="link" 
-                                            onClick={() => navigate('/schedule')}
-                                            className="block mx-auto mt-2"
-                                        >
-                                            Set your availability
-                                        </Button>
-                                    </div>
-                                }
-                            />
-                        )}
-                    </Card>
-                </Col>
                 
                 <Col xs={24} xl={8}>
                     <QuickActions />

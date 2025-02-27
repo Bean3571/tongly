@@ -66,32 +66,20 @@ func main() {
 	}
 	defer db.Close()
 
-	// Initialize services
-	errorService := services.NewErrorService()
-
 	// Initialize repositories
 	userRepo := repositories.NewUserRepository(db)
 	tutorRepo := repositories.NewTutorRepository(db)
 	lessonRepo := repositories.NewLessonRepository(db)
 	walletRepo := repositories.NewWalletRepository(db)
-	chatRepo := repositories.NewChatRepository(db)
-	ratingRepo := repositories.NewRatingRepository(db)
-	videoSessionRepo := repositories.NewVideoSessionRepository(db)
 
 	// Initialize use cases
 	authUseCase := usecases.NewAuthUseCase(userRepo)
 	tutorUseCase := usecases.NewTutorUseCase(userRepo, tutorRepo)
 	userUseCase := usecases.NewUserUseCase(userRepo)
-	videoSessionUseCase := usecases.NewVideoSessionUseCase(lessonRepo, videoSessionRepo, errorService)
-	chatUseCase := usecases.NewChatUseCase(lessonRepo, chatRepo, errorService)
-	ratingUseCase := usecases.NewRatingUseCase(lessonRepo, ratingRepo, errorService)
 	lessonUseCase := usecases.NewLessonUseCase(
 		lessonRepo,
 		tutorRepo,
 		userRepo,
-		videoSessionUseCase,
-		chatUseCase,
-		ratingUseCase,
 	)
 
 	// Initialize services that depend on repositories
@@ -101,8 +89,7 @@ func main() {
 	authHandler := interfaces.NewAuthHandler(authUseCase, tutorUseCase)
 	tutorHandler := interfaces.NewTutorHandler(tutorUseCase)
 	userHandler := interfaces.NewUserHandler(userUseCase)
-	lessonHandler := interfaces.NewLessonHandler(lessonUseCase, videoSessionUseCase)
-	webrtcHandler := interfaces.NewWebRTCHandler(lessonUseCase)
+	lessonHandler := interfaces.NewLessonHandler(lessonUseCase)
 	walletHandler := interfaces.NewWalletHandler(walletService)
 
 	// Create a new Gin router with recommended production settings
@@ -113,30 +100,14 @@ func main() {
 		SkipPaths: []string{"/health", "/metrics"},
 	}))
 
-	// CORS configuration with WebSocket support
+	// CORS configuration
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{"http://localhost:3000"}
 	config.AllowCredentials = true
 	config.AllowHeaders = append(config.AllowHeaders,
 		"Authorization",
-		"Sec-WebSocket-Protocol",
-		"Sec-WebSocket-Version",
-		"Sec-WebSocket-Key",
-		"Sec-WebSocket-Extensions",
-		"Upgrade",
-		"Connection",
 	)
 	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
-	config.ExposeHeaders = []string{
-		"Content-Length",
-		"Sec-WebSocket-Accept",
-		"Upgrade",
-		"Connection",
-	}
-	r.Use(cors.New(config))
-
-	// Register WebRTC routes first (before other routes)
-	webrtcHandler.RegisterRoutes(r)
 
 	// Register other routes
 	router.SetupRouter(r, authHandler, tutorHandler, userHandler, lessonHandler, walletHandler)

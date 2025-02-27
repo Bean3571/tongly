@@ -23,7 +23,6 @@ import { TeachingProfile } from './pages/TeachingProfile';
 import { Schedule } from './pages/Schedule';
 import { Settings } from './pages/Settings';
 import { PlatformEarnings } from './pages/admin/PlatformEarnings';
-import LessonRoom from './pages/LessonRoom';
 
 const queryClient = new QueryClient();
 
@@ -112,7 +111,6 @@ const AppRoutes = () => {
                             <Lessons />
                         </PrivateRoute>
                     } />
-                    <Route path="/lessons/:lessonId/room" element={<LessonRoom />} />
 
                     {/* Admin Routes */}
                     <Route path="/admin/earnings" element={

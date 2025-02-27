@@ -1,2 +1,0 @@
-ALTER TABLE lessons
-ADD COLUMN cancelled_at TIMESTAMP WITH TIME ZONE; 

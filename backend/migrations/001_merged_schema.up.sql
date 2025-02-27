@@ -59,40 +59,9 @@ CREATE TABLE lessons (
     duration INTEGER NOT NULL, -- in minutes
     status VARCHAR(20) NOT NULL CHECK (status IN ('scheduled', 'in_progress', 'completed', 'cancelled')),
     price DECIMAL(10,2) NOT NULL,
+    cancelled_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- Reviews
-CREATE TABLE reviews (
-    id SERIAL PRIMARY KEY,
-    lesson_id INTEGER UNIQUE REFERENCES lessons(id) ON DELETE CASCADE,
-    student_id INTEGER REFERENCES user_credentials(id) ON DELETE CASCADE,
-    tutor_id INTEGER REFERENCES user_credentials(id) ON DELETE CASCADE,
-    rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
-    comment TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- Video sessions
-CREATE TABLE video_sessions (
-    id SERIAL PRIMARY KEY,
-    lesson_id INTEGER REFERENCES lessons(id) ON DELETE CASCADE,
-    room_id VARCHAR(255) NOT NULL,
-    session_token TEXT NOT NULL,
-    started_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    ended_at TIMESTAMP WITH TIME ZONE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- Chat messages
-CREATE TABLE chat_messages (
-    id SERIAL PRIMARY KEY,
-    lesson_id INTEGER REFERENCES lessons(id) ON DELETE CASCADE,
-    sender_id INTEGER REFERENCES user_credentials(id) ON DELETE CASCADE,
-    content TEXT NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Wallet transactions
@@ -123,7 +92,34 @@ CREATE TABLE platform_earnings (
     processed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Function to automatically update updated_at timestamp
+CREATE OR REPLACE VIEW lesson_participants AS
+WITH user_info AS (
+    SELECT 
+        uc.id,
+        uc.username,
+        up.first_name,
+        up.last_name,
+        up.profile_picture as avatar_url
+    FROM user_credentials uc
+    LEFT JOIN user_personal up ON up.user_id = uc.id
+)
+SELECT 
+    l.id as lesson_id,
+    -- Student info
+    s.username as student_username,
+    s.first_name as student_first_name,
+    s.last_name as student_last_name,
+    s.avatar_url as student_avatar_url,
+    -- Tutor info
+    t.username as tutor_username,
+    t.first_name as tutor_first_name,
+    t.last_name as tutor_last_name,
+    t.avatar_url as tutor_avatar_url
+FROM lessons l
+JOIN user_info s ON s.id = l.student_id
+JOIN user_info t ON t.id = l.tutor_id; 
+
+-- Function to automatically update updated_at column
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -153,11 +149,6 @@ CREATE TRIGGER update_tutor_details_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_video_sessions_updated_at
-    BEFORE UPDATE ON video_sessions
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
-
 -- Create indexes
 CREATE INDEX idx_user_credentials_username ON user_credentials(username);
 CREATE INDEX idx_user_credentials_email ON user_credentials(email);
@@ -174,16 +165,8 @@ CREATE INDEX idx_lessons_end_time ON lessons(end_time);
 CREATE INDEX idx_lessons_status ON lessons(status);
 CREATE INDEX idx_lessons_language ON lessons(language);
 CREATE INDEX idx_lessons_price ON lessons(price);
-CREATE INDEX idx_reviews_lesson_id ON reviews(lesson_id);
-CREATE INDEX idx_reviews_tutor_id ON reviews(tutor_id);
-CREATE INDEX idx_reviews_rating ON reviews(rating);
 CREATE INDEX idx_wallet_transactions_user_id ON wallet_transactions(user_id);
 CREATE INDEX idx_wallet_transactions_status ON wallet_transactions(status);
 CREATE INDEX idx_wallet_transactions_type ON wallet_transactions(transaction_type);
 CREATE INDEX idx_transaction_currency ON wallet_transactions(currency);
 CREATE INDEX idx_platform_earnings_transaction ON platform_earnings(transaction_id);
-CREATE INDEX idx_video_sessions_lesson_id ON video_sessions(lesson_id);
-CREATE INDEX idx_video_sessions_room_id ON video_sessions(room_id);
-CREATE INDEX idx_chat_messages_lesson_id ON chat_messages(lesson_id);
-CREATE INDEX idx_chat_messages_sender_id ON chat_messages(sender_id);
-CREATE INDEX idx_chat_messages_created_at ON chat_messages(created_at); 

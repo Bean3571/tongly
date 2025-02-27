@@ -1,12 +1,8 @@
--- Drop indexes
 DROP INDEX IF EXISTS idx_platform_earnings_transaction;
 DROP INDEX IF EXISTS idx_transaction_currency;
 DROP INDEX IF EXISTS idx_wallet_transactions_type;
 DROP INDEX IF EXISTS idx_wallet_transactions_status;
 DROP INDEX IF EXISTS idx_wallet_transactions_user_id;
-DROP INDEX IF EXISTS idx_reviews_rating;
-DROP INDEX IF EXISTS idx_reviews_tutor_id;
-DROP INDEX IF EXISTS idx_reviews_lesson_id;
 DROP INDEX IF EXISTS idx_lessons_price;
 DROP INDEX IF EXISTS idx_lessons_language;
 DROP INDEX IF EXISTS idx_lessons_status;
@@ -22,31 +18,21 @@ DROP INDEX IF EXISTS idx_user_personal_user_id;
 DROP INDEX IF EXISTS idx_user_credentials_role;
 DROP INDEX IF EXISTS idx_user_credentials_email;
 DROP INDEX IF EXISTS idx_user_credentials_username;
-DROP INDEX IF EXISTS idx_video_sessions_lesson_id;
-DROP INDEX IF EXISTS idx_video_sessions_room_id;
-DROP INDEX IF EXISTS idx_chat_messages_lesson_id;
-DROP INDEX IF EXISTS idx_chat_messages_sender_id;
-DROP INDEX IF EXISTS idx_chat_messages_created_at;
 
 -- Drop triggers
-DROP TRIGGER IF EXISTS update_lessons_updated_at ON lessons;
 DROP TRIGGER IF EXISTS update_tutor_details_updated_at ON tutor_details;
 DROP TRIGGER IF EXISTS update_student_details_updated_at ON student_details;
 DROP TRIGGER IF EXISTS update_user_personal_updated_at ON user_personal;
 DROP TRIGGER IF EXISTS update_user_credentials_updated_at ON user_credentials;
-DROP TRIGGER IF EXISTS update_video_sessions_updated_at ON video_sessions;
 
--- Drop function
+-- Drop functions
 DROP FUNCTION IF EXISTS update_updated_at_column();
 
--- Drop tables in correct order (respecting foreign key constraints)
+-- Drop tables
 DROP TABLE IF EXISTS platform_earnings;
 DROP TABLE IF EXISTS wallet_transactions;
-DROP TABLE IF EXISTS chat_messages;
-DROP TABLE IF EXISTS video_sessions;
-DROP TABLE IF EXISTS reviews;
 DROP TABLE IF EXISTS lessons;
-DROP TABLE IF EXISTS student_details;
 DROP TABLE IF EXISTS tutor_details;
+DROP TABLE IF EXISTS student_details;
 DROP TABLE IF EXISTS user_personal;
-DROP TABLE IF EXISTS user_credentials;
+DROP TABLE IF EXISTS user_credentials; 

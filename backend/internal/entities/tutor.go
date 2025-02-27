@@ -43,18 +43,6 @@ type TutorAvailability struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-// TutorReview represents a review for a tutor
-type TutorReview struct {
-	ID         int       `json:"id"`
-	TutorID    int       `json:"tutor_id"`
-	ReviewerID int       `json:"reviewer_id"`
-	Rating     int       `json:"rating"`
-	Comment    string    `json:"comment"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
-	Reviewer   *User     `json:"reviewer,omitempty"`
-}
-
 // TutorRegistrationRequest represents the data needed to register as a tutor
 type TutorRegistrationRequest struct {
 	Bio               string      `json:"bio"`
@@ -92,5 +80,4 @@ type TutorSearchFilters struct {
 	Languages []string `json:"languages"`
 	MinPrice  float64  `json:"min_price"`
 	MaxPrice  float64  `json:"max_price"`
-	MinRating float64  `json:"min_rating"`
 }

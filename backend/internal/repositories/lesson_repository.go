@@ -30,20 +30,4 @@ type LessonRepository interface {
 	// Status management
 	UpdateLessonStatuses(ctx context.Context) error
 	CancelLesson(ctx context.Context, lessonID int) error
-
-	// Video session operations
-	CreateVideoSession(ctx context.Context, session *entities.VideoSession) error
-	GetVideoSession(ctx context.Context, lessonID int) (*entities.VideoSession, error)
-	UpdateVideoSession(ctx context.Context, session *entities.VideoSession) error
-	StartVideoSession(ctx context.Context, lesson *entities.Lesson, session *entities.VideoSession) error
-	EndVideoSession(ctx context.Context, lesson *entities.Lesson, session *entities.VideoSession) error
-
-	// Chat operations
-	SaveChatMessage(ctx context.Context, message *entities.ChatMessage) error
-	GetChatHistory(ctx context.Context, lessonID int) ([]*entities.ChatMessage, error)
-
-	// Rating operations
-	SaveLessonRating(ctx context.Context, rating *entities.LessonRating) error
-	GetLessonRating(ctx context.Context, lessonID int) (*entities.LessonRating, error)
-	GetTutorAverageRating(ctx context.Context, tutorID int) (float64, error)
 }

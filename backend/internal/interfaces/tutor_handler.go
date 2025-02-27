@@ -1,11 +1,9 @@
 package interfaces
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 	"tongly-backend/internal/entities"
 	"tongly-backend/internal/logger"
 	"tongly-backend/internal/usecases"
@@ -211,64 +209,6 @@ func (h *TutorHandler) UpdateTutorProfile(c *gin.Context) {
 	})
 }
 
-// UploadVideo handles POST /tutors/video
-func (h *TutorHandler) UploadVideo(c *gin.Context) {
-	logger.Info("Handling tutor video upload request", "path", c.Request.URL.Path)
-
-	// Get user ID from JWT token
-	userID, exists := c.Get("user_id")
-	if !exists {
-		logger.Error("No user ID found")
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-
-	// Get the file from the request
-	file, err := c.FormFile("video")
-	if err != nil {
-		logger.Error("Failed to get video file", "error", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "No video file provided"})
-		return
-	}
-
-	// Check file size (5MB limit)
-	if file.Size > 5*1024*1024 {
-		logger.Error("Video file too large", "size", file.Size)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Video file must be smaller than 5MB"})
-		return
-	}
-
-	// Check file type
-	if !strings.HasPrefix(file.Header.Get("Content-Type"), "video/") {
-		logger.Error("Invalid file type", "content_type", file.Header.Get("Content-Type"))
-		c.JSON(http.StatusBadRequest, gin.H{"error": "File must be a video"})
-		return
-	}
-
-	// Generate a unique filename
-	filename := fmt.Sprintf("tutor_%d_%s_%s", userID.(int), time.Now().Format("20060102150405"), file.Filename)
-
-	// Save the file
-	if err := c.SaveUploadedFile(file, "./uploads/videos/"+filename); err != nil {
-		logger.Error("Failed to save video file", "error", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save video"})
-		return
-	}
-
-	// Update the tutor's profile with the video URL
-	videoURL := "/uploads/videos/" + filename
-	if err := h.TutorUseCase.UpdateTutorVideo(c.Request.Context(), userID.(int), videoURL); err != nil {
-		logger.Error("Failed to update tutor video URL", "error", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update video URL"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message":  "Video uploaded successfully",
-		"videoUrl": videoURL,
-	})
-}
-
 // Helper function to parse string to float64
 func parseFloat64(s string) float64 {
 	val, _ := strconv.ParseFloat(s, 64)
@@ -281,7 +221,6 @@ func (h *TutorHandler) SearchTutors(c *gin.Context) {
 		Languages: strings.Split(c.Query("languages"), ","),
 		MinPrice:  parseFloat64(c.Query("min_price")),
 		MaxPrice:  parseFloat64(c.Query("max_price")),
-		MinRating: parseFloat64(c.Query("min_rating")),
 	}
 
 	tutors, err := h.TutorUseCase.SearchTutors(c.Request.Context(), filters)
@@ -300,7 +239,6 @@ func (h *TutorHandler) RegisterRoutes(r *gin.Engine) {
 		tutors.PUT("/:id/approval", middleware.AuthMiddleware(), h.UpdateTutorApprovalStatus)
 		tutors.GET("/profile", middleware.AuthMiddleware(), h.GetTutorProfile)
 		tutors.PUT("/profile", middleware.AuthMiddleware(), h.UpdateTutorProfile)
-		tutors.POST("/video", middleware.AuthMiddleware(), h.UploadVideo)
 		tutors.GET("/search", h.SearchTutors)
 	}
 }
