@@ -9,9 +9,9 @@
         "delete": "Delete",
         "confirm": "Confirm",
         "back": "Back",
-        "try.again": "Try Again",
+        "try_again": "Try Again",
         "toggleTheme": "Toggle theme",
-        "platform.name": "Tongly",
+        "platform_name": "Tongly",
         "languages": {
             "en": "English",
             "ru": "Russian",
@@ -20,11 +20,11 @@
     },
     "validation": {
         "required": "This field is required",
-        "email.invalid": "Invalid email address",
-        "username.min.length": "Username must be at least 3 characters",
-        "password.min.length": "Password must be at least 6 characters",
-        "password.match": "Passwords must match",
-        "role.invalid": "Invalid role selected"
+        "email_invalid": "Invalid email address",
+        "username_min_length": "Username must be at least 3 characters",
+        "password_min_length": "Password must be at least 6 characters",
+        "password_match": "Passwords must match",
+        "role_invalid": "Invalid role selected"
     },
     "auth": {
         "login": "Login",
@@ -111,7 +111,7 @@
         },
         "actions": {
             "join": "Join Lesson",
-            "join.ongoing": "Join Ongoing Lesson",
+            "join_ongoing": "Join Ongoing Lesson",
             "cancel": "Cancel Lesson",
             "rate": "Rate Lesson"
         },
@@ -122,8 +122,8 @@
         "table": {
             "tutor": "Tutor",
             "student": "Student",
-            "language.duration": "Language & Duration",
-            "date.time": "Date & Time",
+            "language_duration": "Language & Duration",
+            "date_time": "Date & Time",
             "status": "Status",
             "price": "Price",
             "actions": "Actions"
@@ -143,20 +143,20 @@
         "tabs": {
             "all": "All Lessons",
             "upcoming": "Upcoming",
-            "in.progress": "In Progress",
+            "in_progress": "In Progress",
             "ended": "Ended",
             "cancelled": "Cancelled"
         },
-        "no.lessons": "You don't have any lessons yet",
-        "cancelled.success": "Lesson cancelled successfully",
-        "joined.success": "Joined lesson successfully",
+        "no_lessons": "You don't have any lessons yet",
+        "cancelled_success": "Lesson cancelled successfully",
+        "joined_success": "Joined lesson successfully",
         "errors": {
-            "fetch.lessons": "Failed to fetch lessons",
-            "cancel.lesson": "Failed to cancel lesson",
-            "join.lesson": "Failed to join lesson"
+            "fetch_lessons": "Failed to fetch lessons",
+            "cancel_lesson": "Failed to cancel lesson",
+            "join_lesson": "Failed to join lesson"
         },
         "warning": {
-            "too.early": {
+            "too_early": {
                 "title": "Too Early",
                 "description": "You can join the lesson 5 minutes before the scheduled start time."
             }
@@ -166,8 +166,8 @@
                 "title": "Cancel Lesson",
                 "confirm": "Are you sure you want to cancel this lesson?",
                 "warning": "This action cannot be undone.",
-                "confirm.button": "Yes, Cancel Lesson",
-                "keep.button": "No, Keep Lesson"
+                "confirm_button": "Yes, Cancel Lesson",
+                "keep_button": "No, Keep Lesson"
             },
             "reason": "Cancelled by {{role}}"
         }
@@ -180,36 +180,52 @@
                 "language": "Language",
                 "price": "Price Range",
                 "rating": "Minimum Rating"
-            }
+            },
+            "no_results": "No tutors found matching your criteria. Try adjusting your filters.",
+            "lessons": "lessons",
+            "view_profile": "View Profile"
+        },
+        "card": {
+            "tutor_image": "Tutor profile picture",
+            "tutor_name": "Tutor Name {{number}}",
+            "languages": "English, Spanish",
+            "description": "Experienced language tutor specializing in conversation and business communication.",
+            "price_per_hour": "${price}/hour",
+            "view_profile": "View Profile"
         },
         "profile": {
             "title": "Teaching Profile",
             "about": "About Me",
-            "about.placeholder": "Tell students about yourself, your teaching experience, and what makes your lessons unique...",
-            "about.tip": "Pro tip: Include information about your teaching experience, methodology, and what students can expect from your lessons.",
+            "about_placeholder": "Tell students about yourself, your teaching experience, and what makes your lessons unique...",
+            "about_tip": "Pro tip: Include information about your teaching experience, methodology, and what students can expect from your lessons.",
             "education": {
                 "add": "Add Education",
-                "institution.placeholder": "Enter institution name",
-                "field.placeholder": "Enter field of study",
+                "institution_placeholder": "Enter institution name",
+                "field_placeholder": "Enter field of study",
                 "start": "Start Year",
                 "end": "End Year"
             },
             "languages": "Languages I Teach",
             "pricing": "Pricing",
             "reviews": "Reviews",
-            "schedule": "Schedule"
+            "schedule": "Schedule",
+            "no_bio": "This tutor has not added a bio yet."
+        },
+        "errors": {
+            "unauthorized": "Please log in to view tutors",
+            "load_failed": "Failed to load tutors. Please try again later."
         }
     },
     "pages": {
         "login": {
             "title": "Sign in to your account",
             "username": "Username",
-            "username.placeholder": "Enter your username",
+            "username_placeholder": "Enter your username",
             "password": "Password",
-            "password.placeholder": "Enter your password",
-            "sign.in.button": "Sign in",
-            "no.account": "Don't have an account?",
-            "sign.up": "Sign up"
+            "password_placeholder": "Enter your password",
+            "sign_in_button": "Sign in",
+            "no_account": "Don't have an account?",
+            "sign_up": "Sign up"
         },
         "dashboard": {
             "student": {
@@ -219,20 +235,20 @@
                     "title": "Your Progress",
                     "level": "Level {{level}}",
                     "points": "{{points}} points",
-                    "next.level": "{{points}} points to next level"
+                    "next_level": "{{points}} points to next level"
                 },
-                "upcoming.lessons": "Upcoming Lessons",
-                "completed.lessons": "Completed Lessons",
-                "no.lessons": "No lessons scheduled",
-                "quick.actions": {
+                "upcoming_lessons": "Upcoming Lessons",
+                "completed_lessons": "Completed Lessons",
+                "no_lessons": "No lessons scheduled",
+                "quick_actions": {
                     "title": "Quick Actions",
-                    "find.tutor": "Find a Tutor",
-                    "schedule.lesson": "Schedule Lesson",
-                    "view.all.lessons": "View All Lessons"
+                    "find_tutor": "Find a Tutor",
+                    "schedule_lesson": "Schedule Lesson",
+                    "view_all_lessons": "View All Lessons"
                 },
                 "stats": {
-                    "total.lessons": "Total Lessons",
-                    "hours.learned": "Hours Learned",
+                    "total_lessons": "Total Lessons",
+                    "hours_learned": "Hours Learned",
                     "languages": "Languages",
                     "streak": "Day Streak"
                 }
@@ -243,75 +259,87 @@
                 "earnings": {
                     "title": "Earnings",
                     "total": "Total Earnings",
-                    "this.month": "This Month",
+                    "this_month": "This Month",
                     "pending": "Pending"
                 },
                 "schedule": {
                     "title": "Today's Schedule",
-                    "no.lessons": "No lessons scheduled for today"
+                    "no_lessons": "No lessons scheduled for today"
                 },
                 "stats": {
-                    "total.students": "Total Students",
-                    "total.lessons": "Total Lessons",
+                    "total_students": "Total Students",
+                    "total_lessons": "Total Lessons",
                     "rating": "Average Rating",
-                    "completion.rate": "Completion Rate"
+                    "completion_rate": "Completion Rate"
                 }
             }
         },
         "profile": {
             "title": "Profile Settings",
-            "personal.info": "Personal Information",
-            "teaching.info": "Teaching Information",
-            "account.settings": "Account Settings",
+            "personal_info": "Personal Information",
+            "teaching_info": "Teaching Information",
+            "account_settings": "Account Settings",
             "fields": {
-                "first.name": "First Name",
-                "last.name": "Last Name",
+                "first_name": "First Name",
+                "last_name": "Last Name",
                 "email": "Email",
                 "phone": "Phone",
                 "bio": "Bio",
                 "languages": "Languages",
                 "education": "Education",
                 "experience": "Experience",
-                "hourly.rate": "Hourly Rate",
+                "hourly_rate": "Hourly Rate",
                 "timezone": "Time Zone"
             },
             "buttons": {
                 "save": "Save Changes",
                 "cancel": "Cancel",
-                "upload.photo": "Upload Photo",
-                "remove.photo": "Remove Photo"
+                "upload_photo": "Upload Photo",
+                "remove_photo": "Remove Photo"
             }
         },
         "settings": {
             "title": "Settings",
-            "sections": {
-                "notifications": {
-                    "title": "Notifications",
-                    "email": "Email Notifications",
-                    "sms": "SMS Notifications",
-                    "marketing": "Marketing Updates"
+            "notifications": {
+                "title": "Notifications",
+                "email": {
+                    "title": "Email Notifications",
+                    "description": "Receive email updates about your lessons"
                 },
-                "security": {
-                    "title": "Security",
-                    "current.password": "Current Password",
-                    "new.password": "New Password",
-                    "confirm.password": "Confirm New Password"
+                "sms": {
+                    "title": "SMS Notifications",
+                    "description": "Get text messages for lesson reminders"
                 },
-                "preferences": {
-                    "title": "Preferences",
-                    "language": "Language",
-                    "timezone": "Time Zone",
-                    "theme": "Theme"
+                "marketing": {
+                    "title": "Marketing Updates",
+                    "description": "Stay informed about new features and promotions"
                 }
+            },
+            "security": {
+                "title": "Security",
+                "current_password": "Current Password",
+                "new_password": "New Password",
+                "confirm_password": "Confirm Password"
+            },
+            "preferences": {
+                "title": "Preferences",
+                "language": "Language",
+                "timezone": "Time Zone"
+            },
+            "billing": {
+                "title": "Billing",
+                "add_payment": "Add Payment Method",
+                "history": "Billing History",
+                "no_history": "No billing history available"
             }
         },
         "messages": {
             "title": "Messages",
-            "no.messages": "No messages yet",
+            "no_messages": "No messages yet",
             "search": "Search conversations",
             "online": "Online",
             "offline": "Offline",
-            "type.message": "Type your message",
+            "type_message": "Type your message",
             "send": "Send"
         },
         "schedule": {
@@ -319,7 +347,7 @@
             "availability": {
                 "title": "Set Availability",
                 "timezone": "Your time zone",
-                "weekly.hours": "Weekly Hours",
+                "weekly_hours": "Weekly Hours",
                 "breaks": "Break Times"
             },
             "calendar": {
@@ -343,7 +371,7 @@
                 "submit": "Submit"
             }
         },
-        "teaching.profile": {
+        "teaching_profile": {
             "title": "Teaching Profile",
             "subtitle": "Complete your profile to start teaching",
             "education": {
@@ -368,53 +396,53 @@
                     "description": "Describe your studies and achievements"
                 },
                 "validation": {
-                    "degree.required": "Degree is required",
-                    "field.required": "Field of study is required",
-                    "institution.required": "Institution is required",
-                    "start_year.required": "Start year is required",
-                    "end_year.required": "End year is required",
-                    "end_year.invalid": "End year must be after start year"
+                    "degree_required": "Degree is required",
+                    "field_required": "Field of study is required",
+                    "institution_required": "Institution is required",
+                    "start_year_required": "Start year is required",
+                    "end_year_required": "End year is required",
+                    "end_year_invalid": "End year must be after start year"
                 },
                 "buttons": {
                     "save": "Save Education",
                     "cancel": "Cancel",
-                    "add.another": "Add Another Education"
+                    "add_another": "Add Another Education"
                 }
             }
         },
         "register": {
             "title": "Create your account",
             "username": "Username",
-            "username.placeholder": "Choose a username",
+            "username_placeholder": "Choose a username",
             "email": "Email",
-            "email.placeholder": "Enter your email",
+            "email_placeholder": "Enter your email",
             "password": "Password",
-            "password.placeholder": "Choose a password",
-            "confirm.password": "Confirm Password",
-            "confirm.password.placeholder": "Confirm your password",
-            "i.want.to": "I want to",
-            "role.student": "Learn languages",
-            "role.tutor": "Teach languages",
-            "register.button": "Create Account",
-            "have.account": "Already have an account?",
-            "sign.in": "Sign in"
+            "password_placeholder": "Choose a password",
+            "confirm_password": "Confirm Password",
+            "confirm_password_placeholder": "Confirm your password",
+            "i_want_to": "I want to",
+            "role_student": "Learn languages",
+            "role_tutor": "Teach languages",
+            "register_button": "Create Account",
+            "have_account": "Already have an account?",
+            "sign_in": "Sign in"
         },
         "home": {
             "welcome": "Welcome to Tongly! 🌍",
             "description": "Learn languages with professional tutors at your convenience",
-            "get.started": "Get Started",
-            "sign.in": "Sign In",
-            "go.to.dashboard": "Go to Dashboard",
+            "get_started": "Get Started",
+            "sign_in": "Sign In",
+            "go_to_dashboard": "Go to Dashboard",
             "features": {
-                "native.tutors": {
+                "native_tutors": {
                     "title": "Native Tutors",
                     "description": "Learn from professional native-speaking tutors"
                 },
-                "personalized.learning": {
+                "personalized_learning": {
                     "title": "Personalized Learning",
                     "description": "Get a customized learning experience"
                 },
-                "track.progress": {
+                "track_progress": {
                     "title": "Track Progress",
                     "description": "Monitor your achievements and growth"
                 }
@@ -424,19 +452,19 @@
             "title": "Challenges",
             "points": "{{points}} points",
             "level": "Level {{level}}",
-            "points.to.next.level": "{{points}} points to next level",
+            "points_to_next_level": "{{points}} points to next level",
             "progress": {
                 "title": "Your Progress"
             },
-            "daily.conversation": {
+            "daily_conversation": {
                 "title": "Daily Conversation",
                 "description": "Practice speaking every day"
             },
-            "grammar.master": {
+            "grammar_master": {
                 "title": "Grammar Master",
                 "description": "Perfect your grammar skills"
             },
-            "cultural.explorer": {
+            "cultural_explorer": {
                 "title": "Cultural Explorer",
                 "description": "Learn about the culture"
             },
@@ -445,13 +473,13 @@
                 "3d": "3 days",
                 "2d": "2 days"
             },
-            "progress.value": "{{current}}/{{total}}",
+            "progress_value": "{{current}}/{{total}}",
             "achievements": {
                 "title": "Achievements",
-                "first.lesson": "First Lesson",
-                "perfect.week": "Perfect Week",
-                "quick.learner": "Quick Learner",
-                "social.butterfly": "Social Butterfly"
+                "first_lesson": "First Lesson",
+                "perfect_week": "Perfect Week",
+                "quick_learner": "Quick Learner",
+                "social_butterfly": "Social Butterfly"
             },
             "date": {
                 "jan15": "Jan 15",
@@ -466,17 +494,17 @@
                 "global": "Global",
                 "friends": "Friends",
                 "country": "Country",
-                "all.languages": "All Languages",
+                "all_languages": "All Languages",
                 "english": "English",
                 "spanish": "Spanish",
                 "french": "French",
-                "this.week": "This Week",
-                "this.month": "This Month",
-                "all.time": "All Time"
+                "this_week": "This Week",
+                "this_month": "This Month",
+                "all_time": "All Time"
             },
-            "first.place": "First Place",
-            "second.place": "Second Place",
-            "third.place": "Third Place",
+            "first_place": "First Place",
+            "second_place": "Second Place",
+            "third_place": "Third Place",
             "points": "{{points}} points",
             "position": "Position {{position}}",
             "user": {
@@ -486,16 +514,16 @@
         },
         "messages": {
             "title": "Messages",
-            "search.placeholder": "Search messages...",
-            "no.messages": "No messages",
-            "type.message": "Type your message..."
+            "search_placeholder": "Search messages...",
+            "no_messages": "No messages",
+            "type_message": "Type your message..."
         },
         "schedule": {
             "title": "Teaching Schedule",
-            "quick.actions": {
+            "quick_actions": {
                 "title": "Quick Actions",
-                "set.hours": "Set Weekly Hours",
-                "block.time": "Block Time Off",
+                "set_hours": "Set Weekly Hours",
+                "block_time": "Block Time Off",
                 "timezone": "Time Zone"
             }
         },
@@ -518,9 +546,9 @@
             },
             "security": {
                 "title": "Security",
-                "current.password": "Current Password",
-                "new.password": "New Password",
-                "confirm.password": "Confirm Password"
+                "current_password": "Current Password",
+                "new_password": "New Password",
+                "confirm_password": "Confirm Password"
             },
             "preferences": {
                 "title": "Preferences",
@@ -529,12 +557,12 @@
             },
             "billing": {
                 "title": "Billing",
-                "add.payment": "Add Payment Method",
+                "add_payment": "Add Payment Method",
                 "history": "Billing History",
-                "no.history": "No billing history available"
+                "no_history": "No billing history available"
             }
         },
-        "book.lesson": {
+        "book_lesson": {
             "title": "Book a Lesson with {{name}}",
             "select": {
                 "language": "Select Language",
@@ -542,7 +570,7 @@
                 "time": "Select Time",
                 "duration": "Lesson Duration"
             },
-            "lesson.details": {
+            "lesson_details": {
                 "title": "Lesson Details",
                 "duration": "Duration: {{duration}} minutes",
                 "price": "Price: {{price}}",
@@ -571,17 +599,17 @@
         "lessonChat": {
             "title": "Lesson Chat",
             "participants": "{{count}} participants",
-            "type.message": "Type your message...",
+            "type_message": "Type your message...",
             "send": "Send"
         },
         "videoRoom": {
             "controls": {
                 "mute": "Mute",
                 "unmute": "Unmute",
-                "camera.on": "Turn Camera On",
-                "camera.off": "Turn Camera Off",
-                "share.screen": "Share Screen",
-                "stop.sharing": "Stop Sharing",
+                "camera_on": "Turn Camera On",
+                "camera_off": "Turn Camera Off",
+                "share_screen": "Share Screen",
+                "stop_sharing": "Stop Sharing",
                 "leave": "Leave Room"
             },
             "status": {
@@ -592,15 +620,15 @@
         },
         "lessonRating": {
             "title": "Rate Your Lesson",
-            "with.tutor": "with {{name}}",
-            "rating.labels": {
+            "with_tutor": "with {{name}}",
+            "rating_labels": {
                 "1": "Poor",
                 "2": "Fair",
                 "3": "Good",
                 "4": "Very Good",
                 "5": "Excellent"
             },
-            "comment.placeholder": "Share your experience (optional)",
+            "comment_placeholder": "Share your experience (optional)",
             "buttons": {
                 "submit": "Submit Rating",
                 "skip": "Skip"

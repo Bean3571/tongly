@@ -272,7 +272,7 @@ export const TeachingProfile: React.FC = () => {
                 <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Select
-                            placeholder={t('tutors.profile.education.degree.placeholder')}
+                            placeholder={t('tutors.profile.education_degree_placeholder')}
                             value={newEducation.degree}
                             onChange={(value) => setNewEducation(prev => ({ ...prev, degree: value }))}
                             className="w-full dark:bg-gray-700 dark:text-gray-100"
@@ -282,13 +282,13 @@ export const TeachingProfile: React.FC = () => {
                             ))}
                         </Select>
                         <Input
-                            placeholder={t('tutors.profile.education.institution.placeholder')}
+                            placeholder={t('tutors.profile.education_institution_placeholder')}
                             value={newEducation.institution}
                             onChange={(e) => setNewEducation(prev => ({ ...prev, institution: e.target.value }))}
                             className="w-full dark:bg-gray-700 dark:text-gray-100"
                         />
                         <Input
-                            placeholder={t('tutors.profile.education.field.placeholder')}
+                            placeholder={t('tutors.profile.education_field_placeholder')}
                             value={newEducation.field_of_study}
                             onChange={(e) => setNewEducation(prev => ({ ...prev, field_of_study: e.target.value }))}
                             className="w-full dark:bg-gray-700 dark:text-gray-100"

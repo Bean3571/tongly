@@ -25,7 +25,7 @@ export const Lessons: React.FC = () => {
       setLessons(data);
     } catch (error) {
       console.error('Error fetching lessons:', error);
-      showNotification('error', t('lessons.errors.fetch.lessons'));
+      showNotification('error', t('lessons.errors.fetch_lessons'));
     } finally {
       setLoading(false);
     }
@@ -34,7 +34,7 @@ export const Lessons: React.FC = () => {
   const handleCancel = async (lessonId: number) => {
     try {
       await lessonService.cancelLesson(lessonId);
-      showNotification('success', t('lessons.cancelled.success'));
+      showNotification('success', t('lessons.cancelled_success'));
       setLessons(prevLessons =>
         prevLessons.map(lesson =>
           lesson.id === lessonId
@@ -44,18 +44,18 @@ export const Lessons: React.FC = () => {
       );
     } catch (error) {
       console.error('Error cancelling lesson:', error);
-      showNotification('error', t('lessons.errors.cancel.lesson'));
+      showNotification('error', t('lessons.errors.cancel_lesson'));
     }
   };
 
   const handleJoin = async (lessonId: number) => {
     try {
       const roomInfo = await lessonService.joinLesson(lessonId);
-      showNotification('success', t('lessons.joined.success'));
+      showNotification('success', t('lessons.joined_success'));
       navigate(`/lessons/${lessonId}/room`, { state: roomInfo });
     } catch (error) {
       console.error('Error joining lesson:', error);
-      showNotification('error', t('lessons.errors.join.lesson'));
+      showNotification('error', t('lessons.errors.join_lesson'));
     }
   };
 
@@ -72,7 +72,7 @@ export const Lessons: React.FC = () => {
   const tabs = [
     { id: 'all', label: t('lessons.tabs.all') },
     { id: LessonStatus.SCHEDULED, label: t('lessons.tabs.scheduled') },
-    { id: LessonStatus.IN_PROGRESS, label: t('lessons.tabs.in.progress') },
+    { id: LessonStatus.IN_PROGRESS, label: t('lessons.tabs.in_progress') },
     { id: LessonStatus.COMPLETED, label: t('lessons.tabs.completed') },
     { id: LessonStatus.CANCELLED, label: t('lessons.tabs.cancelled') }
   ];
@@ -109,7 +109,7 @@ export const Lessons: React.FC = () => {
       {/* Lessons Grid */}
       {sortedLessons.length === 0 ? (
         <div className="text-center text-gray-600 py-12">
-          <p>{t('lessons.no.lessons')}</p>
+          <p>{t('lessons.no_lessons')}</p>
         </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

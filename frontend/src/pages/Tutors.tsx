@@ -1,10 +1,13 @@
 import React from 'react';
+import { useTranslation } from '../contexts/I18nContext';
 
 export const Tutors = () => {
+    const { t } = useTranslation();
+
     return (
         <div className="container mx-auto px-4 py-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
-                Find Your Perfect Tutor 👩‍🏫
+                {t('tutors.search.title')}
             </h1>
 
             {/* Search and Filter Section */}
@@ -12,20 +15,20 @@ export const Tutors = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <input
                         type="text"
-                        placeholder="Search tutors..."
+                        placeholder={t('tutors.search.placeholder')}
                         className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
                                  dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <select className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
                                      dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Select Language</option>
+                        <option value="">{t('tutors.search.filters.language')}</option>
                         <option value="english">English</option>
                         <option value="spanish">Spanish</option>
                         <option value="french">French</option>
                     </select>
                     <select className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
                                      dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Price Range</option>
+                        <option value="">{t('tutors.search.filters.price')}</option>
                         <option value="0-20">$0 - $20</option>
                         <option value="20-40">$20 - $40</option>
                         <option value="40+">$40+</option>
@@ -42,28 +45,28 @@ export const Tutors = () => {
                             <div className="flex items-center mb-4">
                                 <img
                                     src={`https://via.placeholder.com/64`}
-                                    alt="Tutor"
+                                    alt={t('tutors.card.tutor_image')}
                                     className="w-16 h-16 rounded-full mr-4"
                                 />
                                 <div>
                                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                                        Tutor Name {i}
+                                        {t('tutors.card.tutor_name', { number: i })}
                                     </h3>
                                     <p className="text-gray-600 dark:text-gray-300">
-                                        English, Spanish
+                                        {t('tutors.card.languages')}
                                     </p>
                                 </div>
                             </div>
                             <p className="text-gray-600 dark:text-gray-300 mb-4">
-                                Experienced language tutor specializing in conversation and business communication.
+                                {t('tutors.card.description')}
                             </p>
                             <div className="flex justify-between items-center">
                                 <span className="text-blue-600 dark:text-blue-400 font-semibold">
-                                    $25/hour
+                                    {t('tutors.card.price_per_hour', { price: 25 })}
                                 </span>
                                 <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
                                                  transition-colors">
-                                    View Profile
+                                    {t('tutors.card.view_profile')}
                                 </button>
                             </div>
                         </div>
