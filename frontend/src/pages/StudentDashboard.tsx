@@ -142,20 +142,20 @@ const StudentDashboard: React.FC = () => {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-8">
                 Welcome back, {user?.personal?.first_name || user?.credentials?.username}! 
             </h1>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* Learning Languages Section */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                <div className="bg-white rounded-lg shadow-lg p-6">
                     <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                        <h2 className="text-xl font-semibold text-gray-900">
                             Languages 🌍
                         </h2>
                         <button
                             onClick={() => setIsEditingLanguages(true)}
-                            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                            className="text-accent-primary hover:text-accent-primary-hover"
                         >
                             Edit
                         </button>
@@ -163,10 +163,10 @@ const StudentDashboard: React.FC = () => {
                     <div className="space-y-2">
                         {user?.student?.learning_languages?.map((lang, index) => (
                             <div key={index} className="flex items-center justify-between">
-                                <span className="text-gray-700 dark:text-gray-300">
+                                <span className="text-gray-700">
                                     {lang.language}
                                 </span>
-                                <span className="text-gray-500 dark:text-gray-400">
+                                <span className="text-gray-500">
                                     {lang.level}
                                 </span>
                             </div>
@@ -175,14 +175,14 @@ const StudentDashboard: React.FC = () => {
                 </div>
 
                 {/* Learning Goals */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                <div className="bg-white rounded-lg shadow-lg p-6">
                     <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                        <h2 className="text-xl font-semibold text-gray-900">
                             Your Goals 🎯
                         </h2>
                         <button
                             onClick={() => setIsEditingGoals(true)}
-                            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                            className="text-accent-primary hover:text-accent-primary-hover"
                         >
                             Edit
                         </button>
@@ -201,9 +201,9 @@ const StudentDashboard: React.FC = () => {
                                         }}
                                         className={`p-3 rounded-lg border text-left ${
                                             editedGoals.includes(goal)
-                                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900'
-                                                : 'border-gray-200 dark:border-gray-700'
-                                        } hover:border-blue-500 dark:hover:border-blue-400`}
+                                                ? 'border-accent-primary bg-accent-primary-lighter'
+                                                : 'border-gray-200'
+                                        } hover:border-accent-primary`}
                                     >
                                         {label}
                                     </button>
@@ -211,7 +211,7 @@ const StudentDashboard: React.FC = () => {
                             </div>
                             <button
                                 onClick={handleGoalsSubmit}
-                                className="w-full mt-4 bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 
+                                className="w-full mt-4 bg-accent-primary text-white p-2 rounded-lg hover:bg-accent-primary-hover 
                                          transition-colors"
                             >
                                 Save Changes
@@ -222,7 +222,7 @@ const StudentDashboard: React.FC = () => {
                             {(user.student?.learning_goals || []).map((goal: string) => (
                                 <div
                                     key={goal}
-                                    className="flex items-center text-gray-700 dark:text-gray-300"
+                                    className="flex items-center text-gray-700"
                                 >
                                     <span className="mr-2">{goalEmojis[goal]}</span>
                                 </div>
@@ -232,14 +232,14 @@ const StudentDashboard: React.FC = () => {
                 </div>
 
                 {/* Interests */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                <div className="bg-white rounded-lg shadow-lg p-6">
                     <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                        <h2 className="text-xl font-semibold text-gray-900">
                             Your Interests 💡
                         </h2>
                         <button
                             onClick={() => setIsEditingInterests(true)}
-                            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                            className="text-accent-primary hover:text-accent-primary-hover"
                         >
                             Edit
                         </button>
@@ -256,20 +256,20 @@ const StudentDashboard: React.FC = () => {
                                                 : [...editedInterests, interest];
                                             setEditedInterests(newInterests);
                                         }}
-                                        className={`p-3 rounded-lg border ${
+                                        className={`p-2 rounded-lg border flex items-center justify-center ${
                                             editedInterests.includes(interest)
-                                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900'
-                                                : 'border-gray-200 dark:border-gray-700'
-                                        } hover:border-blue-500 dark:hover:border-blue-400`}
+                                                ? 'border-accent-primary bg-accent-primary-lighter'
+                                                : 'border-gray-200'
+                                        } hover:border-accent-primary`}
                                     >
-                                        <span className="text-2xl mr-2">{emoji}</span>
-                                        {interest.charAt(0).toUpperCase() + interest.slice(1)}
+                                        <span className="mr-2">{emoji}</span>
+                                        <span>{interest}</span>
                                     </button>
                                 ))}
                             </div>
                             <button
                                 onClick={handleInterestsSubmit}
-                                className="w-full mt-4 bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 
+                                className="w-full mt-4 bg-accent-primary text-white p-2 rounded-lg hover:bg-accent-primary-hover 
                                          transition-colors"
                             >
                                 Save Changes
@@ -280,8 +280,8 @@ const StudentDashboard: React.FC = () => {
                             {(user.student?.interests || []).map((interest: string) => (
                                 <span
                                     key={interest}
-                                    className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full 
-                                             text-sm text-gray-700 dark:text-gray-300 capitalize"
+                                    className="px-3 py-1 bg-gray-100 rounded-full 
+                                             text-sm text-gray-700 capitalize"
                                 >
                                     {interestEmojis[interest]} {interest}
                                 </span>

@@ -1,51 +1,25 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-
-type Theme = 'light' | 'dark';
+import React, { createContext, useContext } from 'react';
 
 interface ThemeContextType {
-    theme: Theme;
-    isDarkMode: boolean;
-    toggleTheme: () => void;
+    theme: 'light';
+    isDarkMode: false;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [theme, setTheme] = useState<Theme>(() => {
-        // Check local storage and system preference
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme) return savedTheme as Theme;
+    // Apply light theme
+    React.useEffect(() => {
+        // Set light theme
+        document.documentElement.setAttribute('data-theme', 'light');
+        document.documentElement.classList.remove('dark');
         
-        // Check system preference
-        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            return 'dark';
-        }
-        return 'light';
-    });
-
-    const isDarkMode = theme === 'dark';
-
-    useEffect(() => {
-        // Update CSS variables theme
-        document.documentElement.setAttribute('data-theme', theme);
-        
-        // Update Tailwind dark mode
-        if (isDarkMode) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-        
-        // Save preference
-        localStorage.setItem('theme', theme);
-    }, [theme, isDarkMode]);
-
-    const toggleTheme = () => {
-        setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
-    };
+        // Save light theme preference
+        localStorage.setItem('theme', 'light');
+    }, []);
 
     return (
-        <ThemeContext.Provider value={{ theme, isDarkMode, toggleTheme }}>
+        <ThemeContext.Provider value={{ theme: 'light', isDarkMode: false }}>
             {children}
         </ThemeContext.Provider>
     );

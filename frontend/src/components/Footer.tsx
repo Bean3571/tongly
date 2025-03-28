@@ -6,30 +6,29 @@ export const Footer = () => {
     const { user } = useAuth();
 
     return (
-        <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+        <footer className="bg-white border-t border-gray-200">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     {/* Company Info */}
                     <div className="col-span-1">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
                             Языкус👅
                         </h3>
-                        <p className="text-gray-600 dark:text-gray-400 mb-4">
+                        <p className="text-gray-600 mb-4">
                             Connect with native speakers and learn languages naturally.
                         </p>
                     </div>
 
                     {/* Quick Links */}
                     <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
                             Quick Links
                         </h3>
                         <ul className="space-y-2">
                             <li>
                                 <Link
                                     to="/tutors"
-                                    className="text-gray-600 dark:text-gray-400 hover:text-blue-600 
-                                             dark:hover:text-blue-400 transition-colors"
+                                    className="text-gray-600 hover:text-accent-primary transition-colors"
                                 >
                                     Find Tutors
                                 </Link>
@@ -37,8 +36,7 @@ export const Footer = () => {
                             <li>
                                 <Link
                                     to="/lessons"
-                                    className="text-gray-600 dark:text-gray-400 hover:text-blue-600 
-                                             dark:hover:text-blue-400 transition-colors"
+                                    className="text-gray-600 hover:text-accent-primary transition-colors"
                                 >
                                     Book a Lesson
                                 </Link>
@@ -46,8 +44,7 @@ export const Footer = () => {
                             <li>
                                 <Link
                                     to="/challenges"
-                                    className="text-gray-600 dark:text-gray-400 hover:text-blue-600 
-                                             dark:hover:text-blue-400 transition-colors"
+                                    className="text-gray-600 hover:text-accent-primary transition-colors"
                                 >
                                     Language Challenges
                                 </Link>
@@ -55,8 +52,7 @@ export const Footer = () => {
                             <li>
                                 <Link
                                     to="/leaderboard"
-                                    className="text-gray-600 dark:text-gray-400 hover:text-blue-600 
-                                             dark:hover:text-blue-400 transition-colors"
+                                    className="text-gray-600 hover:text-accent-primary transition-colors"
                                 >
                                     Leaderboard
                                 </Link>
@@ -66,15 +62,14 @@ export const Footer = () => {
 
                     {/* Support */}
                     <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
                             Support
                         </h3>
                         <ul className="space-y-2">
                             <li>
                                 <Link
                                     to="/help"
-                                    className="text-gray-600 dark:text-gray-400 hover:text-blue-600 
-                                             dark:hover:text-blue-400 transition-colors"
+                                    className="text-gray-600 hover:text-accent-primary transition-colors"
                                 >
                                     Help Center
                                 </Link>
@@ -82,8 +77,7 @@ export const Footer = () => {
                             <li>
                                 <Link
                                     to="/faq"
-                                    className="text-gray-600 dark:text-gray-400 hover:text-blue-600 
-                                             dark:hover:text-blue-400 transition-colors"
+                                    className="text-gray-600 hover:text-accent-primary transition-colors"
                                 >
                                     FAQ
                                 </Link>
@@ -91,8 +85,7 @@ export const Footer = () => {
                             <li>
                                 <Link
                                     to="/contact"
-                                    className="text-gray-600 dark:text-gray-400 hover:text-blue-600 
-                                             dark:hover:text-blue-400 transition-colors"
+                                    className="text-gray-600 hover:text-accent-primary transition-colors"
                                 >
                                     Contact Us
                                 </Link>
@@ -100,8 +93,7 @@ export const Footer = () => {
                             <li>
                                 <Link
                                     to="/privacy"
-                                    className="text-gray-600 dark:text-gray-400 hover:text-blue-600 
-                                             dark:hover:text-blue-400 transition-colors"
+                                    className="text-gray-600 hover:text-accent-primary transition-colors"
                                 >
                                     Privacy Policy
                                 </Link>
@@ -111,7 +103,7 @@ export const Footer = () => {
 
                     {/* Social Media */}
                     <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
                             Connect With Us
                         </h3>
                         <div className="flex space-x-4">
@@ -119,8 +111,7 @@ export const Footer = () => {
                                 href="https://vk.com/tongly"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-gray-600 dark:text-gray-400 hover:text-blue-600 
-                                         dark:hover:text-blue-400 transition-colors"
+                                className="text-gray-600 hover:text-accent-primary transition-colors"
                             >
                                 VK
                             </a>
@@ -128,8 +119,7 @@ export const Footer = () => {
                                 href="https://telegram.me/tongly"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-gray-600 dark:text-gray-400 hover:text-blue-600 
-                                         dark:hover:text-blue-400 transition-colors"
+                                className="text-gray-600 hover:text-accent-primary transition-colors"
                             >
                                 Telegram
                             </a>
@@ -137,8 +127,8 @@ export const Footer = () => {
                     </div>
                 </div>
 
-                <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
-                    <p className="text-center text-gray-600 dark:text-gray-400">
+                <div className="mt-8 pt-8 border-t border-gray-200">
+                    <p className="text-center text-gray-600">
                         © {new Date().getFullYear()} Tongly.
                     </p>
                 </div>

@@ -29,7 +29,7 @@ export const Settings: React.FC = () => {
             
             <Title level={2} className="mb-6">{t('pages.settings.title')}</Title>
             
-            <Card>
+            <Card className="bg-white shadow-lg">
                 <Tabs defaultActiveKey="notifications">
                     <TabPane
                         tab={
@@ -88,7 +88,30 @@ export const Settings: React.FC = () => {
                         </Form>
                     </TabPane>
 
-                    
+                    <TabPane
+                        tab={
+                            <span>
+                                <GlobalOutlined />
+                                {t('pages.settings.language.title')}
+                            </span>
+                        }
+                        key="language"
+                    >
+                        <div className="space-y-6">
+                            <div>
+                                <h3 className="font-medium mb-2">{t('pages.settings.language.selectLanguage')}</h3>
+                                <Select
+                                    value={currentLanguage}
+                                    onChange={handleLanguageChange}
+                                    style={{ width: 200 }}
+                                >
+                                    <Select.Option value="en">English</Select.Option>
+                                    <Select.Option value="ru">Русский</Select.Option>
+                                    <Select.Option value="es">Español</Select.Option>
+                                </Select>
+                            </div>
+                        </div>
+                    </TabPane>
                 </Tabs>
             </Card>
         </div>

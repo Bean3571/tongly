@@ -9,10 +9,6 @@
     color-scheme: light;
   }
 
-  :root[data-theme="dark"] {
-    color-scheme: dark;
-  }
-
   html {
     @apply antialiased;
   }
@@ -51,7 +47,7 @@
   }
 
   .btn-secondary {
-    @apply bg-surface-2 text-text-primary hover:bg-hover active:bg-hover-heavy;
+    @apply bg-accent-primary-light text-accent-primary hover:bg-accent-primary-lighter active:bg-accent-primary-light;
   }
 
   .btn-outline {
@@ -59,23 +55,23 @@
   }
 
   .btn-ghost {
-    @apply text-text-secondary hover:text-text-primary hover:bg-hover;
+    @apply text-text-primary hover:bg-hover active:bg-hover-heavy;
   }
 
-  /* Input styles */
+  /* Form elements */
   .input {
-    @apply w-full px-3 py-2 bg-surface border border-border rounded-lg text-text-primary placeholder-text-tertiary;
-    @apply focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none;
-    @apply disabled:bg-surface-2 disabled:text-text-tertiary disabled:cursor-not-allowed;
+    @apply w-full px-3 py-2 border border-border rounded-lg bg-surface text-text-primary 
+           focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent
+           placeholder:text-text-tertiary;
   }
 
   /* Badge variants */
   .badge {
-    @apply inline-flex items-center px-2 py-1 rounded-full text-sm font-medium;
+    @apply inline-flex items-center px-2 py-1 rounded-md text-xs font-medium;
   }
 
   .badge-primary {
-    @apply bg-accent-primary-light text-accent-primary-pressed;
+    @apply bg-accent-primary-light text-accent-primary;
   }
 
   .badge-success {
@@ -103,7 +99,7 @@
     @apply text-accent-primary font-medium;
   }
 
-  /* Table styles */
+  /* Tables */
   .table-container {
     @apply w-full overflow-x-auto rounded-lg border border-border;
   }
@@ -113,24 +109,24 @@
   }
 
   .table th {
-    @apply px-6 py-3 bg-surface-2 text-left text-xs font-medium text-text-secondary uppercase tracking-wider;
+    @apply px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider;
   }
 
   .table td {
-    @apply px-6 py-4 whitespace-nowrap text-sm text-text-primary;
+    @apply px-6 py-4 text-sm text-text-primary;
   }
 
   .table tr {
-    @apply hover:bg-hover;
+    @apply border-b border-border last:border-0;
   }
 
-  /* Form groups */
+  /* Forms */
   .form-group {
-    @apply space-y-2;
+    @apply mb-4;
   }
 
   .form-label {
-    @apply block text-sm font-medium text-text-secondary;
+    @apply block text-sm font-medium text-text-primary mb-1;
   }
 
   .form-hint {
@@ -141,32 +137,52 @@
     @apply mt-1 text-sm text-error;
   }
 
-  /* Modal/Dialog */
+  /* Modals */
   .modal-backdrop {
-    @apply fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm;
+    @apply fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm z-modal;
   }
 
   .modal {
-    @apply fixed inset-0 flex items-center justify-center p-4;
+    @apply fixed inset-0 flex items-center justify-center z-modal p-4;
   }
 
   .modal-content {
-    @apply bg-surface w-full max-w-md rounded-xl shadow-xl p-6;
-    @apply transform transition-all;
+    @apply bg-surface border border-border rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto;
   }
 
-  /* Dropdown */
+  /* Dropdowns */
   .dropdown {
     @apply relative inline-block;
   }
 
   .dropdown-content {
-    @apply absolute right-0 mt-2 w-48 rounded-lg bg-surface border border-border shadow-lg;
-    @apply opacity-0 invisible transform scale-95 origin-top-right transition-all;
+    @apply absolute right-0 mt-2 w-48 py-2 bg-surface rounded-lg shadow-lg border border-border 
+           opacity-0 invisible transition-all duration-200 z-dropdown;
   }
 
   .dropdown.open .dropdown-content {
-    @apply opacity-100 visible scale-100;
+    @apply opacity-100 visible;
+  }
+
+  /* Typography */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Hide scrollbar but allow scrolling */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Glass effect */
+  .glass {
+    @apply backdrop-blur-md bg-white bg-opacity-10 border border-white border-opacity-20 
+           shadow-lg;
   }
 }
 
@@ -187,26 +203,4 @@
   .glass {
     @apply bg-surface/80 backdrop-blur-sm border border-border/50;
   }
-}
-
-/* Tailwind dark mode overrides */
-.dark body {
-  background-color: var(--dark-background);
-  color: var(--dark-text-primary);
-}
-
-.dark .bg-surface {
-  background-color: var(--dark-surface);
-}
-
-.dark .text-text-primary {
-  color: var(--dark-text-primary);
-}
-
-.dark .text-text-secondary {
-  color: var(--dark-text-secondary);
-}
-
-.dark .border-border {
-  border-color: var(--dark-border);
 } 

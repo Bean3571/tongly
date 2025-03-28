@@ -29,7 +29,7 @@ const TutorDashboard: React.FC = () => {
     return (
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center mb-6">
-                <Title level={2} className="!text-gray-800 dark:!text-gray-100 !mb-0">
+                <Title level={2} className="!text-gray-800 !mb-0">
                     Dashboard
                 </Title>
                 <Button 
@@ -51,12 +51,12 @@ const TutorDashboard: React.FC = () => {
 
                     <Card 
                         title={
-                            <div className="flex items-center !text-gray-800 dark:!text-gray-100">
+                            <div className="flex items-center !text-gray-800">
                                 <CheckCircleOutlined className="mr-2" />
                                 Recent Reviews
                             </div>
                         }
-                        className="mt-6 shadow-md dark:bg-gray-800 dark:border-gray-700"
+                        className="mt-6 shadow-md"
                         bordered={false}
                     >
                         <RecentReviews 

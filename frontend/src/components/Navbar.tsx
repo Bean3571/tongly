@@ -1,16 +1,13 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
 import { useTranslation } from '../contexts/I18nContext';
-import { FaSun, FaMoon } from 'react-icons/fa';
 import { LanguageSwitcher } from './LanguageSwitcher';
 
 const DEFAULT_AVATAR = 'https://secure.gravatar.com/avatar/default?s=200&d=mp';
 
 export const Navbar = () => {
     const { user, logout } = useAuth();
-    const { isDarkMode, toggleTheme } = useTheme();
     const { t, formatCurrency } = useTranslation();
     const location = useLocation();
 
@@ -69,18 +66,6 @@ export const Navbar = () => {
 
                     <div className="flex items-center space-x-4">
                         <LanguageSwitcher />
-                        
-                        <button
-                            onClick={toggleTheme}
-                            className="p-2 rounded-lg hover:bg-overlay-light transition-colors"
-                            aria-label={t('common.toggleTheme')}
-                        >
-                            {isDarkMode ? (
-                                <FaSun className="w-5 h-5" />
-                            ) : (
-                                <FaMoon className="w-5 h-5" />
-                            )}
-                        </button>
 
                         {user ? (
                             <div className="flex items-center space-x-4">

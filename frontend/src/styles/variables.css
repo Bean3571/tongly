@@ -23,44 +23,18 @@
   --gray-800: #1e293b;
   --gray-900: #0f172a;
 
-  /* Light Theme */
-  --light-background: var(--gray-50);
-  --light-surface: #ffffff;
-  --light-surface-2: var(--gray-50);
-  --light-surface-3: var(--gray-100);
-  --light-text-primary: var(--gray-900);
-  --light-text-secondary: var(--gray-600);
-  --light-text-tertiary: var(--gray-500);
-  --light-border: var(--gray-200);
-  --light-divider: var(--gray-100);
-  --light-hover: var(--gray-100);
-  --light-hover-heavy: var(--gray-200);
-
-  /* Dark Theme */
-  --dark-background: var(--gray-900);
-  --dark-surface: var(--gray-800);
-  --dark-surface-2: var(--gray-800);
-  --dark-surface-3: var(--gray-700);
-  --dark-text-primary: #ffffff;
-  --dark-text-secondary: var(--gray-300);
-  --dark-text-tertiary: var(--gray-400);
-  --dark-border: var(--gray-700);
-  --dark-divider: var(--gray-800);
-  --dark-hover: var(--gray-700);
-  --dark-hover-heavy: var(--gray-600);
-
-  /* Semantic Colors - Light Theme Default */
-  --background: var(--light-background);
-  --surface: var(--light-surface);
-  --surface-2: var(--light-surface-2);
-  --surface-3: var(--light-surface-3);
-  --text-primary: var(--light-text-primary);
-  --text-secondary: var(--light-text-secondary);
-  --text-tertiary: var(--light-text-tertiary);
-  --border: var(--light-border);
-  --divider: var(--light-divider);
-  --hover: var(--light-hover);
-  --hover-heavy: var(--light-hover-heavy);
+  /* Theme Colors - Light Only */
+  --background: var(--gray-50);
+  --surface: #ffffff;
+  --surface-2: var(--gray-50);
+  --surface-3: var(--gray-100);
+  --text-primary: var(--gray-900);
+  --text-secondary: var(--gray-600);
+  --text-tertiary: var(--gray-500);
+  --border: var(--gray-200);
+  --divider: var(--gray-100);
+  --hover: var(--gray-100);
+  --hover-heavy: var(--gray-200);
 
   /* Accent Colors */
   --accent-primary: var(--orange-500);
@@ -84,8 +58,8 @@
   --info-dark: #1d4ed8;
 
   /* Overlays */
-  --overlay-light: rgba(255, 255, 255, 0.1);
-  --overlay-dark: rgba(0, 0, 0, 0.5);
+  --overlay-light: rgba(0, 0, 0, 0.05);
+  --overlay-dark: rgba(0, 0, 0, 0.1);
   --backdrop-blur: blur(8px);
   
   /* Shadows */
@@ -129,19 +103,4 @@
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
   --ease-in: cubic-bezier(0.4, 0, 1, 1);
-}
-
-/* Dark theme overrides */
-[data-theme="dark"] {
-  --background: var(--dark-background);
-  --surface: var(--dark-surface);
-  --surface-2: var(--dark-surface-2);
-  --surface-3: var(--dark-surface-3);
-  --text-primary: var(--dark-text-primary);
-  --text-secondary: var(--dark-text-secondary);
-  --text-tertiary: var(--dark-text-tertiary);
-  --border: var(--dark-border);
-  --divider: var(--dark-divider);
-  --hover: var(--dark-hover);
-  --hover-heavy: var(--dark-hover-heavy);
 } 

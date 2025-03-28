@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
-import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { I18nProvider } from './contexts/I18nContext';
 import { TranslationLoader } from './components/TranslationLoader';
@@ -37,11 +37,10 @@ const PrivateRoute = ({ children, role }: { children: React.ReactNode, role?: st
 
 const AppRoutes = () => {
     const { user } = useAuth();
-    const { isDarkMode } = useTheme();
     const defaultRoute = user?.credentials.role === 'tutor' ? '/tutor/dashboard' : '/student/dashboard';
 
     return (
-        <div className={`min-h-screen flex flex-col bg-surface text-text-primary`}>
+        <div className="min-h-screen flex flex-col bg-surface text-text-primary">
             <Navbar />
             <main className="container mx-auto px-4 py-8 flex-grow">
                 <Routes>

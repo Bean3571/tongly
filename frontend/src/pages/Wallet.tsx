@@ -126,10 +126,10 @@ export const Wallet: React.FC = () => {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <Title level={2} className="mb-8 dark:text-gray-100">{t('wallet.title')}</Title>
+            <Title level={2} className="mb-8">{t('wallet.title')}</Title>
 
             {/* Balance Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
                 <Card className="bg-gradient-to-r from-blue-600 to-blue-800 text-white">
                     <Title level={4} className="text-white mb-4">{t('wallet.availableBalance')}</Title>
                     <div className="text-3xl font-bold mb-4">{formatCurrency(balance)}</div>
@@ -157,24 +157,24 @@ export const Wallet: React.FC = () => {
                 </Card>
 
                 {user?.credentials.role === 'student' && (
-                    <Card className="dark:bg-gray-800 dark:border-gray-700">
-                        <Title level={4} className="dark:text-gray-100">{t('wallet.commission.title')}</Title>
-                        <Text className="block text-lg dark:text-gray-300">
+                    <Card className="bg-white">
+                        <Title level={4}>{t('wallet.commission.title')}</Title>
+                        <Text className="block text-lg">
                             {t('wallet.commission.description', { rate: 20 })}
                         </Text>
-                        <Text className="block text-sm text-gray-500 dark:text-gray-400 mt-2">
+                        <Text className="block text-sm text-gray-500 mt-2">
                             {t('wallet.commission.student')}
                         </Text>
                     </Card>
                 )}
 
                 {user?.credentials.role === 'tutor' && (
-                    <Card className="dark:bg-gray-800 dark:border-gray-700">
-                        <Title level={4} className="dark:text-gray-100">{t('wallet.commission.title')}</Title>
-                        <Text className="block text-lg dark:text-gray-300">
+                    <Card className="bg-white">
+                        <Title level={4}>{t('wallet.commission.title')}</Title>
+                        <Text className="block text-lg">
                             {t('wallet.commission.description', { rate: 20 })}
                         </Text>
-                        <Text className="block text-sm text-gray-500 dark:text-gray-400 mt-2">
+                        <Text className="block text-sm text-gray-500 mt-2">
                             {t('wallet.commission.tutor')}
                         </Text>
                     </Card>
@@ -182,34 +182,34 @@ export const Wallet: React.FC = () => {
             </div>
 
             {/* Transaction History */}
-            <Card className="dark:bg-gray-800 dark:border-gray-700">
-                <Title level={3} className="mb-6 dark:text-gray-100">{t('wallet.transactionHistory')}</Title>
+            <Card>
+                <Title level={3} className="mb-6">{t('wallet.transactionHistory')}</Title>
                 <div className="space-y-4">
                     {transactions.map((transaction) => (
                         <div key={transaction.id} 
-                             className="flex items-center justify-between p-4 border-b dark:border-gray-700 last:border-0">
+                             className="flex items-center justify-between p-4 border-b last:border-0">
                             <div className="flex items-center">
-                                <div className="w-10 h-10 rounded-full flex items-center justify-center mr-4 bg-gray-100 dark:bg-gray-700">
+                                <div className="w-10 h-10 rounded-full flex items-center justify-center mr-4 bg-gray-100">
                                     {getTransactionIcon(transaction.transaction_type)}
                                 </div>
                                 <div>
-                                    <Text strong className="block dark:text-gray-100">
+                                    <Text strong className="block">
                                         {getTransactionLabel(transaction.transaction_type)}
                                     </Text>
-                                    <Text className="text-gray-500 dark:text-gray-400">
+                                    <Text className="text-gray-500">
                                         {new Date(transaction.created_at).toLocaleString()}
                                     </Text>
                                 </div>
                             </div>
                             <div>
                                 <Text strong className={`block text-right ${
-                                    transaction.amount > 0 ? 'text-green-600 dark:text-green-400' : 
-                                    'text-red-600 dark:text-red-400'
+                                    transaction.amount > 0 ? 'text-green-600' : 
+                                    'text-red-600'
                                 }`}>
                                     {formatCurrency(transaction.amount)}
                                 </Text>
                                 {transaction.commission_amount > 0 && (
-                                    <Text className="block text-sm text-gray-500 dark:text-gray-400 text-right">
+                                    <Text className="block text-sm text-gray-500 text-right">
                                         {t('wallet.commission.amount', { amount: formatCurrency(transaction.commission_amount) })}
                                     </Text>
                                 )}
@@ -257,43 +257,45 @@ export const Wallet: React.FC = () => {
             )}
 
             {/* Withdraw Modal */}
-            <Modal
-                title={t('wallet.withdrawModal.title')}
-                open={showWithdrawModal}
-                onCancel={() => setShowWithdrawModal(false)}
-                footer={[
-                    <Button key="cancel" onClick={() => setShowWithdrawModal(false)}>
-                        {t('common.cancel')}
-                    </Button>,
-                    <Button
-                        key="submit"
-                        type="primary"
-                        loading={processingPayment}
-                        onClick={handleWithdraw}
-                    >
-                        {t('wallet.withdraw')}
-                    </Button>
-                ]}
-            >
-                <div className="space-y-4">
-                    <Input
-                        type="number"
-                        placeholder={t('wallet.withdrawModal.amountPlaceholder')}
-                        value={withdrawAmount}
-                        onChange={(e) => setWithdrawAmount(e.target.value)}
-                        min={0}
-                        prefix="₽"
-                    />
-                    <Text className="block text-gray-500">
-                        {t('wallet.withdrawModal.availableBalance', { balance: formatCurrency(balance) })}
-                    </Text>
-                    {user?.credentials.role === 'tutor' && (
+            {user?.credentials.role === 'tutor' && (
+                <Modal
+                    title={t('wallet.withdrawModal.title')}
+                    open={showWithdrawModal}
+                    onCancel={() => setShowWithdrawModal(false)}
+                    footer={[
+                        <Button key="cancel" onClick={() => setShowWithdrawModal(false)}>
+                            {t('common.cancel')}
+                        </Button>,
+                        <Button
+                            key="submit"
+                            type="primary"
+                            loading={processingPayment}
+                            onClick={handleWithdraw}
+                        >
+                            {t('wallet.withdraw')}
+                        </Button>
+                    ]}
+                >
+                    <div className="space-y-4">
+                        <Input
+                            type="number"
+                            placeholder={t('wallet.withdrawModal.amountPlaceholder')}
+                            value={withdrawAmount}
+                            onChange={(e) => setWithdrawAmount(e.target.value)}
+                            min={0}
+                            prefix="₽"
+                        />
                         <Text className="block text-gray-500">
-                            {t('wallet.withdrawModal.processingTime')}
+                            {t('wallet.withdrawModal.availableBalance', { balance: formatCurrency(balance) })}
                         </Text>
-                    )}
-                </div>
-            </Modal>
+                        {user?.credentials.role === 'tutor' && (
+                            <Text className="block text-gray-500">
+                                {t('wallet.withdrawModal.processingTime')}
+                            </Text>
+                        )}
+                    </div>
+                </Modal>
+            )}
         </div>
     );
 };
