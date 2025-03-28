@@ -47,7 +47,7 @@ export const Navbar = () => {
                 <div className="flex justify-between h-16">
                     <div className="flex items-center">
                         <Link to="/" className="text-2xl font-bold text-accent-primary">
-                            Языкус👅
+                            Языкус
                         </Link>
                         
                         <div className="hidden md:flex ml-10 space-x-8">

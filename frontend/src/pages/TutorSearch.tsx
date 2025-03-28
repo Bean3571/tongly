@@ -24,36 +24,6 @@ interface FilterState {
   searchQuery: string;
 }
 
-// Mock data for development
-const MOCK_TUTORS: Tutor[] = [
-  {
-    id: "1",
-    name: "John Doe",
-    languages: ["English", "Spanish"],
-    hourlyRate: 25,
-    rating: 4.8,
-    totalLessons: 120,
-    avatarUrl: "/default-avatar.png",
-    shortBio: "Experienced English and Spanish tutor with 5+ years of teaching experience.",
-    credentials: {
-      id: 1,
-    },
-  },
-  {
-    id: "2",
-    name: "Jane Smith",
-    languages: ["French", "English"],
-    hourlyRate: 30,
-    rating: 4.9,
-    totalLessons: 200,
-    avatarUrl: "/default-avatar.png",
-    shortBio: "Native French speaker with expertise in teaching beginners to advanced students.",
-    credentials: {
-      id: 2,
-    },
-  }
-];
-
 const TutorSearch: React.FC = () => {
   const navigate = useNavigate();
   const { showNotification } = useNotification();
@@ -143,15 +113,7 @@ const TutorSearch: React.FC = () => {
       console.error('Error loading tutors:', error);
       showNotification('error', 'Failed to load tutors. Please try again later.');
       
-      // Only use mock data in development
-      if (process.env.NODE_ENV === 'development') {
-        setTutors(MOCK_TUTORS);
-        const languages = new Set<string>();
-        MOCK_TUTORS.forEach(tutor => {
-          tutor.languages.forEach(lang => languages.add(lang));
-        });
-        setAvailableLanguages(Array.from(languages).sort());
-      }
+     
     } finally {
       setLoading(false);
     }
@@ -323,15 +285,6 @@ const TutorSearch: React.FC = () => {
                       {tutor.shortBio}
                     </p>
                     <div className="mt-4 flex justify-end gap-4">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/tutors/${tutor.credentials?.id}/profile`);
-                        }}
-                        className="px-4 py-2 text-blue-600 hover:text-blue-700 font-medium"
-                      >
-                        View Profile
-                      </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();

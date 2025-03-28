@@ -3,7 +3,6 @@ import { Typography, Row, Col, Card, Button, Progress, Empty, Spin } from 'antd'
 import { useNavigate } from 'react-router-dom';
 import { useTutorDashboard } from '../hooks/useTutorDashboard';
 import { StatsCards } from '../components/dashboard/StatsCards';
-import { RecentReviews } from '../components/dashboard/RecentReviews';
 import { QuickActions } from '../components/dashboard/QuickActions';
 import { 
     EditOutlined, 
@@ -32,13 +31,6 @@ const TutorDashboard: React.FC = () => {
                 <Title level={2} className="!text-gray-800 !mb-0">
                     Dashboard
                 </Title>
-                <Button 
-                    type="primary"
-                    icon={<EditOutlined />}
-                    onClick={() => navigate('/tutor/profile')}
-                >
-                    Edit Profile
-                </Button>
             </div>
             
             
@@ -49,21 +41,6 @@ const TutorDashboard: React.FC = () => {
                 <Col xs={24} xl={8}>
                     <QuickActions />
 
-                    <Card 
-                        title={
-                            <div className="flex items-center !text-gray-800">
-                                <CheckCircleOutlined className="mr-2" />
-                                Recent Reviews
-                            </div>
-                        }
-                        className="mt-6 shadow-md"
-                        bordered={false}
-                    >
-                        <RecentReviews 
-                            reviews={recentReviews} 
-                            loading={loading} 
-                        />
-                    </Card>
                 </Col>
             </Row>
         </div>

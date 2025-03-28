@@ -15,7 +15,7 @@ export const StatsCards: React.FC<StatsCardsProps> = ({ stats, loading }) => {
                 <Card className="dark:bg-gray-800 dark:border-gray-700">
                     <Statistic
                         loading={loading}
-                        title={<span className="dark:text-gray-300">Average Rating</span>}
+                        title={<span className="dark:text-gray-300">Your Rating</span>}
                         value={stats.averageRating}
                         prefix={<StarOutlined className="dark:text-gray-300" />}
                         precision={1}

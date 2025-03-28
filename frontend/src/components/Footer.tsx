@@ -12,7 +12,7 @@ export const Footer = () => {
                     {/* Company Info */}
                     <div className="col-span-1">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                            Языкус👅
+                            Языкус
                         </h3>
                         <p className="text-gray-600 mb-4">
                             Connect with native speakers and learn languages naturally.

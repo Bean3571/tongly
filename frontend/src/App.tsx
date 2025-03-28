@@ -20,8 +20,6 @@ import { Wallet } from './pages/Wallet';
 import { useAuth } from './contexts/AuthContext';
 import { BookLesson } from './pages/BookLesson';
 import { TeachingProfile } from './pages/TeachingProfile';
-import { Schedule } from './pages/Schedule';
-import { Settings } from './pages/Settings';
 import { PlatformEarnings } from './pages/admin/PlatformEarnings';
 
 const queryClient = new QueryClient();
@@ -91,16 +89,6 @@ const AppRoutes = () => {
                     <Route path="/tutor/profile" element={
                         <PrivateRoute role="tutor">
                             <TeachingProfile />
-                        </PrivateRoute>
-                    } />
-                    <Route path="/schedule" element={
-                        <PrivateRoute role="tutor">
-                            <Schedule />
-                        </PrivateRoute>
-                    } />
-                    <Route path="/settings" element={
-                        <PrivateRoute>
-                            <Settings />
                         </PrivateRoute>
                     } />
 

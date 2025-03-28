@@ -28,7 +28,7 @@ export const QuickActions: React.FC = () => {
         {
             label: 'Account Settings',
             icon: <SettingOutlined />,
-            path: '/settings',
+            path: '/profile',
             description: 'Manage your account preferences'
         }
     ];
