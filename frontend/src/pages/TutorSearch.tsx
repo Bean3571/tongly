@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNotification } from '../contexts/NotificationContext';
+import TutorCard from '../components/TutorCard';
 
 interface Tutor {
   id: string;
@@ -151,15 +152,15 @@ const TutorSearch: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Find Your Perfect Tutor</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Find Your Perfect Tutor</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Filters Section */}
         <div className="lg:col-span-1">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-6">
+          <div className="bg-white rounded-lg shadow p-6 space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Search
               </label>
               <input
@@ -167,18 +168,18 @@ const TutorSearch: React.FC = () => {
                 placeholder="Search by name, language, or bio..."
                 value={filters.searchQuery}
                 onChange={(e) => handleFilterChange('searchQuery', e.target.value)}
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full p-2 border border-gray-300 rounded-md bg-white text-gray-900 focus:ring-orange-500 focus:border-orange-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Language
               </label>
               <select
                 value={filters.language}
                 onChange={(e) => handleFilterChange('language', e.target.value)}
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full p-2 border border-gray-300 rounded-md bg-white text-gray-900 focus:ring-orange-500 focus:border-orange-500"
               >
                 <option value="">All Languages</option>
                 {availableLanguages.map(lang => (
@@ -188,7 +189,7 @@ const TutorSearch: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Price Range ($/hour)
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -199,7 +200,7 @@ const TutorSearch: React.FC = () => {
                   max={filters.maxPrice}
                   value={filters.minPrice}
                   onChange={(e) => handleFilterChange('minPrice', Number(e.target.value))}
-                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full p-2 border border-gray-300 rounded-md bg-white text-gray-900 focus:ring-orange-500 focus:border-orange-500"
                 />
                 <input
                   type="number"
@@ -207,19 +208,19 @@ const TutorSearch: React.FC = () => {
                   min={filters.minPrice}
                   value={filters.maxPrice}
                   onChange={(e) => handleFilterChange('maxPrice', Number(e.target.value))}
-                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full p-2 border border-gray-300 rounded-md bg-white text-gray-900 focus:ring-orange-500 focus:border-orange-500"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Minimum Rating
               </label>
               <select
                 value={filters.minRating}
                 onChange={(e) => handleFilterChange('minRating', Number(e.target.value))}
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full p-2 border border-gray-300 rounded-md bg-white text-gray-900 focus:ring-orange-500 focus:border-orange-500"
               >
                 <option value="0">Any Rating</option>
                 <option value="4.5">4.5+ ⭐</option>
@@ -233,71 +234,14 @@ const TutorSearch: React.FC = () => {
         {/* Results Section */}
         <div className="lg:col-span-3 space-y-6">
           {filteredTutors.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 text-center">
-              <p className="text-gray-500 dark:text-gray-400">
+            <div className="bg-white rounded-lg shadow p-6 text-center">
+              <p className="text-gray-500">
                 No tutors found matching your criteria. Try adjusting your filters.
               </p>
             </div>
           ) : (
             filteredTutors.map(tutor => (
-              <div
-                key={tutor.id}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow"
-              >
-                <div className="flex items-start gap-6">
-                  <img
-                    src={tutor.avatarUrl}
-                    alt={tutor.name}
-                    className="w-24 h-24 rounded-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = '/default-avatar.png';
-                    }}
-                  />
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                          {tutor.name}
-                        </h3>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-yellow-400">⭐</span>
-                          <span className="text-gray-700 dark:text-gray-300">
-                            {tutor.rating.toFixed(1)} ({tutor.totalLessons} lessons)
-                          </span>
-                        </div>
-                      </div>
-                      <div className="text-xl font-semibold text-green-600 dark:text-green-400">
-                        ${tutor.hourlyRate}/hr
-                      </div>
-                    </div>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {tutor.languages.map(lang => (
-                        <span
-                          key={lang}
-                          className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm"
-                        >
-                          {lang}
-                        </span>
-                      ))}
-                    </div>
-                    <p className="mt-3 text-gray-600 dark:text-gray-300 line-clamp-2">
-                      {tutor.shortBio}
-                    </p>
-                    <div className="mt-4 flex justify-end gap-4">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/tutors/${tutor.credentials?.id}/book`);
-                        }}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium"
-                      >
-                        Book Lesson
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <TutorCard key={tutor.id} tutor={tutor} />
             ))
           )}
         </div>

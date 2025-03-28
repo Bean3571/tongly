@@ -37,7 +37,7 @@ const LessonCard: React.FC<LessonCardProps> = ({ lesson, onCancel }) => {
   const getStatusColor = () => {
     switch (lesson.status) {
       case LessonStatus.SCHEDULED:
-        return 'text-blue-600';
+        return 'text-orange-600';
       case LessonStatus.IN_PROGRESS:
         return 'text-green-600';
       case LessonStatus.COMPLETED:
@@ -93,7 +93,7 @@ const LessonCard: React.FC<LessonCardProps> = ({ lesson, onCancel }) => {
       </div>
       
       <div className="flex justify-between items-center">
-        <span className="text-lg font-semibold">${lesson.price}</span>
+        <span className="text-lg font-semibold text-orange-600">${lesson.price}</span>
         <div className="space-x-2">
           {canCancel() && (
             <Button
