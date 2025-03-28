@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { Lesson, LessonStatus } from '../types/lesson';
+import { Lesson } from '../types/lesson';
 import LessonCard from '../components/LessonCard';
 import { useTranslation } from '../contexts/I18nContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { lessonService } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 
+type LessonFilter = 'all' | 'scheduled' | 'past' | 'cancelled';
+
 export const Lessons: React.FC = () => {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<LessonStatus | 'all'>('all');
+  const [activeTab, setActiveTab] = useState<LessonFilter>('all');
   const { t } = useTranslation();
   const { showNotification } = useNotification();
   const navigate = useNavigate();
@@ -38,7 +40,7 @@ export const Lessons: React.FC = () => {
       setLessons(prevLessons =>
         prevLessons.map(lesson =>
           lesson.id === lessonId
-            ? { ...lesson, status: LessonStatus.CANCELLED }
+            ? { ...lesson, cancelled: true }
             : lesson
         )
       );
@@ -59,9 +61,23 @@ export const Lessons: React.FC = () => {
     }
   };
 
-  const filteredLessons = activeTab === 'all'
-    ? lessons
-    : lessons.filter(lesson => lesson.status === activeTab);
+  const now = new Date();
+
+  const filteredLessons = lessons.filter(lesson => {
+    const endTime = new Date(lesson.end_time);
+    
+    switch (activeTab) {
+      case 'scheduled':
+        return !lesson.cancelled && endTime >= now;
+      case 'past':
+        return !lesson.cancelled && endTime < now;
+      case 'cancelled':
+        return lesson.cancelled;
+      case 'all':
+      default:
+        return true;
+    }
+  });
 
   const sortedLessons = [...filteredLessons].sort((a, b) => {
     const aTime = new Date(a.start_time).getTime();
@@ -71,16 +87,15 @@ export const Lessons: React.FC = () => {
 
   const tabs = [
     { id: 'all', label: t('lessons.tabs.all') },
-    { id: LessonStatus.SCHEDULED, label: t('lessons.tabs.scheduled') },
-    { id: LessonStatus.IN_PROGRESS, label: t('lessons.tabs.in_progress') },
-    { id: LessonStatus.COMPLETED, label: t('lessons.tabs.completed') },
-    { id: LessonStatus.CANCELLED, label: t('lessons.tabs.cancelled') }
+    { id: 'scheduled', label: t('lessons.tabs.scheduled') },
+    { id: 'past', label: t('lessons.tabs.past') },
+    { id: 'cancelled', label: t('lessons.tabs.cancelled') }
   ];
 
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
       </div>
     );
   }
@@ -94,10 +109,10 @@ export const Lessons: React.FC = () => {
         {tabs.map(tab => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as LessonStatus | 'all')}
+            onClick={() => setActiveTab(tab.id as LessonFilter)}
             className={`px-4 py-2 rounded-lg whitespace-nowrap ${
               activeTab === tab.id
-                ? 'bg-blue-600 text-white'
+                ? 'bg-orange-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >

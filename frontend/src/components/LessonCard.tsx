@@ -1,6 +1,6 @@
 import React from 'react';
 import { format } from 'date-fns';
-import { Lesson, LessonStatus } from '../types/lesson';
+import { Lesson } from '../types/lesson';
 import { Button } from './ui/Button';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/I18nContext';
@@ -22,27 +22,54 @@ const LessonCard: React.FC<LessonCardProps> = ({ lesson, onCancel }) => {
     ? `${participant.first_name} ${participant.last_name}`
     : participant.username;
 
+  const now = new Date();
+  const startTime = new Date(lesson.start_time);
+  const endTime = new Date(lesson.end_time);
+
   const canCancel = () => {
-    if (lesson.status !== LessonStatus.SCHEDULED) {
+    if (lesson.cancelled) {
+      return false;
+    }
+    
+    // Can only cancel future lessons
+    if (now >= startTime) {
       return false;
     }
 
-    const now = new Date();
-    const startTime = new Date(lesson.start_time);
     const twentyFourHoursBefore = new Date(startTime.getTime() - 24 * 60 * 60 * 1000);
-
     return now <= twentyFourHoursBefore;
   };
 
+  const getLessonStatus = () => {
+    if (lesson.cancelled) {
+      return 'cancelled';
+    }
+
+    if (now < startTime) {
+      return 'scheduled';
+    }
+
+    if (now >= startTime && now <= endTime) {
+      return 'in_progress';
+    }
+
+    if (now > endTime) {
+      return 'completed';
+    }
+
+    return 'scheduled';
+  };
+
   const getStatusColor = () => {
-    switch (lesson.status) {
-      case LessonStatus.SCHEDULED:
+    const status = getLessonStatus();
+    switch (status) {
+      case 'scheduled':
         return 'text-orange-600';
-      case LessonStatus.IN_PROGRESS:
+      case 'in_progress':
         return 'text-green-600';
-      case LessonStatus.COMPLETED:
+      case 'completed':
         return 'text-gray-600';
-      case LessonStatus.CANCELLED:
+      case 'cancelled':
         return 'text-red-600';
       default:
         return 'text-gray-600';
@@ -50,17 +77,18 @@ const LessonCard: React.FC<LessonCardProps> = ({ lesson, onCancel }) => {
   };
 
   const getStatusText = () => {
-    switch (lesson.status) {
-      case LessonStatus.SCHEDULED:
+    const status = getLessonStatus();
+    switch (status) {
+      case 'scheduled':
         return t('lessons.status.scheduled');
-      case LessonStatus.IN_PROGRESS:
+      case 'in_progress':
         return t('lessons.status.in_progress');
-      case LessonStatus.COMPLETED:
+      case 'completed':
         return t('lessons.status.completed');
-      case LessonStatus.CANCELLED:
+      case 'cancelled':
         return t('lessons.status.cancelled');
       default:
-        return lesson.status;
+        return status;
     }
   };
 

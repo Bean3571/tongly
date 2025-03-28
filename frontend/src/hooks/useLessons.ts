@@ -10,7 +10,7 @@ export interface Lesson {
     tutor_id: number;
     start_time: string;
     end_time: string;
-    status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+    cancelled: boolean;
     language: string;
     price: number;
     duration: number;
@@ -19,7 +19,7 @@ export interface Lesson {
 }
 
 interface UseLessonsProps {
-    type: 'upcoming' | 'completed';
+    type: 'scheduled' | 'past' | 'cancelled';
     autoRefresh?: boolean;
 }
 
@@ -66,8 +66,25 @@ export const useLessons = ({ type, autoRefresh = false }: UseLessonsProps) => {
             if (!silent) setLoading(true);
             setError(null);
 
-            console.log(`Fetching ${type} lessons...`);
-            const endpoint = `/lessons/${type}`;
+            console.log(`Fetching lessons...`);
+            
+            // Choose endpoint based on the type
+            let endpoint;
+            const now = new Date();
+            
+            switch (type) {
+                case 'scheduled':
+                    endpoint = '/lessons/scheduled';
+                    break;
+                case 'past':
+                    endpoint = '/lessons/past';
+                    break;
+                case 'cancelled':
+                    endpoint = '/lessons/cancelled';
+                    break;
+                default:
+                    endpoint = '/lessons';
+            }
             
             const response = await api.get(endpoint, {
                 signal: abortControllerRef.current.signal
@@ -92,38 +109,34 @@ export const useLessons = ({ type, autoRefresh = false }: UseLessonsProps) => {
                 throw new Error('Invalid response format from server');
             }
 
-            // Update lesson status for any lessons that should be in progress
-            const updatedLessons = lessonsData
-                .filter((lesson): lesson is Lesson => {
-                    if (!lesson || typeof lesson !== 'object') {
-                        console.error('Invalid lesson data:', lesson);
-                        return false;
-                    }
-                    
-                    return (
-                        typeof lesson.id === 'number' &&
-                        typeof lesson.status === 'string'
-                    );
-                })
-                .map((lesson: Lesson) => {
-                    try {
-                        const now = getCurrentTime(lesson.start_time);
-                        const startTime = new Date(lesson.start_time);
-                        const endTime = new Date(lesson.end_time);
-                        
-                        if (lesson.status === 'scheduled' && now >= startTime && now <= endTime) {
-                            console.log(`Marking lesson ${lesson.id} as in_progress (now: ${now.toISOString()}, start: ${startTime.toISOString()}, end: ${endTime.toISOString()})`);
-                            return { ...lesson, status: 'in_progress' as const };
-                        }
-                        return lesson;
-                    } catch (error) {
-                        console.error('Error processing lesson:', lesson, error);
-                        return lesson;
-                    }
-                });
+            // Filter lessons based on the requested type if the backend doesn't already filter
+            const filteredLessons = lessonsData.filter((lesson): lesson is Lesson => {
+                if (!lesson || typeof lesson !== 'object') {
+                    console.error('Invalid lesson data:', lesson);
+                    return false;
+                }
+                
+                if (typeof lesson.id !== 'number') {
+                    return false;
+                }
+                
+                // If we're getting all lessons, process them client-side based on the requested type
+                const endTime = new Date(lesson.end_time);
+                
+                switch(type) {
+                    case 'scheduled':
+                        return !lesson.cancelled && endTime >= now;
+                    case 'past':
+                        return !lesson.cancelled && endTime < now;
+                    case 'cancelled':
+                        return lesson.cancelled;
+                    default:
+                        return true;
+                }
+            });
 
-            console.log('Processed lessons:', updatedLessons);
-            setLessons(updatedLessons);
+            console.log('Filtered lessons:', filteredLessons);
+            setLessons(filteredLessons);
         } catch (error: any) {
             // Don't update state if request was aborted
             if (error.name === 'AbortError') {
@@ -166,6 +179,15 @@ export const useLessons = ({ type, autoRefresh = false }: UseLessonsProps) => {
                 message: 'Lesson Cancelled',
                 description: 'The lesson has been successfully cancelled.',
             });
+
+            // Update the local state to show the lesson as cancelled
+            setLessons(prevLessons =>
+                prevLessons.map(lesson =>
+                    lesson.id === lessonId
+                        ? { ...lesson, cancelled: true }
+                        : lesson
+                )
+            );
 
             // Reload lessons to update the list
             loadLessons();

@@ -52,7 +52,7 @@ export const LanguageSwitcher: React.FC = () => {
     return (
         <div className="relative" ref={dropdownRef}>
             <button
-                className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
                 onClick={() => setIsOpen(!isOpen)}
                 aria-expanded={isOpen}
                 aria-haspopup="listbox"
@@ -64,7 +64,7 @@ export const LanguageSwitcher: React.FC = () => {
 
             {isOpen && (
                 <div
-                    className="absolute right-0 mt-2 py-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
+                    className="absolute right-0 mt-2 py-2 w-48 bg-white rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
                     role="listbox"
                     aria-label="Languages"
                 >

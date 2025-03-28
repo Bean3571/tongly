@@ -24,33 +24,30 @@ export const formatTime = (dateString: string) => {
     }
 };
 
-export const getTimeStatus = (startTime: string, status: string) => {
+export const getTimeStatus = (startTime: string, endTime: string, cancelled: boolean) => {
     try {
-        const date = new Date(startTime);
+        const startDate = new Date(startTime);
+        const endDate = new Date(endTime);
         const now = new Date();
 
-        if (status === 'completed') {
-            return 'Completed';
-        }
-
-        if (status === 'cancelled') {
+        if (cancelled) {
             return 'Cancelled';
         }
 
-        if (status === 'in_progress') {
-            return 'In Progress';
-        }
-
-        // For scheduled lessons
-        if (date > now) {
-            const timeUntil = formatDistanceToNow(date, { addSuffix: true });
+        // Lesson is in the future
+        if (startDate > now) {
+            const timeUntil = formatDistanceToNow(startDate, { addSuffix: true });
             return `Starts ${timeUntil}`;
         }
 
-        // If the lesson has started but not marked as in_progress
-        const endTime = new Date(date.getTime() + 45 * 60 * 1000); // Assuming 45 min default
-        if (now >= date && now <= endTime) {
+        // Lesson is currently happening
+        if (now >= startDate && now <= endDate) {
             return 'In Progress';
+        }
+
+        // Lesson is in the past
+        if (now > endDate) {
+            return 'Completed';
         }
 
         return formatDateTime(startTime);

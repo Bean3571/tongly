@@ -59,6 +59,11 @@ func (uc *lessonUseCase) BookLesson(ctx context.Context, studentID int, request 
 
 	// Check for time slot conflicts
 	for _, lesson := range existingLessons {
+		// Skip cancelled lessons when checking for conflicts
+		if lesson.Cancelled {
+			continue
+		}
+
 		if (request.StartTime.Before(lesson.EndTime) && endTime.After(lesson.StartTime)) ||
 			(request.StartTime.Equal(lesson.StartTime) && endTime.Equal(lesson.EndTime)) {
 			return nil, errors.New("time slot is not available")
@@ -79,7 +84,7 @@ func (uc *lessonUseCase) BookLesson(ctx context.Context, studentID int, request 
 		StartTime: request.StartTime,
 		EndTime:   endTime,
 		Duration:  request.Duration,
-		Status:    entities.LessonStatusScheduled,
+		Cancelled: false,
 		Language:  request.Language,
 		Price:     price,
 	}
@@ -121,7 +126,7 @@ func (uc *lessonUseCase) CancelLesson(ctx context.Context, userID int, lessonID 
 		return err
 	}
 
-	lesson.Status = entities.LessonStatusCancelled
+	lesson.Cancelled = true
 	return uc.lessonRepo.UpdateLesson(ctx, lesson)
 }
 

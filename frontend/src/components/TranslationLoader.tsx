@@ -52,7 +52,7 @@ export const TranslationLoader = ({
     if (loadingLocales) {
         return fallback as JSX.Element || (
             <div className="flex justify-center items-center min-h-screen">
-                <div className="text-gray-600 dark:text-gray-400">
+                <div className="text-gray-600">
                     Loading translations...
                 </div>
             </div>
@@ -62,7 +62,7 @@ export const TranslationLoader = ({
     if (loadingError) {
         return (
             <div className="flex justify-center items-center min-h-screen">
-                <div className="text-red-600 dark:text-red-400">
+                <div className="text-red-600">
                     {loadingError}
                 </div>
             </div>

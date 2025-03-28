@@ -1,10 +1,3 @@
-export enum LessonStatus {
-  SCHEDULED = 'scheduled',
-  IN_PROGRESS = 'in_progress',
-  COMPLETED = 'completed',
-  CANCELLED = 'cancelled'
-}
-
 export interface Lesson {
   id: number;
   student_id: number;
@@ -26,7 +19,7 @@ export interface Lesson {
   duration: number;
   language: string;
   price: number;
-  status: LessonStatus;
+  cancelled: boolean;
   created_at: string;
   updated_at: string;
 } 

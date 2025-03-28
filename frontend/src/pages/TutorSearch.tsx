@@ -144,7 +144,7 @@ const TutorSearch: React.FC = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
-        <div className="text-gray-500 dark:text-gray-400">Loading tutors...</div>
+        <div className="text-gray-500">Loading tutors...</div>
       </div>
     );
   }

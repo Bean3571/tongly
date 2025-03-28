@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// Deprecated but kept for compatibility with existing code
 type LessonStatus string
 
 const (
@@ -64,27 +65,52 @@ type Participant struct {
 
 // Lesson represents a scheduled or completed lesson
 type Lesson struct {
-	ID        int          `json:"id"`
-	StudentID int          `json:"student_id"`
-	TutorID   int          `json:"tutor_id"`
-	Student   Participant  `json:"student"`
-	Tutor     Participant  `json:"tutor"`
-	StartTime time.Time    `json:"start_time"`
-	EndTime   time.Time    `json:"end_time"`
-	Duration  int          `json:"duration"` // in minutes
-	Status    LessonStatus `json:"status"`
-	Language  string       `json:"language"`
-	Price     float64      `json:"price"`
-	CreatedAt time.Time    `json:"created_at"`
-	UpdatedAt time.Time    `json:"updated_at"`
+	ID        int         `json:"id"`
+	StudentID int         `json:"student_id"`
+	TutorID   int         `json:"tutor_id"`
+	Student   Participant `json:"student"`
+	Tutor     Participant `json:"tutor"`
+	StartTime time.Time   `json:"start_time"`
+	EndTime   time.Time   `json:"end_time"`
+	Duration  int         `json:"duration"` // in minutes
+	Cancelled bool        `json:"cancelled"`
+	Language  string      `json:"language"`
+	Price     float64     `json:"price"`
+	CreatedAt time.Time   `json:"created_at"`
+	UpdatedAt time.Time   `json:"updated_at"`
+}
+
+// GetStatus returns the virtual status of the lesson based on time and cancelled flag
+func (l *Lesson) GetStatus() LessonStatus {
+	if l.Cancelled {
+		return LessonStatusCancelled
+	}
+
+	now := time.Now()
+
+	if now.Before(l.StartTime) {
+		return LessonStatusScheduled
+	}
+
+	if now.After(l.StartTime) && now.Before(l.EndTime) {
+		return LessonStatusInProgress
+	}
+
+	return LessonStatusCompleted
 }
 
 // CanCancel checks if the lesson can be cancelled
 func (l *Lesson) CanCancel() error {
-	if !l.Status.IsValidTransition(LessonStatusCancelled) {
-		return ErrInvalidStatusTransition
+	if l.Cancelled {
+		return errors.New("lesson is already cancelled")
 	}
 
+	// Only future lessons can be cancelled
+	if time.Now().After(l.StartTime) {
+		return ErrLessonNotCancellable
+	}
+
+	// Must be at least 24 hours before the start
 	if time.Until(l.StartTime) < 24*time.Hour {
 		return ErrLessonNotCancellable
 	}
@@ -94,14 +120,18 @@ func (l *Lesson) CanCancel() error {
 
 // CanStart checks if the lesson can be started
 func (l *Lesson) CanStart() error {
-	if l.Status != LessonStatusScheduled && l.Status != LessonStatusInProgress {
-		return ErrInvalidStatusTransition
+	if l.Cancelled {
+		return errors.New("cancelled lessons cannot be started")
 	}
 
 	now := time.Now()
+
+	// Can start 5 minutes before scheduled time
 	if now.Before(l.StartTime.Add(-5 * time.Minute)) {
 		return ErrLessonNotStartable
 	}
+
+	// Cannot start after end time
 	if now.After(l.EndTime) {
 		return ErrLessonNotStartable
 	}
@@ -111,10 +141,11 @@ func (l *Lesson) CanStart() error {
 
 // CanEnd checks if the lesson can be ended
 func (l *Lesson) CanEnd() error {
-	if !l.Status.IsValidTransition(LessonStatusCompleted) {
-		return ErrInvalidStatusTransition
+	if l.Cancelled {
+		return errors.New("cancelled lessons cannot be ended")
 	}
 
+	// Cannot end lessons that haven't started
 	if time.Now().Before(l.StartTime) {
 		return ErrLessonNotEndable
 	}

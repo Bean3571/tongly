@@ -46,6 +46,11 @@ module.exports = {
           light: 'var(--info-light)',
           dark: 'var(--info-dark)',
         },
+        primary: 'var(--accent-primary, #f97316)',
+        'primary-hover': 'var(--accent-primary-hover, #ea580c)',
+        'primary-pressed': 'var(--accent-primary-pressed, #c2410c)',
+        'primary-light': 'var(--accent-primary-light, #ffedd5)',
+        'primary-lighter': 'var(--accent-primary-lighter, #fff7ed)',
       },
       boxShadow: {
         sm: 'var(--shadow-sm)',

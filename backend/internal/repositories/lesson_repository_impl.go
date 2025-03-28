@@ -54,14 +54,14 @@ func (r *LessonRepositoryImpl) CreateLesson(ctx context.Context, lesson *entitie
 		now := time.Now()
 		query := `
 			INSERT INTO lessons (
-				student_id, tutor_id, start_time, end_time, status, language, 
+				student_id, tutor_id, start_time, end_time, cancelled, language, 
 				price, duration, created_at, updated_at
 			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 			RETURNING id, created_at, updated_at`
 
 		err := tx.QueryRowContext(ctx, query,
 			lesson.StudentID, lesson.TutorID, lesson.StartTime, lesson.EndTime,
-			lesson.Status, lesson.Language, lesson.Price,
+			lesson.Cancelled, lesson.Language, lesson.Price,
 			lesson.Duration, // Use the duration from the lesson directly
 			now, now,
 		).Scan(&lesson.ID, &lesson.CreatedAt, &lesson.UpdatedAt)
@@ -80,7 +80,7 @@ func (r *LessonRepositoryImpl) GetLesson(ctx context.Context, id int) (*entities
 	query := `
 		SELECT 
 			l.id, l.student_id, l.tutor_id, l.start_time, l.end_time, 
-			l.duration, l.status, l.language, l.price, l.created_at, l.updated_at,
+			l.duration, l.cancelled, l.language, l.price, l.created_at, l.updated_at,
 			-- Student info
 			lp.student_username, lp.student_first_name, lp.student_last_name, lp.student_avatar_url,
 			-- Tutor info
@@ -96,7 +96,7 @@ func (r *LessonRepositoryImpl) GetLesson(ctx context.Context, id int) (*entities
 
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&lesson.ID, &lesson.StudentID, &lesson.TutorID, &lesson.StartTime,
-		&lesson.EndTime, &lesson.Duration, &lesson.Status, &lesson.Language,
+		&lesson.EndTime, &lesson.Duration, &lesson.Cancelled, &lesson.Language,
 		&lesson.Price, &lesson.CreatedAt, &lesson.UpdatedAt,
 		&studentUsername, &studentFirstName, &studentLastName, &studentAvatarURL,
 		&tutorUsername, &tutorFirstName, &tutorLastName, &tutorAvatarURL,
@@ -143,11 +143,11 @@ func (r *LessonRepositoryImpl) GetLesson(ctx context.Context, id int) (*entities
 func (r *LessonRepositoryImpl) UpdateLesson(ctx context.Context, lesson *entities.Lesson) error {
 	query := `
 		UPDATE lessons
-		SET status = $1, updated_at = $2
+		SET cancelled = $1, updated_at = $2
 		WHERE id = $3`
 
 	result, err := r.db.ExecContext(ctx, query,
-		lesson.Status, time.Now(), lesson.ID)
+		lesson.Cancelled, time.Now(), lesson.ID)
 	if err != nil {
 		return err
 	}
@@ -166,7 +166,7 @@ func (r *LessonRepositoryImpl) GetLessons(ctx context.Context, userID int) ([]en
 	query := `
 		SELECT 
 			l.id, l.student_id, l.tutor_id, l.start_time, l.end_time, 
-			l.duration, l.status, l.language, l.price, l.created_at, l.updated_at,
+			l.duration, l.cancelled, l.language, l.price, l.created_at, l.updated_at,
 			-- Student info
 			lp.student_username, lp.student_first_name, lp.student_last_name, lp.student_avatar_url,
 			-- Tutor info
@@ -183,7 +183,7 @@ func (r *LessonRepositoryImpl) GetLessonsByTutor(ctx context.Context, tutorID in
 	query := `
 		SELECT 
 			l.id, l.student_id, l.tutor_id, l.start_time, l.end_time, 
-			l.duration, l.status, l.language, l.price, l.created_at, l.updated_at,
+			l.duration, l.cancelled, l.language, l.price, l.created_at, l.updated_at,
 			-- Student info
 			lp.student_username, lp.student_first_name, lp.student_last_name, lp.student_avatar_url,
 			-- Tutor info
@@ -212,7 +212,7 @@ func (r *LessonRepositoryImpl) queryLessonsWithNames(ctx context.Context, query 
 
 		err := rows.Scan(
 			&lesson.ID, &lesson.StudentID, &lesson.TutorID, &lesson.StartTime,
-			&lesson.EndTime, &lesson.Duration, &lesson.Status, &lesson.Language,
+			&lesson.EndTime, &lesson.Duration, &lesson.Cancelled, &lesson.Language,
 			&lesson.Price, &lesson.CreatedAt, &lesson.UpdatedAt,
 			&studentUsername, &studentFirstName, &studentLastName, &studentAvatarURL,
 			&tutorUsername, &tutorFirstName, &tutorLastName, &tutorAvatarURL,
@@ -310,7 +310,7 @@ func (r *LessonRepositoryImpl) GetByStudentID(ctx context.Context, studentID int
 	query := `
 		SELECT 
 			l.id, l.student_id, l.tutor_id, l.start_time, l.end_time, 
-			l.duration, l.status, l.language, l.price, l.created_at, l.updated_at,
+			l.duration, l.cancelled, l.language, l.price, l.created_at, l.updated_at,
 			-- Student info
 			lp.student_username, lp.student_first_name, lp.student_last_name, lp.student_avatar_url,
 			-- Tutor info
@@ -327,7 +327,7 @@ func (r *LessonRepositoryImpl) GetCompletedByUserID(ctx context.Context, userID 
 	query := `
 		SELECT 
 			l.id, l.student_id, l.tutor_id, l.start_time, l.end_time, 
-			l.duration, l.status, l.language, l.price, l.created_at, l.updated_at,
+			l.duration, l.cancelled, l.language, l.price, l.created_at, l.updated_at,
 			-- Student info
 			lp.student_username, lp.student_first_name, lp.student_last_name, lp.student_avatar_url,
 			-- Tutor info
@@ -335,17 +335,18 @@ func (r *LessonRepositoryImpl) GetCompletedByUserID(ctx context.Context, userID 
 		FROM lessons l
 		LEFT JOIN lesson_participants lp ON l.id = lp.lesson_id
 		WHERE (l.student_id = $1 OR l.tutor_id = $1)
-		AND l.status = $2
+		AND l.cancelled = FALSE
+		AND l.end_time < NOW()
 		ORDER BY l.start_time DESC`
 
-	return r.queryLessonsWithNames(ctx, query, userID, entities.LessonStatusCompleted)
+	return r.queryLessonsWithNames(ctx, query, userID)
 }
 
 func (r *LessonRepositoryImpl) GetUpcomingByUserID(ctx context.Context, userID int) ([]entities.Lesson, error) {
 	query := `
 		SELECT 
 			l.id, l.student_id, l.tutor_id, l.start_time, l.end_time, 
-			l.duration, l.status, l.language, l.price, l.created_at, l.updated_at,
+			l.duration, l.cancelled, l.language, l.price, l.created_at, l.updated_at,
 			-- Student info
 			lp.student_username, lp.student_first_name, lp.student_last_name, lp.student_avatar_url,
 			-- Tutor info
@@ -353,55 +354,28 @@ func (r *LessonRepositoryImpl) GetUpcomingByUserID(ctx context.Context, userID i
 		FROM lessons l
 		LEFT JOIN lesson_participants lp ON l.id = lp.lesson_id
 		WHERE (l.student_id = $1 OR l.tutor_id = $1)
-		AND l.status = $2
+		AND l.cancelled = FALSE
 		AND l.start_time > NOW()
 		ORDER BY l.start_time ASC`
 
-	return r.queryLessonsWithNames(ctx, query, userID, entities.LessonStatusScheduled)
+	return r.queryLessonsWithNames(ctx, query, userID)
 }
 
-// UpdateLessonStatuses updates the status of lessons based on their time
-func (r *LessonRepositoryImpl) UpdateLessonStatuses(ctx context.Context) error {
-	query := `
-		UPDATE lessons
-		SET status = 
-			CASE
-				WHEN cancelled_at IS NOT NULL THEN 'cancelled'
-				WHEN NOW() BETWEEN start_time - INTERVAL '5 minutes' AND end_time THEN 'in_progress'
-				WHEN NOW() > end_time THEN 'completed'
-				ELSE 'scheduled'
-			END,
-			updated_at = NOW()
-		WHERE status != 'cancelled'
-		  AND status != 'completed'
-		  AND (
-			  NOW() BETWEEN start_time - INTERVAL '5 minutes' AND end_time
-			  OR NOW() > end_time
-		  )`
-
-	_, err := r.db.ExecContext(ctx, query)
-	if err != nil {
-		return fmt.Errorf("error updating lesson statuses: %v", err)
-	}
-
-	return nil
-}
-
-// CancelLesson cancels a lesson and sets the cancelled_at timestamp
+// CancelLesson cancels a lesson
 func (r *LessonRepositoryImpl) CancelLesson(ctx context.Context, lessonID int) error {
 	return r.withTx(ctx, func(tx *sql.Tx) error {
 		// First check if the lesson can be cancelled
 		var startTime time.Time
-		var status entities.LessonStatus
+		var cancelled bool
 		err := tx.QueryRowContext(ctx, `
-			SELECT start_time, status
+			SELECT start_time, cancelled
 			FROM lessons
-			WHERE id = $1`, lessonID).Scan(&startTime, &status)
+			WHERE id = $1`, lessonID).Scan(&startTime, &cancelled)
 		if err != nil {
 			return fmt.Errorf("error fetching lesson: %v", err)
 		}
 
-		if status != entities.LessonStatusScheduled {
+		if cancelled {
 			return entities.ErrInvalidStatusTransition
 		}
 
@@ -412,10 +386,10 @@ func (r *LessonRepositoryImpl) CancelLesson(ctx context.Context, lessonID int) e
 		// If checks pass, cancel the lesson
 		query := `
 			UPDATE lessons
-			SET status = $1, cancelled_at = NOW(), updated_at = NOW()
+			SET cancelled = TRUE, updated_at = NOW()
 			WHERE id = $2`
 
-		_, err = tx.ExecContext(ctx, query, entities.LessonStatusCancelled, lessonID)
+		_, err = tx.ExecContext(ctx, query, lessonID)
 		if err != nil {
 			return fmt.Errorf("error cancelling lesson: %v", err)
 		}

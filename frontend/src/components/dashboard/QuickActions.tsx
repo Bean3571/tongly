@@ -45,12 +45,12 @@ export const QuickActions: React.FC = () => {
     return (
         <Card 
             title={
-                <div className="flex items-center text-gray-800 dark:text-gray-100">
+                <div className="flex items-center text-gray-800">
                     <EditOutlined className="mr-2" />
                     Quick Actions
                 </div>
             }
-            className="shadow-md dark:bg-gray-800 dark:border-gray-700"
+            className="shadow-md"
             bordered={false}
         >
             <Space direction="vertical" style={{ width: '100%' }} size="middle">
@@ -61,12 +61,13 @@ export const QuickActions: React.FC = () => {
                         icon={action.icon}
                         onClick={() => handleActionClick(action.path)}
                         className={`w-full flex items-center justify-start px-4 py-6 h-auto ${
-                            !action.primary && 'dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300'
+                            !action.primary && 'bg-white text-gray-700'
                         }`}
+                        style={action.primary ? { backgroundColor: '#f97316', borderColor: '#f97316' } : {}}
                     >
                         <div className="text-left">
                             <div className="font-medium">{action.label}</div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            <div className="text-xs text-gray-500 mt-1">
                                 {action.description}
                             </div>
                         </div>
