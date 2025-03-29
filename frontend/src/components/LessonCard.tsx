@@ -121,7 +121,6 @@ const LessonCard: React.FC<LessonCardProps> = ({ lesson, onCancel }) => {
       </div>
       
       <div className="flex justify-between items-center">
-        <span className="text-lg font-semibold text-orange-600">${lesson.price}</span>
         <div className="space-x-2">
           {canCancel() && (
             <Button

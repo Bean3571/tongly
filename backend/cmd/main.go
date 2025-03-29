@@ -15,7 +15,6 @@ import (
 	"tongly-backend/internal/logger"
 	"tongly-backend/internal/repositories"
 	"tongly-backend/internal/router"
-	"tongly-backend/internal/services"
 	"tongly-backend/internal/usecases"
 	"tongly-backend/pkg/middleware"
 
@@ -70,7 +69,6 @@ func main() {
 	userRepo := repositories.NewUserRepository(db)
 	tutorRepo := repositories.NewTutorRepository(db)
 	lessonRepo := repositories.NewLessonRepository(db)
-	walletRepo := repositories.NewWalletRepository(db)
 
 	// Initialize use cases
 	authUseCase := usecases.NewAuthUseCase(userRepo)
@@ -82,15 +80,11 @@ func main() {
 		userRepo,
 	)
 
-	// Initialize services that depend on repositories
-	walletService := services.NewWalletService(walletRepo, lessonRepo)
-
 	// Initialize handlers
 	authHandler := interfaces.NewAuthHandler(authUseCase, tutorUseCase)
 	tutorHandler := interfaces.NewTutorHandler(tutorUseCase)
 	userHandler := interfaces.NewUserHandler(userUseCase)
 	lessonHandler := interfaces.NewLessonHandler(lessonUseCase)
-	walletHandler := interfaces.NewWalletHandler(walletService)
 
 	// Create a new Gin router with recommended production settings
 	gin.SetMode(gin.ReleaseMode)
@@ -110,7 +104,7 @@ func main() {
 	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
 
 	// Register other routes
-	router.SetupRouter(r, authHandler, tutorHandler, userHandler, lessonHandler, walletHandler)
+	router.SetupRouter(r, authHandler, tutorHandler, userHandler, lessonHandler)
 
 	// Start server with graceful shutdown
 	srv := &http.Server{

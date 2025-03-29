@@ -16,7 +16,6 @@ func SetupRouter(
 	tutorHandler *interfaces.TutorHandler,
 	userHandler *interfaces.UserHandler,
 	lessonHandler *interfaces.LessonHandler,
-	walletHandler *interfaces.WalletHandler,
 ) {
 	// Add CORS middleware first
 	r.Use(cors.New(cors.Config{
@@ -75,15 +74,6 @@ func SetupRouter(
 				lessons.GET("/:id", lessonHandler.GetLesson)
 				lessons.POST("/:id/cancel", lessonHandler.CancelLesson)
 			}
-
-			// Wallet routes
-			wallet := protected.Group("/wallet")
-			{
-				wallet.GET("/balance", walletHandler.GetBalance)
-				wallet.GET("/transactions", walletHandler.GetTransactionHistory)
-				wallet.POST("/deposit", walletHandler.ProcessDeposit)
-				wallet.POST("/withdraw", walletHandler.ProcessWithdrawal)
-			}
 		}
 	}
 }
@@ -93,7 +83,6 @@ func NewRouter(
 	userHandler *interfaces.UserHandler,
 	tutorHandler *interfaces.TutorHandler,
 	lessonHandler *interfaces.LessonHandler,
-	walletHandler *interfaces.WalletHandler,
 ) *gin.Engine {
 	router := gin.Default()
 
@@ -144,15 +133,6 @@ func NewRouter(
 		protected.POST("/lessons", lessonHandler.BookLesson)
 		protected.GET("/lessons/:id", lessonHandler.GetLesson)
 		protected.POST("/lessons/:id/cancel", lessonHandler.CancelLesson)
-
-		// Wallet routes
-		wallet := protected.Group("/wallet")
-		{
-			wallet.GET("/balance", walletHandler.GetBalance)
-			wallet.GET("/transactions", walletHandler.GetTransactionHistory)
-			wallet.POST("/deposit", walletHandler.ProcessDeposit)
-			wallet.POST("/withdraw", walletHandler.ProcessWithdrawal)
-		}
 	}
 
 	return router

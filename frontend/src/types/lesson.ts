@@ -18,7 +18,6 @@ export interface Lesson {
   end_time: string;
   duration: number;
   language: string;
-  price: number;
   cancelled: boolean;
   created_at: string;
   updated_at: string;

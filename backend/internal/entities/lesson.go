@@ -75,7 +75,6 @@ type Lesson struct {
 	Duration  int         `json:"duration"` // in minutes
 	Cancelled bool        `json:"cancelled"`
 	Language  string      `json:"language"`
-	Price     float64     `json:"price"`
 	CreatedAt time.Time   `json:"created_at"`
 	UpdatedAt time.Time   `json:"updated_at"`
 }

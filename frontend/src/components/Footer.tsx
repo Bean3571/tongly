@@ -35,14 +35,6 @@ export const Footer = () => {
                             </li>
                             <li>
                                 <Link
-                                    to="/lessons"
-                                    className="text-gray-600 hover:text-accent-primary transition-colors"
-                                >
-                                    Book a Lesson
-                                </Link>
-                            </li>
-                            <li>
-                                <Link
                                     to="/challenges"
                                     className="text-gray-600 hover:text-accent-primary transition-colors"
                                 >
@@ -88,14 +80,6 @@ export const Footer = () => {
                                     className="text-gray-600 hover:text-accent-primary transition-colors"
                                 >
                                     Contact Us
-                                </Link>
-                            </li>
-                            <li>
-                                <Link
-                                    to="/privacy"
-                                    className="text-gray-600 hover:text-accent-primary transition-colors"
-                                >
-                                    Privacy Policy
                                 </Link>
                             </li>
                         </ul>

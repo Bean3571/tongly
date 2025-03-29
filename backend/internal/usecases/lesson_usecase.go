@@ -70,13 +70,6 @@ func (uc *lessonUseCase) BookLesson(ctx context.Context, studentID int, request 
 		}
 	}
 
-	// Calculate price based on duration
-	hourlyRate := tutor.HourlyRate
-	if hourlyRate <= 0 {
-		hourlyRate = 25.0 // Default hourly rate if not set
-	}
-	price := hourlyRate * float64(request.Duration) / 60.0
-
 	// Create the lesson
 	lesson := &entities.Lesson{
 		StudentID: studentID,
@@ -86,7 +79,6 @@ func (uc *lessonUseCase) BookLesson(ctx context.Context, studentID int, request 
 		Duration:  request.Duration,
 		Cancelled: false,
 		Language:  request.Language,
-		Price:     price,
 	}
 
 	err = uc.lessonRepo.CreateLesson(ctx, lesson)

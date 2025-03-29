@@ -12,7 +12,6 @@ export interface Lesson {
     end_time: string;
     cancelled: boolean;
     language: string;
-    price: number;
     duration: number;
     tutor_name?: string;
     student_name?: string;

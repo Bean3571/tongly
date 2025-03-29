@@ -245,7 +245,6 @@ export const BookLesson: React.FC = () => {
           <h3 className="font-medium text-blue-800 dark:text-blue-200">Lesson Details</h3>
           <p className="mt-2 text-sm text-blue-700 dark:text-blue-300">
             • Duration: {duration} minutes<br />
-            • Price: ${((tutor.tutor?.hourly_rate || 25) * (duration / 60)).toFixed(2)}<br />
             • Language: {selectedLanguage}<br />
             {selectedHour && selectedMinute && `• Time: ${selectedDate.toLocaleDateString()} at ${selectedHour}:${selectedMinute}`}
           </p>

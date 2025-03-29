@@ -15,8 +15,7 @@ export const Navbar = () => {
         if (!user) return [];
 
         const commonLinks = [
-            { to: '/lessons', label: t('navbar.lessons') },
-            { to: '/wallet', label: t('navbar.wallet') }
+            { to: '/lessons', label: t('navbar.lessons') }
         ];
 
         if (user.credentials.role === 'student') {

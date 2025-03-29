@@ -61,8 +61,7 @@ func (r *LessonRepositoryImpl) CreateLesson(ctx context.Context, lesson *entitie
 
 		err := tx.QueryRowContext(ctx, query,
 			lesson.StudentID, lesson.TutorID, lesson.StartTime, lesson.EndTime,
-			lesson.Cancelled, lesson.Language, lesson.Price,
-			lesson.Duration, // Use the duration from the lesson directly
+			lesson.Cancelled, lesson.Language, lesson.Duration,
 			now, now,
 		).Scan(&lesson.ID, &lesson.CreatedAt, &lesson.UpdatedAt)
 
@@ -97,7 +96,7 @@ func (r *LessonRepositoryImpl) GetLesson(ctx context.Context, id int) (*entities
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&lesson.ID, &lesson.StudentID, &lesson.TutorID, &lesson.StartTime,
 		&lesson.EndTime, &lesson.Duration, &lesson.Cancelled, &lesson.Language,
-		&lesson.Price, &lesson.CreatedAt, &lesson.UpdatedAt,
+		&lesson.CreatedAt, &lesson.UpdatedAt,
 		&studentUsername, &studentFirstName, &studentLastName, &studentAvatarURL,
 		&tutorUsername, &tutorFirstName, &tutorLastName, &tutorAvatarURL,
 	)
@@ -218,7 +217,7 @@ func (r *LessonRepositoryImpl) queryLessonsWithNames(ctx context.Context, query 
 		err := rows.Scan(
 			&lesson.ID, &lesson.StudentID, &lesson.TutorID, &lesson.StartTime,
 			&lesson.EndTime, &lesson.Duration, &lesson.Cancelled, &lesson.Language,
-			&lesson.Price, &lesson.CreatedAt, &lesson.UpdatedAt,
+			&lesson.CreatedAt, &lesson.UpdatedAt,
 			&studentUsername, &studentFirstName, &studentLastName, &studentAvatarURL,
 			&tutorUsername, &tutorFirstName, &tutorLastName, &tutorAvatarURL,
 		)

@@ -46,7 +46,6 @@
         "home": "Home",
         "tutors": "Find Tutors",
         "lessons": "My Lessons",
-        "wallet": "Wallet",
         "profile": "Profile",
         "settings": "Settings",
         "earnings": "Earnings",
@@ -125,11 +124,9 @@
             "language_duration": "Language & Duration",
             "date_time": "Date & Time",
             "status": "Status",
-            "price": "Price",
             "actions": "Actions"
         },
         "duration": "{{minutes}} minutes",
-        "price": "${{price}}",
         "participant": {
             "tutor": "Tutor",
             "student": "Student"
@@ -149,28 +146,7 @@
         },
         "no_lessons": "You don't have any lessons yet",
         "cancelled_success": "Lesson cancelled successfully",
-        "joined_success": "Joined lesson successfully",
-        "errors": {
-            "fetch_lessons": "Failed to fetch lessons",
-            "cancel_lesson": "Failed to cancel lesson",
-            "join_lesson": "Failed to join lesson"
-        },
-        "warning": {
-            "too_early": {
-                "title": "Too Early",
-                "description": "You can join the lesson 5 minutes before the scheduled start time."
-            }
-        },
-        "cancel": {
-            "modal": {
-                "title": "Cancel Lesson",
-                "confirm": "Are you sure you want to cancel this lesson?",
-                "warning": "This action cannot be undone.",
-                "confirm_button": "Yes, Cancel Lesson",
-                "keep_button": "No, Keep Lesson"
-            },
-            "reason": "Cancelled by {{role}}"
-        }
+        "joined_success": "Joined lesson successfully"
     },
     "tutors": {
         "search": {

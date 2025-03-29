@@ -16,11 +16,9 @@ import TutorDashboard from './pages/TutorDashboard';
 import TutorProfile from './pages/TutorProfile';
 import TutorSearch from './pages/TutorSearch';
 import { Lessons } from './pages/Lessons';
-import { Wallet } from './pages/Wallet';
 import { useAuth } from './contexts/AuthContext';
 import { BookLesson } from './pages/BookLesson';
 import { TeachingProfile } from './pages/TeachingProfile';
-import { PlatformEarnings } from './pages/admin/PlatformEarnings';
 
 const queryClient = new QueryClient();
 
@@ -50,11 +48,6 @@ const AppRoutes = () => {
                     <Route path="/profile" element={
                         <PrivateRoute>
                             <Profile />
-                        </PrivateRoute>
-                    } />
-                    <Route path="/wallet" element={
-                        <PrivateRoute>
-                            <Wallet />
                         </PrivateRoute>
                     } />
 
@@ -96,13 +89,6 @@ const AppRoutes = () => {
                     <Route path="/lessons" element={
                         <PrivateRoute>
                             <Lessons />
-                        </PrivateRoute>
-                    } />
-
-                    {/* Admin Routes */}
-                    <Route path="/admin/earnings" element={
-                        <PrivateRoute role="admin">
-                            <PlatformEarnings />
                         </PrivateRoute>
                     } />
 
