@@ -10,7 +10,6 @@ type TutorDetails struct {
 	TeachingLanguages []Language  `json:"teaching_languages"`
 	Education         []Education `json:"education"`
 	Interests         []string    `json:"interests"`
-	HourlyRate        float64     `json:"hourly_rate"`
 	IntroductionVideo string      `json:"introduction_video,omitempty"`
 	Approved          bool        `json:"approved"`
 	CreatedAt         time.Time   `json:"created_at"`
@@ -25,7 +24,6 @@ type TutorProfile struct {
 	Bio               string      `json:"bio"`
 	Interests         []string    `json:"interests"`
 	ProfilePicture    string      `json:"profile_picture"`
-	HourlyRate        float64     `json:"hourly_rate"`
 	IntroductionVideo string      `json:"introduction_video,omitempty"`
 	Education         []Education `json:"education"`
 	CreatedAt         time.Time   `json:"created_at"`
@@ -48,7 +46,6 @@ type TutorRegistrationRequest struct {
 	Bio               string      `json:"bio"`
 	TeachingLanguages []Language  `json:"teaching_languages"`
 	Education         []Education `json:"education"`
-	HourlyRate        float64     `json:"hourly_rate"`
 	IntroductionVideo string      `json:"introduction_video"`
 }
 
@@ -58,7 +55,6 @@ type TutorUpdateRequest struct {
 	TeachingLanguages []Language  `json:"teaching_languages"`
 	Education         []Education `json:"education"`
 	Interests         []string    `json:"interests"`
-	HourlyRate        float64     `json:"hourly_rate"`
 	IntroductionVideo string      `json:"introduction_video,omitempty"`
 }
 
@@ -78,6 +74,4 @@ type Education struct {
 
 type TutorSearchFilters struct {
 	Languages []string `json:"languages"`
-	MinPrice  float64  `json:"min_price"`
-	MaxPrice  float64  `json:"max_price"`
 }

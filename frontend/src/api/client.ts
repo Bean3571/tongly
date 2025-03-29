@@ -293,7 +293,6 @@ interface TutorRegistrationData {
     education_degree: string;
     education_institution: string;
     introduction_video: string;
-    hourly_rate: number;
     offers_trial: boolean;
 }
 
@@ -303,7 +302,6 @@ export interface TutorProfileUpdateData {
     degrees?: Degree[];
     bio?: string;
     interests?: string[];
-    hourlyRate?: number;
     offersTrial?: boolean;
     introductionVideo?: string;
 }
@@ -453,13 +451,7 @@ export const api = {
                     }
                 });
 
-                // Convert hourlyRate to number if it's a string
-                const requestData = {
-                    ...data,
-                    hourlyRate: typeof data.hourlyRate === 'string' ? parseFloat(data.hourlyRate) : data.hourlyRate,
-                };
-
-                const response = await apiClient.put('/api/tutors/profile', requestData);
+                const response = await apiClient.put('/api/tutors/profile', data);
                 
                 logger.info('Tutor profile update successful:', {
                     data: response.data

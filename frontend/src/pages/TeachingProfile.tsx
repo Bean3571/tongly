@@ -41,7 +41,6 @@ interface TutorProfile {
     teachingLanguages: TeachingLanguage[];
     education: Education[];
     interests: string[];
-    hourlyRate: number;
     introductionVideo?: string;
 }
 
@@ -78,7 +77,6 @@ export const TeachingProfile: React.FC = () => {
         teachingLanguages: [],
         education: [],
         interests: [],
-        hourlyRate: 25,
         introductionVideo: undefined
     });
 
@@ -140,7 +138,6 @@ export const TeachingProfile: React.FC = () => {
                 teachingLanguages: [],
                 education: [],
                 interests: [],
-                hourlyRate: 25,
                 introductionVideo: undefined
             });
         } finally {
@@ -433,27 +430,27 @@ export const TeachingProfile: React.FC = () => {
                 </div>
             </section>
 
-            {/* Introduction Video Section */}
+            {/* Video Introduction Section */}
             <section id="video" className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
                 <Title level={3} className="text-gray-800 dark:text-gray-100 mb-4">
-                    Introduction Video
+                    Video Introduction
                 </Title>
                 <div className="space-y-4">
                     {profile.introductionVideo ? (
-                        <div className="space-y-4">
+                        <div>
                             <video
-                                src={profile.introductionVideo}
                                 controls
-                                className="w-full rounded-lg"
+                                src={profile.introductionVideo}
+                                className="max-w-full h-auto rounded-lg"
                             />
                             <Button
-                                danger
-                                icon={<DeleteOutlined />}
                                 onClick={() => {
-                                    const newProfile = { ...profile, introductionVideo: undefined };
+                                    const newProfile = { ...profile, introductionVideo: '' };
                                     setProfile(newProfile);
                                     handleAutoSave(newProfile);
                                 }}
+                                danger
+                                className="mt-2"
                             >
                                 Remove Video
                             </Button>
@@ -462,11 +459,11 @@ export const TeachingProfile: React.FC = () => {
                         <div>
                             <Upload
                                 accept="video/*"
-                                maxCount={1}
-                                beforeUpload={(file) => {
+                                beforeUpload={file => {
                                     handleVideoUpload(file);
                                     return false;
                                 }}
+                                showUploadList={false}
                             >
                                 <Button icon={<UploadOutlined />}>Upload Video</Button>
                             </Upload>
@@ -476,30 +473,6 @@ export const TeachingProfile: React.FC = () => {
                             </Text>
                         </div>
                     )}
-                </div>
-            </section>
-
-            {/* Pricing Section */}
-            <section id="pricing" className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-                <Title level={3} className="text-gray-800 dark:text-gray-100 mb-4">
-                    {t('tutors.profile.pricing')}
-                </Title>
-                <div className="space-y-4">
-                    <div>
-                        <Text className="block mb-2 text-gray-800 dark:text-gray-100">Hourly Rate (USD)</Text>
-                        <Input
-                            type="number"
-                            min={0}
-                            value={profile.hourlyRate}
-                            onChange={(e) => {
-                                const newProfile = { ...profile, hourlyRate: Number(e.target.value) };
-                                setProfile(newProfile);
-                                handleAutoSave(newProfile);
-                            }}
-                            addonAfter="USD/hour"
-                            className="w-48 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
-                        />
-                    </div>
                 </div>
             </section>
         </div>

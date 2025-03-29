@@ -57,16 +57,7 @@ func (h *TutorHandler) ListTutors(c *gin.Context) {
 
 	// Parse filters from query parameters
 	filters := usecases.TutorFilters{
-		Language:    c.Query("language"),
-		OffersTrial: c.Query("offers_trial") == "true",
-	}
-
-	// Parse numeric filters
-	if minRate, err := strconv.ParseFloat(c.Query("min_rate"), 64); err == nil {
-		filters.MinHourlyRate = minRate
-	}
-	if maxRate, err := strconv.ParseFloat(c.Query("max_rate"), 64); err == nil {
-		filters.MaxHourlyRate = maxRate
+		Language: c.Query("language"),
 	}
 
 	tutors, err := h.TutorUseCase.ListTutors(c.Request.Context(), page, pageSize, filters)
@@ -173,7 +164,6 @@ func (h *TutorHandler) UpdateTutorProfile(c *gin.Context) {
 			"teaching_languages_full": req.TeachingLanguages,
 			"education_full":          req.Education,
 			"interests_full":          req.Interests,
-			"hourly_rate":             req.HourlyRate,
 			"introduction_video":      req.IntroductionVideo,
 		})
 
@@ -198,7 +188,6 @@ func (h *TutorHandler) UpdateTutorProfile(c *gin.Context) {
 				"teaching_languages": updatedProfile.TeachingLanguages,
 				"education":          updatedProfile.Education,
 				"interests":          updatedProfile.Interests,
-				"hourly_rate":        updatedProfile.HourlyRate,
 				"introduction_video": updatedProfile.IntroductionVideo,
 			})
 	}
@@ -209,18 +198,10 @@ func (h *TutorHandler) UpdateTutorProfile(c *gin.Context) {
 	})
 }
 
-// Helper function to parse string to float64
-func parseFloat64(s string) float64 {
-	val, _ := strconv.ParseFloat(s, 64)
-	return val
-}
-
 // SearchTutors handles the search request for tutors
 func (h *TutorHandler) SearchTutors(c *gin.Context) {
 	filters := entities.TutorSearchFilters{
 		Languages: strings.Split(c.Query("languages"), ","),
-		MinPrice:  parseFloat64(c.Query("min_price")),
-		MaxPrice:  parseFloat64(c.Query("max_price")),
 	}
 
 	tutors, err := h.TutorUseCase.SearchTutors(c.Request.Context(), filters)

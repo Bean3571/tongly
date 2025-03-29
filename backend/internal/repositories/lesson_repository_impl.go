@@ -55,7 +55,7 @@ func (r *LessonRepositoryImpl) CreateLesson(ctx context.Context, lesson *entitie
 		query := `
 			INSERT INTO lessons (
 				student_id, tutor_id, start_time, end_time, cancelled, language, 
-				price, duration, created_at, updated_at
+				duration, created_at, updated_at
 			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 			RETURNING id, created_at, updated_at`
 
@@ -79,7 +79,7 @@ func (r *LessonRepositoryImpl) GetLesson(ctx context.Context, id int) (*entities
 	query := `
 		SELECT 
 			l.id, l.student_id, l.tutor_id, l.start_time, l.end_time, 
-			l.duration, l.cancelled, l.language, l.price, l.created_at, l.updated_at,
+			l.duration, l.cancelled, l.language, l.created_at, l.updated_at,
 			-- Student info
 			lp.student_username, lp.student_first_name, lp.student_last_name, lp.student_avatar_url,
 			-- Tutor info
@@ -170,7 +170,7 @@ func (r *LessonRepositoryImpl) GetLessons(ctx context.Context, userID int) ([]en
 		)
 		SELECT 
 			l.id, l.student_id, l.tutor_id, l.start_time, l.end_time, 
-			l.duration, l.cancelled, l.language, l.price, l.created_at, l.updated_at,
+			l.duration, l.cancelled, l.language, l.created_at, l.updated_at,
 			-- Student info
 			lp.student_username, lp.student_first_name, lp.student_last_name, lp.student_avatar_url,
 			-- Tutor info
@@ -187,7 +187,7 @@ func (r *LessonRepositoryImpl) GetLessonsByTutor(ctx context.Context, tutorID in
 	query := `
 		SELECT 
 			l.id, l.student_id, l.tutor_id, l.start_time, l.end_time, 
-			l.duration, l.cancelled, l.language, l.price, l.created_at, l.updated_at,
+			l.duration, l.cancelled, l.language, l.created_at, l.updated_at,
 			-- Student info
 			lp.student_username, lp.student_first_name, lp.student_last_name, lp.student_avatar_url,
 			-- Tutor info
@@ -314,7 +314,7 @@ func (r *LessonRepositoryImpl) GetByStudentID(ctx context.Context, studentID int
 	query := `
 		SELECT 
 			l.id, l.student_id, l.tutor_id, l.start_time, l.end_time, 
-			l.duration, l.cancelled, l.language, l.price, l.created_at, l.updated_at,
+			l.duration, l.cancelled, l.language, l.created_at, l.updated_at,
 			-- Student info
 			lp.student_username, lp.student_first_name, lp.student_last_name, lp.student_avatar_url,
 			-- Tutor info
@@ -331,7 +331,7 @@ func (r *LessonRepositoryImpl) GetCompletedByUserID(ctx context.Context, userID 
 	query := `
 		SELECT 
 			l.id, l.student_id, l.tutor_id, l.start_time, l.end_time, 
-			l.duration, l.cancelled, l.language, l.price, l.created_at, l.updated_at,
+			l.duration, l.cancelled, l.language, l.created_at, l.updated_at,
 			-- Student info
 			lp.student_username, lp.student_first_name, lp.student_last_name, lp.student_avatar_url,
 			-- Tutor info
@@ -350,7 +350,7 @@ func (r *LessonRepositoryImpl) GetUpcomingByUserID(ctx context.Context, userID i
 	query := `
 		SELECT 
 			l.id, l.student_id, l.tutor_id, l.start_time, l.end_time, 
-			l.duration, l.cancelled, l.language, l.price, l.created_at, l.updated_at,
+			l.duration, l.cancelled, l.language, l.created_at, l.updated_at,
 			-- Student info
 			lp.student_username, lp.student_first_name, lp.student_last_name, lp.student_avatar_url,
 			-- Tutor info

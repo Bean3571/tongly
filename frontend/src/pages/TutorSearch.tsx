@@ -7,9 +7,7 @@ interface Tutor {
   id: string;
   name: string;
   languages: string[];
-  hourlyRate: number;
   rating: number;
-  totalLessons: number;
   avatarUrl: string;
   shortBio: string;
   credentials?: {
@@ -19,8 +17,6 @@ interface Tutor {
 
 interface FilterState {
   language: string;
-  minPrice: number;
-  maxPrice: number;
   minRating: number;
   searchQuery: string;
 }
@@ -32,8 +28,6 @@ const TutorSearch: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<FilterState>({
     language: '',
-    minPrice: 0,
-    maxPrice: 200,
     minRating: 0,
     searchQuery: '',
   });
@@ -89,9 +83,7 @@ const TutorSearch: React.FC = () => {
           languages: Array.isArray(tutor.tutor?.teaching_languages) 
             ? tutor.tutor.teaching_languages.map((lang: any) => lang.language || 'Unknown')
             : ['Not specified'],
-          hourlyRate: parseFloat(tutor.tutor?.hourly_rate) || 25, // Default rate
           rating: parseFloat(tutor.tutor?.rating) || 0,
-          totalLessons: parseInt(tutor.tutor?.total_lessons) || 0,
           avatarUrl: tutor.personal?.profile_picture || '/default-avatar.png',
           shortBio: tutor.tutor?.bio || 'This tutor has not added a bio yet.',
           credentials: tutor.credentials,
@@ -123,15 +115,13 @@ const TutorSearch: React.FC = () => {
   // Apply filters client-side for now
   const filteredTutors = tutors.filter(tutor => {
     const matchesLanguage = !filters.language || tutor.languages.includes(filters.language);
-    const matchesPrice = tutor.hourlyRate >= filters.minPrice && 
-                        (filters.maxPrice === 0 || tutor.hourlyRate <= filters.maxPrice);
     const matchesRating = tutor.rating >= filters.minRating;
     const matchesSearch = !filters.searchQuery || 
       tutor.name.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
       tutor.shortBio.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
       tutor.languages.some(lang => lang.toLowerCase().includes(filters.searchQuery.toLowerCase()));
 
-    return matchesLanguage && matchesPrice && matchesRating && matchesSearch;
+    return matchesLanguage && matchesRating && matchesSearch;
   });
 
   const handleFilterChange = (name: keyof FilterState, value: string | number) => {
@@ -188,30 +178,6 @@ const TutorSearch: React.FC = () => {
               </select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Price Range ($/hour)
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="number"
-                  placeholder="Min"
-                  min="0"
-                  max={filters.maxPrice}
-                  value={filters.minPrice}
-                  onChange={(e) => handleFilterChange('minPrice', Number(e.target.value))}
-                  className="w-full p-2 border border-gray-300 rounded-md bg-white text-gray-900 focus:ring-orange-500 focus:border-orange-500"
-                />
-                <input
-                  type="number"
-                  placeholder="Max"
-                  min={filters.minPrice}
-                  value={filters.maxPrice}
-                  onChange={(e) => handleFilterChange('maxPrice', Number(e.target.value))}
-                  className="w-full p-2 border border-gray-300 rounded-md bg-white text-gray-900 focus:ring-orange-500 focus:border-orange-500"
-                />
-              </div>
-            </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">

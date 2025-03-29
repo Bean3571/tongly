@@ -22,11 +22,8 @@ func NewTutorUseCase(userRepo repositories.UserRepository, tutorRepo repositorie
 
 // TutorFilters represents the available filtering options for tutors
 type TutorFilters struct {
-	ApprovalStatus string  `json:"approval_status"`
-	MinHourlyRate  float64 `json:"min_hourly_rate"`
-	MaxHourlyRate  float64 `json:"max_hourly_rate"`
-	OffersTrial    bool    `json:"offers_trial"`
-	Language       string  `json:"language"`
+	ApprovalStatus string `json:"approval_status"`
+	Language       string `json:"language"`
 }
 
 // RegisterTutor handles tutor registration
@@ -54,7 +51,6 @@ func (uc *TutorUseCase) RegisterTutor(ctx context.Context, userID int, req entit
 		Bio:               req.Bio,
 		TeachingLanguages: req.TeachingLanguages,
 		Education:         req.Education,
-		HourlyRate:        req.HourlyRate,
 		IntroductionVideo: req.IntroductionVideo,
 		Approved:          false, // New tutors start as unapproved
 	}
@@ -84,15 +80,6 @@ func (uc *TutorUseCase) ListTutors(ctx context.Context, page, pageSize int, filt
 	filterMap := make(map[string]interface{})
 	if filters.ApprovalStatus != "" {
 		filterMap["approved"] = filters.ApprovalStatus == "approved"
-	}
-	if filters.MinHourlyRate > 0 {
-		filterMap["min_hourly_rate"] = filters.MinHourlyRate
-	}
-	if filters.MaxHourlyRate > 0 {
-		filterMap["max_hourly_rate"] = filters.MaxHourlyRate
-	}
-	if filters.OffersTrial {
-		filterMap["offers_trial"] = true
 	}
 	if filters.Language != "" {
 		filterMap["language"] = filters.Language
@@ -184,9 +171,8 @@ func (uc *TutorUseCase) UpdateTutorProfile(ctx context.Context, userID int, req 
 	// Create tutor details if they don't exist
 	if details == nil {
 		details = &entities.TutorDetails{
-			UserID:     userID,
-			HourlyRate: 25.0, // Default hourly rate
-			Approved:   false,
+			UserID:   userID,
+			Approved: false,
 		}
 	}
 
@@ -195,7 +181,6 @@ func (uc *TutorUseCase) UpdateTutorProfile(ctx context.Context, userID int, req 
 	details.TeachingLanguages = req.TeachingLanguages
 	details.Education = req.Education
 	details.Interests = req.Interests
-	details.HourlyRate = req.HourlyRate
 	details.IntroductionVideo = req.IntroductionVideo
 
 	// Create or update tutor details
@@ -228,9 +213,8 @@ func (uc *TutorUseCase) UpdateTutorVideo(ctx context.Context, userID int, videoU
 	// Create tutor details if they don't exist
 	if details == nil {
 		details = &entities.TutorDetails{
-			UserID:     userID,
-			HourlyRate: 25.0, // Default hourly rate
-			Approved:   false,
+			UserID:   userID,
+			Approved: false,
 		}
 	}
 
@@ -259,12 +243,6 @@ func (uc *TutorUseCase) SearchTutors(ctx context.Context, filters entities.Tutor
 
 	if len(filters.Languages) > 0 {
 		filterMap["languages"] = filters.Languages
-	}
-	if filters.MinPrice > 0 {
-		filterMap["min_price"] = filters.MinPrice
-	}
-	if filters.MaxPrice > 0 {
-		filterMap["max_price"] = filters.MaxPrice
 	}
 
 	return uc.TutorRepo.SearchTutors(ctx, filterMap)

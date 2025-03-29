@@ -6,9 +6,7 @@ interface TutorCardProps {
     id: string;
     name: string;
     languages: string[];
-    hourlyRate: number;
     rating: number;
-    totalLessons: number;
     avatarUrl: string;
     shortBio: string;
     credentials?: {
@@ -40,13 +38,7 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
               </h3>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-yellow-400">⭐</span>
-                <span className="text-gray-700">
-                  {tutor.rating.toFixed(1)} ({tutor.totalLessons} lessons)
-                </span>
               </div>
-            </div>
-            <div className="text-xl font-semibold text-orange-600">
-              ${tutor.hourlyRate}/hr
             </div>
           </div>
           <div className="mt-3 flex flex-wrap gap-2">

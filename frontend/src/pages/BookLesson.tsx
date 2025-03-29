@@ -15,7 +15,6 @@ interface TutorDetails {
   };
   tutor: {
     teaching_languages: Array<{ language: string }> | null;
-    hourly_rate: number;
     bio: string;
   };
 }

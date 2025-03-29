@@ -37,7 +37,6 @@ export interface TutorProfile {
     bio: string;
     education: string;
     languages: string[];
-    hourlyRate: number;
     rating: number;
     totalLessons: number;
     avatarUrl: string;

@@ -28,8 +28,8 @@ func (r *TutorRepositoryImpl) CreateTutorDetails(ctx context.Context, details *e
 	query := `
 		INSERT INTO tutor_details (
 			user_id, bio, teaching_languages, education,
-			interests, hourly_rate, introduction_video, approved
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+			interests, introduction_video, approved
+		) VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id`
 
 	// Convert arrays to JSONB
@@ -53,7 +53,6 @@ func (r *TutorRepositoryImpl) CreateTutorDetails(ctx context.Context, details *e
 		"user_id", details.UserID,
 		"teaching_languages", string(teachingLanguagesJSON),
 		"education", string(educationJSON),
-		"hourly_rate", details.HourlyRate,
 		"introduction_video", details.IntroductionVideo)
 
 	err = r.DB.QueryRowContext(
@@ -64,7 +63,6 @@ func (r *TutorRepositoryImpl) CreateTutorDetails(ctx context.Context, details *e
 		teachingLanguagesJSON,
 		educationJSON,
 		pq.Array(details.Interests),
-		details.HourlyRate,
 		details.IntroductionVideo,
 		details.Approved,
 	).Scan(&details.ID)
@@ -80,7 +78,6 @@ func (r *TutorRepositoryImpl) CreateTutorDetails(ctx context.Context, details *e
 				"teaching_languages": string(teachingLanguagesJSON),
 				"education":          string(educationJSON),
 				"interests":          details.Interests,
-				"hourly_rate":        details.HourlyRate,
 				"introduction_video": details.IntroductionVideo,
 				"approved":           details.Approved,
 			})
@@ -96,7 +93,7 @@ func (r *TutorRepositoryImpl) CreateTutorDetails(ctx context.Context, details *e
 func (r *TutorRepositoryImpl) GetTutorDetails(ctx context.Context, userID int) (*entities.TutorDetails, error) {
 	query := `
 		SELECT id, user_id, bio, teaching_languages, education,
-			   interests, hourly_rate, introduction_video, approved,
+			   interests, introduction_video, approved,
 			   created_at, updated_at
 		FROM tutor_details
 		WHERE user_id = $1`
@@ -118,7 +115,6 @@ func (r *TutorRepositoryImpl) GetTutorDetails(ctx context.Context, userID int) (
 		&teachingLanguagesJSON,
 		&educationJSON,
 		pq.Array(&details.Interests),
-		&details.HourlyRate,
 		&details.IntroductionVideo,
 		&details.Approved,
 		&details.CreatedAt,
@@ -156,7 +152,6 @@ func (r *TutorRepositoryImpl) GetTutorDetails(ctx context.Context, userID int) (
 			"id":                 details.ID,
 			"teaching_languages": details.TeachingLanguages,
 			"education":          details.Education,
-			"hourly_rate":        details.HourlyRate,
 			"introduction_video": details.IntroductionVideo,
 		})
 
@@ -170,11 +165,10 @@ func (r *TutorRepositoryImpl) UpdateTutorDetails(ctx context.Context, details *e
 			teaching_languages = $2,
 			education = $3,
 			interests = $4,
-			hourly_rate = $5,
-			introduction_video = $6,
-			approved = $7
-		WHERE user_id = $8
-		RETURNING id, teaching_languages, education, hourly_rate, offers_trial`
+			introduction_video = $5,
+			approved = $6
+		WHERE user_id = $7
+		RETURNING id, teaching_languages, education`
 
 	// Convert arrays to JSONB
 	teachingLanguagesJSON, err := json.Marshal(details.TeachingLanguages)
@@ -200,7 +194,6 @@ func (r *TutorRepositoryImpl) UpdateTutorDetails(ctx context.Context, details *e
 			"teaching_languages": string(teachingLanguagesJSON),
 			"education":          string(educationJSON),
 			"interests":          details.Interests,
-			"hourly_rate":        details.HourlyRate,
 			"introduction_video": details.IntroductionVideo,
 			"approved":           details.Approved,
 		})
@@ -209,7 +202,6 @@ func (r *TutorRepositoryImpl) UpdateTutorDetails(ctx context.Context, details *e
 		updatedID                int
 		updatedTeachingLangsJSON []byte
 		updatedEducationJSON     []byte
-		updatedHourlyRate        float64
 	)
 
 	err = r.DB.QueryRowContext(
@@ -219,11 +211,10 @@ func (r *TutorRepositoryImpl) UpdateTutorDetails(ctx context.Context, details *e
 		teachingLanguagesJSON,
 		educationJSON,
 		pq.Array(details.Interests),
-		details.HourlyRate,
 		details.IntroductionVideo,
 		details.Approved,
 		details.UserID,
-	).Scan(&updatedID, &updatedTeachingLangsJSON, &updatedEducationJSON, &updatedHourlyRate)
+	).Scan(&updatedID, &updatedTeachingLangsJSON, &updatedEducationJSON)
 
 	if err != nil {
 		logger.Error("Failed to execute update query",
@@ -239,7 +230,6 @@ func (r *TutorRepositoryImpl) UpdateTutorDetails(ctx context.Context, details *e
 			"id":                      updatedID,
 			"teaching_languages_json": string(updatedTeachingLangsJSON),
 			"education_json":          string(updatedEducationJSON),
-			"hourly_rate":             updatedHourlyRate,
 		})
 
 	return nil
@@ -260,7 +250,6 @@ func (r *TutorRepositoryImpl) ListTutors(ctx context.Context, limit, offset int,
 				td.teaching_languages,
 				td.education,
 				td.interests,
-				td.hourly_rate,
 				td.introduction_video,
 				td.approved
 			FROM user_credentials uc
@@ -278,18 +267,6 @@ func (r *TutorRepositoryImpl) ListTutors(ctx context.Context, limit, offset int,
 		query += ` AND teaching_languages @> $` + strconv.Itoa(argPosition) + `::jsonb`
 		languageFilter := fmt.Sprintf(`[{"language":"%s"}]`, language)
 		args = append(args, languageFilter)
-		argPosition++
-	}
-
-	if minRate, ok := filters["min_hourly_rate"].(float64); ok && minRate > 0 {
-		query += ` AND hourly_rate >= $` + strconv.Itoa(argPosition)
-		args = append(args, minRate)
-		argPosition++
-	}
-
-	if maxRate, ok := filters["max_hourly_rate"].(float64); ok && maxRate > 0 {
-		query += ` AND hourly_rate <= $` + strconv.Itoa(argPosition)
-		args = append(args, maxRate)
 		argPosition++
 	}
 
@@ -328,7 +305,6 @@ func (r *TutorRepositoryImpl) ListTutors(ctx context.Context, limit, offset int,
 			&teachingLangJSON,
 			&educationJSON,
 			pq.Array(&details.Interests),
-			&details.HourlyRate,
 			&details.IntroductionVideo,
 			&details.Approved,
 		)
@@ -389,9 +365,8 @@ func (r *TutorRepositoryImpl) CreateTutorProfile(ctx context.Context, profile *e
 	query := `
 		INSERT INTO tutor_profiles (
 			tutor_id, bio, teaching_languages, interests, profile_picture,
-			hourly_rate, introduction_video, education,
-			created_at, updated_at
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+			introduction_video, education, created_at, updated_at
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 		RETURNING id`
 
 	teachingLanguagesJSON, err := json.Marshal(profile.TeachingLanguages)
@@ -412,7 +387,6 @@ func (r *TutorRepositoryImpl) CreateTutorProfile(ctx context.Context, profile *e
 		teachingLanguagesJSON,
 		pq.Array(profile.Interests),
 		profile.ProfilePicture,
-		profile.HourlyRate,
 		profile.IntroductionVideo,
 		educationJSON,
 		time.Now(),
@@ -429,7 +403,7 @@ func (r *TutorRepositoryImpl) CreateTutorProfile(ctx context.Context, profile *e
 func (r *TutorRepositoryImpl) GetTutorProfile(ctx context.Context, tutorID int) (*entities.TutorProfile, error) {
 	query := `
 		SELECT id, tutor_id, bio, teaching_languages, interests, profile_picture,
-			hourly_rate, introduction_video, education,
+			introduction_video, education,
 			created_at, updated_at
 		FROM tutor_profiles
 		WHERE tutor_id = $1`
@@ -444,7 +418,6 @@ func (r *TutorRepositoryImpl) GetTutorProfile(ctx context.Context, tutorID int) 
 		&teachingLanguagesJSON,
 		pq.Array(&profile.Interests),
 		&profile.ProfilePicture,
-		&profile.HourlyRate,
 		&profile.IntroductionVideo,
 		&educationJSON,
 		&profile.CreatedAt,
@@ -476,11 +449,10 @@ func (r *TutorRepositoryImpl) UpdateTutorProfile(ctx context.Context, profile *e
 			teaching_languages = $2,
 			interests = $3,
 			profile_picture = $4,
-			hourly_rate = $5,
-			introduction_video = $6,
-			education = $7,
-			updated_at = $8
-		WHERE tutor_id = $9
+			introduction_video = $5,
+			education = $6,
+			updated_at = $7
+		WHERE tutor_id = $8
 		RETURNING id`
 
 	teachingLanguagesJSON, err := json.Marshal(profile.TeachingLanguages)
@@ -500,7 +472,6 @@ func (r *TutorRepositoryImpl) UpdateTutorProfile(ctx context.Context, profile *e
 		teachingLanguagesJSON,
 		pq.Array(profile.Interests),
 		profile.ProfilePicture,
-		profile.HourlyRate,
 		profile.IntroductionVideo,
 		educationJSON,
 		time.Now(),
@@ -519,9 +490,9 @@ func (r *TutorRepositoryImpl) CreateTutor(ctx context.Context, details *entities
 	query := `
 		INSERT INTO tutors (
 			id, teaching_languages, education, interests, 
-			hourly_rate, introduction_video, approved
+			introduction_video, approved
 		) VALUES (
-			$1, $2, $3, $4, $5, $6, $7
+			$1, $2, $3, $4, $5, $6
 		)
 	`
 
@@ -530,7 +501,6 @@ func (r *TutorRepositoryImpl) CreateTutor(ctx context.Context, details *entities
 		details.TeachingLanguages,
 		details.Education,
 		details.Interests,
-		details.HourlyRate,
 		details.IntroductionVideo,
 		details.Approved,
 	)
@@ -545,17 +515,15 @@ func (r *TutorRepositoryImpl) UpdateTutor(ctx context.Context, details *entities
 		SET teaching_languages = $1,
 			education = $2,
 			interests = $3,
-			hourly_rate = $4,
-			introduction_video = $5,
-			approved = $6
-		WHERE id = $7
+			introduction_video = $4,
+			approved = $5
+		WHERE id = $6
 	`
 
 	result, err := r.DB.ExecContext(ctx, query,
 		details.TeachingLanguages,
 		details.Education,
 		details.Interests,
-		details.HourlyRate,
 		details.IntroductionVideo,
 		details.Approved,
 		details.ID,
@@ -581,7 +549,7 @@ func (r *TutorRepositoryImpl) UpdateTutor(ctx context.Context, details *entities
 func (r *TutorRepositoryImpl) SearchTutors(ctx context.Context, filters map[string]interface{}) ([]*entities.TutorProfile, error) {
 	query := `
 		SELECT id, user_id, bio, teaching_languages, education,
-			   interests, hourly_rate, introduction_video
+			   interests, introduction_video
 		FROM tutor_details
 		WHERE approved = true`
 
@@ -592,18 +560,6 @@ func (r *TutorRepositoryImpl) SearchTutors(ctx context.Context, filters map[stri
 	if languages, ok := filters["languages"].([]string); ok && len(languages) > 0 {
 		query += fmt.Sprintf(` AND teaching_languages ?| $%d`, argPosition)
 		args = append(args, pq.Array(languages))
-		argPosition++
-	}
-
-	if minPrice, ok := filters["min_price"].(float64); ok && minPrice > 0 {
-		query += fmt.Sprintf(` AND hourly_rate >= $%d`, argPosition)
-		args = append(args, minPrice)
-		argPosition++
-	}
-
-	if maxPrice, ok := filters["max_price"].(float64); ok && maxPrice > 0 {
-		query += fmt.Sprintf(` AND hourly_rate <= $%d`, argPosition)
-		args = append(args, maxPrice)
 		argPosition++
 	}
 
@@ -628,7 +584,6 @@ func (r *TutorRepositoryImpl) SearchTutors(ctx context.Context, filters map[stri
 			&teachingLanguagesJSON,
 			&educationJSON,
 			pq.Array(&profile.Interests),
-			&profile.HourlyRate,
 			&profile.IntroductionVideo,
 		)
 		if err != nil {

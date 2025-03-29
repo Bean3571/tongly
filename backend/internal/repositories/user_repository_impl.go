@@ -354,7 +354,6 @@ func (r *userRepositoryImpl) CreateTutorDetails(ctx context.Context, details *en
 		teachingLanguagesJSON,
 		educationJSON,
 		pq.Array(details.Interests),
-		details.HourlyRate,
 		details.IntroductionVideo,
 		details.Approved,
 	).Scan(&details.ID)
@@ -386,7 +385,6 @@ func (r *userRepositoryImpl) GetTutorDetails(ctx context.Context, userID int) (*
 		&teachingLanguagesJSON,
 		&educationJSON,
 		pq.Array(&details.Interests),
-		&details.HourlyRate,
 		&details.IntroductionVideo,
 		&details.Approved,
 		&details.CreatedAt,
@@ -443,7 +441,6 @@ func (r *userRepositoryImpl) UpdateTutorDetails(ctx context.Context, details *en
 		teachingLanguagesJSON,
 		educationJSON,
 		pq.Array(details.Interests),
-		details.HourlyRate,
 		details.IntroductionVideo,
 		details.Approved,
 		details.UserID,
@@ -481,7 +478,6 @@ func (r *userRepositoryImpl) ListTutors(ctx context.Context, limit, offset int, 
                 td.teaching_languages,
                 td.education,
                 td.interests,
-                td.hourly_rate,
                 td.introduction_video,
                 td.approved
             FROM user_credentials uc
@@ -499,18 +495,6 @@ func (r *userRepositoryImpl) ListTutors(ctx context.Context, limit, offset int, 
 		query += ` AND teaching_languages @> $` + strconv.Itoa(argPosition) + `::jsonb`
 		languageFilter := fmt.Sprintf(`[{"language":"%s"}]`, language)
 		args = append(args, languageFilter)
-		argPosition++
-	}
-
-	if minRate, ok := filters["min_hourly_rate"].(float64); ok && minRate > 0 {
-		query += ` AND hourly_rate >= $` + strconv.Itoa(argPosition)
-		args = append(args, minRate)
-		argPosition++
-	}
-
-	if maxRate, ok := filters["max_hourly_rate"].(float64); ok && maxRate > 0 {
-		query += ` AND hourly_rate <= $` + strconv.Itoa(argPosition)
-		args = append(args, maxRate)
 		argPosition++
 	}
 
@@ -549,7 +533,6 @@ func (r *userRepositoryImpl) ListTutors(ctx context.Context, limit, offset int, 
 			&teachingLangJSON,
 			&educationJSON,
 			pq.Array(&details.Interests),
-			&details.HourlyRate,
 			&details.IntroductionVideo,
 			&details.Approved,
 		)
