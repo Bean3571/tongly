@@ -10,7 +10,6 @@ type UserUpdateRequest struct {
 	ProfilePicture *string         `json:"profile_picture,omitempty"`
 	Age            *int            `json:"age,omitempty"`
 	Sex            *string         `json:"sex,omitempty"`
-	NativeLanguage *string         `json:"native_language,omitempty"`
 	Languages      []LanguageLevel `json:"languages,omitempty"`
 	Interests      []string        `json:"interests,omitempty"`
 	LearningGoals  []string        `json:"learning_goals,omitempty"`
