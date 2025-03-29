@@ -10,7 +10,6 @@
         "confirm": "Подтвердить",
         "back": "Назад",
         "try_again": "Попробовать снова",
-        "toggleTheme": "Переключить тему",
         "platform_name": "Tongly",
         "languages": {
             "en": "Английский",
@@ -301,15 +300,9 @@
                     "this_month": "За этот месяц",
                     "pending": "В обработке"
                 },
-                "schedule": {
-                    "title": "Расписание на сегодня",
-                    "no_lessons": "На сегодня уроков нет"
-                },
+
                 "stats": {
-                    "total_students": "Всего учеников",
-                    "total_lessons": "Всего уроков",
-                    "rating": "Средняя оценка",
-                    "completion_rate": "Процент завершения"
+                    "rating": "Средняя оценка"
                 }
             }
         },
@@ -335,41 +328,6 @@
                 "cancel": "Отмена",
                 "upload_photo": "Загрузить фото",
                 "remove_photo": "Удалить фото"
-            }
-        },
-        "settings": {
-            "title": "Настройки",
-            "notifications": {
-                "title": "Уведомления",
-                "email": {
-                    "title": "Email уведомления",
-                    "description": "Получайте обновления о ваших уроках по email"
-                },
-                "sms": {
-                    "title": "SMS уведомления",
-                    "description": "Получайте напоминания о уроках по SMS"
-                },
-                "marketing": {
-                    "title": "Маркетинговые обновления",
-                    "description": "Будьте в курсе новых функций и акций"
-                }
-            },
-            "security": {
-                "title": "Безопасность",
-                "current_password": "Текущий пароль",
-                "new_password": "Новый пароль",
-                "confirm_password": "Подтверждение пароля"
-            },
-            "preferences": {
-                "title": "Предпочтения",
-                "language": "Язык",
-                "timezone": "Часовой пояс"
-            },
-            "billing": {
-                "title": "Оплата",
-                "add_payment": "Добавить способ оплаты",
-                "history": "История платежей",
-                "no_history": "История платежей отсутствует"
             }
         },
         "book_lesson": {
@@ -405,44 +363,6 @@
             "notifications": "Уведомления",
             "account": "Аккаунт",
             "dashboard": "Панель управления"
-        },
-        "lessonChat": {
-            "title": "Чат урока",
-            "participants": "{{count}} участников",
-            "type_message": "Введите сообщение...",
-            "send": "Отправить"
-        },
-        "videoRoom": {
-            "controls": {
-                "mute": "Выключить звук",
-                "unmute": "Включить звук",
-                "camera_on": "Включить камеру",
-                "camera_off": "Выключить камеру",
-                "share_screen": "Демонстрация экрана",
-                "stop_sharing": "Остановить демонстрацию",
-                "leave": "Покинуть комнату"
-            },
-            "status": {
-                "connecting": "Подключение...",
-                "connected": "Подключено",
-                "disconnected": "Отключено"
-            }
-        },
-        "lessonRating": {
-            "title": "Оцените урок",
-            "with_tutor": "с {{name}}",
-            "rating_labels": {
-                "1": "Плохо",
-                "2": "Удовлетворительно",
-                "3": "Хорошо",
-                "4": "Очень хорошо",
-                "5": "Отлично"
-            },
-            "comment_placeholder": "Поделитесь своими впечатлениями (необязательно)",
-            "buttons": {
-                "submit": "Отправить оценку",
-                "skip": "Пропустить"
-            }
         }
     }
 }

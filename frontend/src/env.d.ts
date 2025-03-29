@@ -45,7 +45,7 @@ export const getEnvConfig = () => {
     enableRecording: false,
     
     // UI Configuration
-    maxVideoParticipants: 4,
+    maxVideoParticipants: 2,
     defaultVideoQuality: '720p',
     enableVirtualBackground: false,
   };

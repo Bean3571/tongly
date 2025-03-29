@@ -10,7 +10,6 @@
         "confirm": "Confirmar",
         "back": "Atrás",
         "try_again": "Intentar de nuevo",
-        "toggleTheme": "Cambiar tema",
         "platform_name": "Tongly",
         "languages": {
             "en": "Inglés",
@@ -305,10 +304,7 @@
                     "no_lessons": "No hay clases programadas para hoy"
                 },
                 "stats": {
-                    "total_students": "Total de estudiantes",
-                    "total_lessons": "Total de clases",
-                    "rating": "Calificación promedio",
-                    "completion_rate": "Tasa de finalización"
+                    "rating": "Calificación promedio"
                 }
             }
         },
@@ -334,41 +330,6 @@
                 "cancel": "Cancelar",
                 "upload_photo": "Subir foto",
                 "remove_photo": "Eliminar foto"
-            }
-        },
-        "settings": {
-            "title": "Configuración",
-            "notifications": {
-                "title": "Notificaciones",
-                "email": {
-                    "title": "Notificaciones por correo",
-                    "description": "Recibe actualizaciones por correo sobre tus clases"
-                },
-                "sms": {
-                    "title": "Notificaciones SMS",
-                    "description": "Recibe recordatorios por mensaje de texto"
-                },
-                "marketing": {
-                    "title": "Actualizaciones de marketing",
-                    "description": "Mantente informado sobre nuevas funciones y promociones"
-                }
-            },
-            "security": {
-                "title": "Seguridad",
-                "current_password": "Contraseña actual",
-                "new_password": "Nueva contraseña",
-                "confirm_password": "Confirmar contraseña"
-            },
-            "preferences": {
-                "title": "Preferencias",
-                "language": "Idioma",
-                "timezone": "Zona horaria"
-            },
-            "billing": {
-                "title": "Facturación",
-                "add_payment": "Agregar método de pago",
-                "history": "Historial de facturación",
-                "no_history": "No hay historial de facturación disponible"
             }
         },
         "book_lesson": {
@@ -404,44 +365,6 @@
             "notifications": "Notificaciones",
             "account": "Cuenta",
             "dashboard": "Panel"
-        },
-        "lessonChat": {
-            "title": "Chat de la clase",
-            "participants": "{{count}} participantes",
-            "type_message": "Escribe tu mensaje...",
-            "send": "Enviar"
-        },
-        "videoRoom": {
-            "controls": {
-                "mute": "Silenciar",
-                "unmute": "Activar sonido",
-                "camera_on": "Encender cámara",
-                "camera_off": "Apagar cámara",
-                "share_screen": "Compartir pantalla",
-                "stop_sharing": "Dejar de compartir",
-                "leave": "Salir de la sala"
-            },
-            "status": {
-                "connecting": "Conectando...",
-                "connected": "Conectado",
-                "disconnected": "Desconectado"
-            }
-        },
-        "lessonRating": {
-            "title": "Califica tu clase",
-            "with_tutor": "con {{name}}",
-            "rating_labels": {
-                "1": "Malo",
-                "2": "Regular",
-                "3": "Bueno",
-                "4": "Muy bueno",
-                "5": "Excelente"
-            },
-            "comment_placeholder": "Comparte tu experiencia (opcional)",
-            "buttons": {
-                "submit": "Enviar calificación",
-                "skip": "Omitir"
-            }
         }
     }
 } 

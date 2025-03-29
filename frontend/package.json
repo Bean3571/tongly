@@ -33,10 +33,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "extract-translations": "node --loader ts-node/esm scripts/extractTranslations.ts",
-    "validate-translations": "node --loader ts-node/esm scripts/validateTranslations.ts",
     "i18n": "npm run extract-translations && npm run validate-translations",
     "precommit": "npm run i18n"
   },
@@ -55,17 +52,11 @@
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@tailwindcss/forms": "^0.5.10",
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.2.0",
-    "@testing-library/user-event": "^14.6.1",
     "@types/glob": "^8.0.0",
-    "@types/jest": "^29.5.14",
     "@types/node": "^18.19.76",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
     "glob": "^8.0.3",
-    "jest": "^27.5.1",
-    "jest-environment-jsdom": "^29.7.0",
     "postcss": "^8.5.1",
     "react-scripts": "^5.0.1",
     "tailwindcss": "^3.4.17",
