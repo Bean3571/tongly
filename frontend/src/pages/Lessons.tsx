@@ -24,7 +24,9 @@ export const Lessons: React.FC = () => {
     try {
       setLoading(true);
       const data = await lessonService.getLessons();
-      setLessons(data);
+      // Ensure unique lessons by ID
+      const uniqueLessons = Array.from(new Map(data.map(lesson => [lesson.id, lesson])).values());
+      setLessons(uniqueLessons);
     } catch (error) {
       console.error('Error fetching lessons:', error);
       showNotification('error', t('lessons.errors.fetch_lessons'));

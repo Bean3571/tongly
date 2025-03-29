@@ -164,6 +164,11 @@ func (r *LessonRepositoryImpl) UpdateLesson(ctx context.Context, lesson *entitie
 
 func (r *LessonRepositoryImpl) GetLessons(ctx context.Context, userID int) ([]entities.Lesson, error) {
 	query := `
+		WITH unique_lessons AS (
+			SELECT DISTINCT ON (l.id) l.id
+			FROM lessons l
+			WHERE l.student_id = $1 OR l.tutor_id = $1
+		)
 		SELECT 
 			l.id, l.student_id, l.tutor_id, l.start_time, l.end_time, 
 			l.duration, l.cancelled, l.language, l.price, l.created_at, l.updated_at,
@@ -171,9 +176,9 @@ func (r *LessonRepositoryImpl) GetLessons(ctx context.Context, userID int) ([]en
 			lp.student_username, lp.student_first_name, lp.student_last_name, lp.student_avatar_url,
 			-- Tutor info
 			lp.tutor_username, lp.tutor_first_name, lp.tutor_last_name, lp.tutor_avatar_url
-		FROM lessons l
+		FROM unique_lessons ul
+		JOIN lessons l ON l.id = ul.id
 		LEFT JOIN lesson_participants lp ON l.id = lp.lesson_id
-		WHERE l.student_id = $1 OR l.tutor_id = $1
 		ORDER BY l.start_time ASC`
 
 	return r.queryLessonsWithNames(ctx, query, userID)
