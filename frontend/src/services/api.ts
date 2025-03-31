@@ -67,7 +67,7 @@ export const userService = {
     },
 
     updatePassword: async (oldPassword: string, newPassword: string): Promise<void> => {
-        await apiClient.put('/api/profile/password', { oldPassword, newPassword });
+        await apiClient.put('/api/profile/password', { current_password: oldPassword, new_password: newPassword });
     }
 };
 

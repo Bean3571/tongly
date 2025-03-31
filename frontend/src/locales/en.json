@@ -4,7 +4,8 @@
     "saving": "Saving...",
     "updating": "Updating...",
     "save": "Save",
-    "user": "User"
+    "user": "User",
+    "retry": "Try Again"
   },
   "validation": {
     "required": "This field is required",
@@ -79,7 +80,9 @@
     },
     "buttons": {
       "change_photo": "Change Photo"
-    }
+    },
+    "no_user_data": "Unable to load user data. Please try again.",
+    "username_note": "Username cannot be changed after account creation."
   },
   "notifications": {
     "personal_info_updated": "Personal information has been updated",

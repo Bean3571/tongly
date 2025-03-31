@@ -23,9 +23,7 @@ export const UserSettings = () => {
     const { t } = useTranslation();
     const [isUpdatingPersonal, setIsUpdatingPersonal] = useState(false);
     const [isUpdatingSecurity, setIsUpdatingSecurity] = useState(false);
-    
-    // Log user data for debugging
-    console.log('Current user data:', user);
+    const [isLoading, setIsLoading] = useState(true);
     
     // Helper function to safely access user fields regardless of API response structure
     const getUserField = (field: string, defaultValue: string = '') => {
@@ -41,7 +39,7 @@ export const UserSettings = () => {
             return String((user as any).userSettings[field] || defaultValue);
         }
         
-        // Try directly on user object
+        // Try directly on user object (backend might return fields at root level)
         if (user[field as keyof typeof user] !== undefined) {
             return String(user[field as keyof typeof user] || defaultValue);
         }
@@ -51,26 +49,26 @@ export const UserSettings = () => {
 
     // Initialize user info state
     const [userInfo, setUserInfo] = useState({
-        firstName: getUserField('first_name'),
-        lastName: getUserField('last_name'),
-        userPicture: getUserField('profile_picture'),
-        age: getUserField('age'),
-        sex: getUserField('sex'),
-        email: user?.credentials?.email || '',
+        firstName: '',
+        lastName: '',
+        userPicture: '',
+        age: '',
+        sex: '',
+        email: '',
+        username: '',
     });
 
     // Update local state when user data changes
     useEffect(() => {
         if (user) {
-            console.log('Updating user info from:', user);
-            
             setUserInfo({
                 firstName: getUserField('first_name'),
                 lastName: getUserField('last_name'),
-                userPicture: getUserField('profile_picture'),
+                userPicture: getUserField('profile_picture') || getUserField('profile_picture_url'),
                 age: getUserField('age'),
                 sex: getUserField('sex'),
-                email: user.credentials?.email || '',
+                email: user.credentials?.email || getUserField('email'),
+                username: user.credentials?.username || getUserField('username'),
             });
         }
     }, [user]);
@@ -94,7 +92,6 @@ export const UserSettings = () => {
         onSubmit: async (values) => {
             try {
                 setIsUpdatingPersonal(true);
-                console.log('Submitting user settings update:', values);
                 
                 await api.user.updateProfile({
                     first_name: values.firstName || null,
@@ -103,7 +100,7 @@ export const UserSettings = () => {
                     age: values.age ? parseInt(values.age) : null,
                     sex: values.sex ? values.sex === 'not_set' ? null : (values.sex as 'male' | 'female') : null,
                 });
-                await refreshUser();
+                await loadUserData();
                 showNotification('success', t('notifications.personal_info_updated'));
             } catch (error) {
                 console.error('Failed to update personal info:', error);
@@ -116,7 +113,7 @@ export const UserSettings = () => {
 
     const securityFormik = useFormik({
         initialValues: {
-            email: userInfo.email,
+            email: userInfo.email || '',
             currentPassword: '',
             newPassword: '',
             confirmPassword: '',
@@ -131,30 +128,66 @@ export const UserSettings = () => {
         onSubmit: async (values) => {
             try {
                 setIsUpdatingSecurity(true);
+                let hasUpdates = false;
                 
-                // Update email if changed
-                if (values.email !== user?.credentials?.email) {
+                // Track if we actually made changes
+                let emailUpdated = false;
+                let passwordUpdated = false;
+                
+                // Update email if changed and not empty
+                if (values.email && values.email !== (user?.credentials?.email || userInfo.email)) {
+                    console.log("Updating email from:", user?.credentials?.email || userInfo.email, "to:", values.email);
                     await api.user.updateProfile({ email: values.email });
+                    emailUpdated = true;
+                    hasUpdates = true;
                 }
                 
                 // Update password if provided
                 if (values.currentPassword && values.newPassword) {
-                    await api.user.updatePassword(
-                        values.currentPassword,
-                        values.newPassword
-                    );
+                    console.log("Attempting to update password");
+                    try {
+                        await api.user.updatePassword(
+                            values.currentPassword,
+                            values.newPassword
+                        );
+                        console.log("Password update API call successful");
+                        passwordUpdated = true;
+                        hasUpdates = true;
+                    } catch (passwordError: any) {
+                        console.error("Password update failed with error:", passwordError);
+                        // Show specific error for password update
+                        const errorMessage = 
+                            passwordError.response?.data?.error || 
+                            "Failed to update password. Please check your current password and try again.";
+                        showNotification('error', errorMessage);
+                        throw passwordError; // Re-throw to prevent other updates
+                    }
                 }
                 
-                await refreshUser();
-                showNotification('success', t('notifications.security_settings_updated'));
-                securityFormik.resetForm({
-                    values: {
-                        ...securityFormik.values,
-                        currentPassword: '',
-                        newPassword: '',
-                        confirmPassword: '',
+                if (hasUpdates) {
+                    await loadUserData();
+                    
+                    // Determine appropriate success message
+                    let message = '';
+                    if (emailUpdated && passwordUpdated) {
+                        message = t('notifications.email_and_password_updated');
+                    } else if (emailUpdated) {
+                        message = t('notifications.email_updated');
+                    } else if (passwordUpdated) {
+                        message = t('notifications.password_updated');
+                    } else {
+                        message = t('notifications.security_settings_updated');
                     }
-                });
+                    
+                    showNotification('success', message);
+                    
+                    // Reset only password fields
+                    securityFormik.setFieldValue('currentPassword', '');
+                    securityFormik.setFieldValue('newPassword', '');
+                    securityFormik.setFieldValue('confirmPassword', '');
+                } else {
+                    showNotification('info', t('notifications.no_changes_made'));
+                }
             } catch (error) {
                 console.error('Failed to update security settings:', error);
                 showNotification('error', t('notifications.security_settings_update_failed'));
@@ -167,11 +200,66 @@ export const UserSettings = () => {
     // Function to load user data initially or refresh
     const loadUserData = async () => {
         try {
+            setIsLoading(true);
+            
+            // First refresh from Auth context
             await refreshUser();
-            console.log('User data refreshed');
+            
+            // Then directly get profile data from API
+            const profileData = await api.user.getProfile();
+            
+            if (profileData) {
+                // Handle different API response structures
+                // This will adapt to the backend's actual data structure
+                const extractedEmail = profileData.credentials?.email || 
+                                      (profileData as any).email || 
+                                      '';
+                
+                const extractedUsername = profileData.credentials?.username || 
+                                         (profileData as any).username || 
+                                         '';
+                
+                console.log("API Profile data received:", {
+                    email: extractedEmail,
+                    username: extractedUsername,
+                    rawData: JSON.stringify(profileData)
+                });
+                
+                // Update securityFormik with email
+                securityFormik.setFieldValue('email', extractedEmail);
+                
+                // Update userInfo state with the latest data
+                setUserInfo(prevState => ({
+                    ...prevState,
+                    email: extractedEmail,
+                    username: extractedUsername
+                }));
+                
+                // If we don't have credentials in the user object from context
+                // but have them directly in the API response, create a local patched user
+                if ((!user?.credentials || user.credentials.username === 'unknown') && 
+                    ((profileData as any).username || (profileData as any).email)) {
+                    
+                    // Log what we're doing for debugging
+                    console.log("Creating patched user credentials from API response", {
+                        id: (profileData as any).id,
+                        username: (profileData as any).username,
+                        email: (profileData as any).email,
+                        role: (profileData as any).role
+                    });
+                    
+                    // Since we can't update the user context directly from here,
+                    // we need to refresh the entire auth context after fixing our data mapping
+                    if (typeof refreshUser === 'function') {
+                        await refreshUser();
+                    }
+                }
+            }
         } catch (error) {
             console.error('Failed to load user data:', error);
             showNotification('error', t('notifications.user_data_fetch_failed'));
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -179,6 +267,13 @@ export const UserSettings = () => {
     useEffect(() => {
         loadUserData();
     }, []);
+
+    // Update security form email when user email changes
+    useEffect(() => {
+        if (user?.credentials?.email) {
+            securityFormik.setFieldValue('email', user.credentials.email);
+        }
+    }, [user?.credentials?.email]);
 
     // Helper to safely get user picture URL
     const getUserPictureUrl = () => {
@@ -203,22 +298,34 @@ export const UserSettings = () => {
         } else if (lastName) {
             return lastName;
         } else {
-            return user?.credentials?.username || t('common.user');
+            return userInfo.username || user?.credentials?.username || t('common.user');
         }
     };
-    
-    // Debug information to log what's available in the user object
-    console.log('User credentials:', user?.credentials);
-    console.log('Current email in userInfo:', userInfo.email);
-    console.log('Current email in user.credentials:', user?.credentials?.email);
+
+    // Display loading state
+    if (isLoading) {
+        return (
+            <div className="container mx-auto px-4 py-8 bg-white flex justify-center items-center min-h-screen">
+                <div className="text-center">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-orange-600 mb-4"></div>
+                    <p className="text-gray-600">{t('common.loading')}</p>
+                </div>
+            </div>
+        );
+    }
 
     // Display current values or loading state
     if (!user) {
         return (
             <div className="container mx-auto px-4 py-8 bg-white flex justify-center items-center min-h-screen">
                 <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-orange-600 mb-4"></div>
-                    <p className="text-gray-600">{t('common.loading')}</p>
+                    <p className="text-gray-600">{t('userSettings.no_user_data')}</p>
+                    <button 
+                        onClick={loadUserData}
+                        className="mt-4 bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors"
+                    >
+                        {t('common.retry')}
+                    </button>
                 </div>
             </div>
         );
@@ -267,17 +374,6 @@ export const UserSettings = () => {
                     <h2 className="text-xl font-semibold text-gray-900 mb-6">
                         {t('pages.userSettings.personal_info')}
                     </h2>
-                    
-                    {/* Add debug info to see what's in the user object */}
-                    {process.env.NODE_ENV === 'development' && (
-                        <pre className="bg-gray-100 p-3 rounded text-xs mb-4 overflow-auto max-h-32">
-                            User info: {JSON.stringify({
-                                credentials: user?.credentials,
-                                userInfo: userInfo
-                            }, null, 2)}
-                        </pre>
-                    )}
-                    
                     <form onSubmit={personalInfoFormik.handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
@@ -366,10 +462,11 @@ export const UserSettings = () => {
                             </label>
                             <input
                                 type="text"    
-                                value={user.credentials?.username === "unknown" ? "" : (user.credentials?.username || "")}
+                                value={userInfo.username || user?.credentials?.username || ""}
                                 disabled       
                                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 bg-gray-100 text-gray-500 cursor-not-allowed"
                             />
+                            <p className="mt-1 text-xs text-gray-500">{t('userSettings.username_note')}</p>
                         </div>
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -430,7 +527,7 @@ export const UserSettings = () => {
                         <div className="flex justify-end">
                             <button
                                 type="submit"
-                                disabled={isUpdatingSecurity || (!securityFormik.values.currentPassword && !securityFormik.values.newPassword && securityFormik.values.email === user?.credentials?.email)}
+                                disabled={isUpdatingSecurity || (!securityFormik.values.currentPassword && !securityFormik.values.newPassword && !securityFormik.dirty)}
                                 className="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 transition-colors disabled:bg-orange-400 disabled:cursor-not-allowed"
                             >
                                 {isUpdatingSecurity ? t('common.updating') : t('common.save')}

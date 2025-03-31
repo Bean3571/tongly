@@ -182,8 +182,9 @@ func (r *userRepositoryImpl) UpdateUser(ctx context.Context, user *entities.User
 			profile_picture_url = $4,
 			sex = $5,
 			age = $6,
-			updated_at = $7
-		WHERE id = $8
+			password = $7,
+			updated_at = $8
+		WHERE id = $9
 		RETURNING updated_at`
 
 	now := time.Now()
@@ -196,6 +197,7 @@ func (r *userRepositoryImpl) UpdateUser(ctx context.Context, user *entities.User
 		user.ProfilePictureURL,
 		user.Sex,
 		user.Age,
+		user.PasswordHash,
 		now,
 		user.ID,
 	).Scan(&user.UpdatedAt)

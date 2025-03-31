@@ -4,7 +4,8 @@
     "saving": "Guardando...",
     "updating": "Actualizando...",
     "save": "Guardar",
-    "user": "Usuario"
+    "user": "Usuario",
+    "retry": "Intentar de nuevo"
   },
   "validation": {
     "required": "Este campo es obligatorio",
@@ -79,7 +80,9 @@
     },
     "buttons": {
       "change_photo": "Cambiar Foto"
-    }
+    },
+    "no_user_data": "No se pudieron cargar los datos del usuario. Por favor, inténtalo de nuevo.",
+    "username_note": "El nombre de usuario no se puede cambiar después de crear la cuenta."
   },
   "notifications": {
     "personal_info_updated": "La información personal ha sido actualizada",

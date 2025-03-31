@@ -150,21 +150,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             logger.debug('Refreshing user data');
             const userData = await api.user.getProfile();
             
+            // Debug the actual data structure received
+            logger.debug('User data received from API:', { userData: JSON.stringify(userData) });
+            
             // Be more lenient with user data validation
             if (userData) {
-                // Ensure credentials object exists
+                // Handle various response formats from the backend
+                // If userData has properties at root level (not in credentials object)
+                const userId = userData.credentials?.id || (userData as any).id || 0;
+                const username = userData.credentials?.username || (userData as any).username || '';
+                const email = userData.credentials?.email || (userData as any).email || '';
+                const role = userData.credentials?.role || (userData as any).role || 'student';
+                
+                // Ensure credentials object exists with proper data
                 if (!userData.credentials) {
-                    const username = localStorage.getItem('username') || 'unknown';
                     userData.credentials = { 
+                        id: userId, 
                         username, 
-                        role: 'student', 
-                        id: 0, 
-                        email: '' 
+                        email, 
+                        role 
                     };
+                    
+                    // Log that we're adapting the structure
+                    logger.debug('Adapting user data structure with credentials:', { 
+                        userId, username, email, role 
+                    });
+                } else if (userData.credentials.username === 'unknown' && (userData as any).username) {
+                    // If we have unknown username in credentials but have username at root level, use that
+                    userData.credentials.username = (userData as any).username;
+                    logger.debug('Replacing unknown username with actual username from root level');
+                }
+                
+                // Store username in localStorage as a fallback
+                if (username && username !== 'unknown') {
+                    localStorage.setItem('username', username);
                 }
                 
                 setUser(userData);
-                logger.debug('User data refreshed successfully');
+                logger.debug('User data refreshed successfully', { 
+                    id: userData.credentials.id,
+                    username: userData.credentials.username
+                });
             } else {
                 throw new Error('No user data received during refresh');
             }

@@ -396,13 +396,20 @@ export const api = {
         },
         updatePassword: async (currentPassword: string, newPassword: string): Promise<{ message: string }> => {
             try {
+                console.log('Making password update request to /api/profile/password');
                 const response = await apiClient.put<{ message: string }>('/api/profile/password', {
                     current_password: currentPassword,
                     new_password: newPassword,
                 });
+                console.log('Password update response successful');
                 return response.data;
-            } catch (error) {
-                console.error('Failed to update password:', error);
+            } catch (error: any) {
+                console.error('Failed to update password:', {
+                    error: error.message,
+                    status: error.response?.status,
+                    data: error.response?.data
+                });
+                // Rethrow to allow component-level error handling
                 throw error;
             }
         },
