@@ -85,9 +85,9 @@ export const UserSettings = () => {
         validationSchema: Yup.object({
             firstName: Yup.string().max(50, t('validation.first_name_max_length')),
             lastName: Yup.string().max(50, t('validation.last_name_max_length')),
-            userPicture: Yup.string().url(t('validation.url_invalid')),
+            userPicture: Yup.string().url(t('validation.url_invalid')).nullable(),
             age: Yup.number().min(13, t('validation.age_min')).max(120, t('validation.age_max')).nullable().transform((value) => (isNaN(value) ? null : value)),
-            sex: Yup.string().oneOf(['male', 'female', 'not_set'], t('validation.sex_invalid')).nullable(),
+            sex: Yup.string().oneOf(['male', 'female', 'not_set'], t('validation.sex_invalid')),
         }),
         onSubmit: async (values) => {
             try {
@@ -98,7 +98,7 @@ export const UserSettings = () => {
                     last_name: values.lastName || null,
                     profile_picture: values.userPicture || null,
                     age: values.age ? parseInt(values.age) : null,
-                    sex: values.sex ? values.sex === 'not_set' ? null : (values.sex as 'male' | 'female') : null,
+                    sex: values.sex as 'male' | 'female' | 'not_set',
                 });
                 await loadUserData();
                 showNotification('success', t('notifications.personal_info_updated'));
@@ -404,6 +404,35 @@ export const UserSettings = () => {
                                     <p className="mt-1 text-sm text-red-600">{personalInfoFormik.errors.lastName}</p>
                                 )}
                             </div>
+                        </div>
+                        <div>
+                            <label htmlFor="userPicture" className="block text-sm font-medium text-gray-700">
+                                {t('userSettings.fields.profile_picture')}
+                            </label>
+                            <input
+                                id="userPicture"
+                                type="text"
+                                placeholder="https://example.com/your-image.jpg"
+                                {...personalInfoFormik.getFieldProps('userPicture')}
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 bg-white"
+                            />
+                            {personalInfoFormik.touched.userPicture && personalInfoFormik.errors.userPicture && (
+                                <p className="mt-1 text-sm text-red-600">{personalInfoFormik.errors.userPicture}</p>
+                            )}
+                            {personalInfoFormik.values.userPicture && (
+                                <div className="mt-2">
+                                    <p className="text-xs text-gray-500 mb-1">{t('userSettings.picture_preview')}</p>
+                                    <img 
+                                        src={personalInfoFormik.values.userPicture} 
+                                        alt={t('userSettings.profile_preview')} 
+                                        className="w-16 h-16 rounded-full object-cover border border-gray-200"
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.src = DEFAULT_AVATAR;
+                                        }}
+                                    />
+                                </div>
+                            )}
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>

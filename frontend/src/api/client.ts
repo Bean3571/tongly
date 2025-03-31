@@ -280,7 +280,7 @@ export interface ProfileUpdateData {
     last_name?: string | null;
     profile_picture?: string | null;
     age?: number | null;
-    sex?: 'male' | 'female' | 'other' | null;
+    sex?: 'male' | 'female' | 'not_set';
     native_language?: string | null;
     languages?: LanguageLevel[];
     interests?: string[];
