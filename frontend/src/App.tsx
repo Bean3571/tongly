@@ -23,8 +23,8 @@ const queryClient = new QueryClient();
 
 const PrivateRoute = ({ children, role }: { children: React.ReactNode, role?: string }) => {
     const { user } = useAuth();
-    if (!user) return <Navigate to="/login" />;
-    if (!user.credentials) return <Navigate to="/login" />;
+    if (!user) return <Navigate to="/home" />;
+    if (!user.credentials) return <Navigate to="/home" />;
     if (role && user.credentials.role !== role) {
         return <Navigate to="/" />;
     }
@@ -33,11 +33,7 @@ const PrivateRoute = ({ children, role }: { children: React.ReactNode, role?: st
 
 const AppRoutes = () => {
     const { user } = useAuth();
-    const defaultRoute = user && user.credentials 
-        ? (user.credentials.role === 'tutor' 
-            ? '/lessons' 
-            : '/tutors') 
-        : '/home';
+    const defaultRoute = '/home';
 
     return (
         <div className="min-h-screen flex flex-col bg-surface text-text-primary">

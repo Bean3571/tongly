@@ -1,370 +1,107 @@
 {
-    "common": {
-        "loading": "Cargando...",
-        "error": "Error",
-        "success": "Éxito",
-        "cancel": "Cancelar",
-        "save": "Guardar",
-        "edit": "Editar",
-        "delete": "Eliminar",
-        "confirm": "Confirmar",
-        "back": "Atrás",
-        "try_again": "Intentar de nuevo",
-        "platform_name": "Tongly",
-        "languages": {
-            "en": "Inglés",
-            "ru": "Ruso",
-            "es": "Español"
-        }
+  "common": {
+    "loading": "Cargando...",
+    "saving": "Guardando...",
+    "updating": "Actualizando...",
+    "save": "Guardar",
+    "user": "Usuario"
+  },
+  "validation": {
+    "required": "Este campo es obligatorio",
+    "email_invalid": "Dirección de correo electrónico inválida",
+    "password_min_length": "La contraseña debe tener al menos 6 caracteres",
+    "password_match": "Las contraseñas deben coincidir",
+    "username_min_length": "El nombre de usuario debe tener al menos 3 caracteres",
+    "role_invalid": "Rol inválido",
+    "first_name_max_length": "El nombre debe tener menos de 50 caracteres",
+    "last_name_max_length": "El apellido debe tener menos de 50 caracteres",
+    "url_invalid": "URL inválida",
+    "age_min": "La edad debe ser al menos 13 años",
+    "age_max": "La edad debe ser menor de 120 años",
+    "sex_invalid": "Selección de género inválida"
+  },
+  "auth": {
+    "register": "Registrarse",
+    "login": "Iniciar sesión",
+    "username": "Nombre de usuario",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "current_password": "Contraseña actual",
+    "new_password": "Nueva contraseña",
+    "confirm_password": "Confirmar contraseña",
+    "errors": {
+      "invalidCredentials": "Nombre de usuario o contraseña inválidos"
     },
-    "validation": {
-        "required": "Este campo es obligatorio",
-        "email_invalid": "Dirección de correo electrónico inválida",
-        "username_min_length": "El nombre de usuario debe tener al menos 3 caracteres",
-        "password_min_length": "La contraseña debe tener al menos 6 caracteres",
-        "password_match": "Las contraseñas deben coincidir",
-        "role_invalid": "Rol seleccionado inválido"
-    },
-    "auth": {
-        "login": "Iniciar sesión",
-        "register": "Registrarse",
-        "logout": "Cerrar sesión",
-        "email": "Correo electrónico",
-        "password": "Contraseña",
-        "username": "Nombre de usuario",
-        "forgotPassword": "¿Olvidaste tu contraseña?",
-        "rememberMe": "Recordarme",
-        "errors": {
-            "invalidCredentials": "Correo electrónico o contraseña inválidos",
-            "emailRequired": "El correo electrónico es obligatorio",
-            "passwordRequired": "La contraseña es obligatoria",
-            "usernameRequired": "El nombre de usuario es obligatorio"
-        }
-    },
-    "navbar": {
-        "home": "Inicio",
-        "tutors": "Encontrar tutores",
-        "lessons": "Mis clases",
-        "wallet": "Billetera",
-        "profile": "Perfil",
-        "settings": "Configuración",
-        "earnings": "Ganancias",
-        "balance": "Balance"
-    },
-    "wallet": {
-        "title": "Billetera",
-        "balance": "Balance",
-        "deposit": "Depositar",
-        "withdraw": "Retirar",
-        "transactions": {
-            "deposit": "Depósito",
-            "withdrawal": "Retiro",
-            "lessonPayment": "Pago de clase"
-        },
-        "commission": {
-            "title": "Comisión",
-            "description": "La comisión de la plataforma es {{rate}}% del precio de la clase",
-            "student": "La comisión está incluida en el precio de la clase",
-            "tutor": "La comisión se deduce del precio de la clase",
-            "amount": "Comisión: {{amount}}"
-        },
-        "errors": {
-            "insufficientFunds": "Fondos insuficientes",
-            "invalidAmount": "Monto inválido",
-            "minAmount": "El monto mínimo es {{amount}}",
-            "depositFailed": "Error al depositar fondos",
-            "withdrawalFailed": "Error al retirar fondos"
-        },
-        "depositModal": {
-            "title": "Depositar fondos",
-            "amountPlaceholder": "Ingrese el monto a depositar",
-            "minAmount": "Monto mínimo de depósito: {{amount}}"
-        },
-        "withdrawModal": {
-            "title": "Retirar fondos",
-            "amountPlaceholder": "Ingrese el monto a retirar",
-            "availableBalance": "Balance disponible: {{balance}}",
-            "processingTime": "Los retiros se procesan típicamente en 1-3 días hábiles"
-        },
-        "transactionHistory": "Historial de transacciones",
-        "availableBalance": "Balance disponible",
-        "depositSuccess": "Depósito exitoso",
-        "withdrawalSuccess": "Solicitud de retiro enviada",
-        "earnings": "Ganancias"
-    },
-    "lessons": {
-        "title": "Mis clases",
-        "subtitle": {
-            "upcoming": "Administrar tus próximas clases",
-            "completed": "Ver tu historial de clases"
-        },
-        "empty": "No se encontraron clases",
-        "loading": "Cargando tus clases...",
-        "upcoming": "Próximas clases",
-        "completed": "Clases completadas",
-        "status": {
-            "scheduled": "Programada",
-            "in_progress": "En progreso",
-            "completed": "Completada",
-            "cancelled": "Cancelada"
-        },
-        "actions": {
-            "join": "Unirse a la clase",
-            "join_ongoing": "Unirse a la clase en curso",
-            "cancel": "Cancelar clase",
-            "rate": "Calificar clase"
-        },
-        "count": {
-            "one": "{{count}} clase",
-            "other": "{{count}} clases"
-        },
-        "table": {
-            "tutor": "Tutor",
-            "student": "Estudiante",
-            "language_duration": "Idioma y duración",
-            "date_time": "Fecha y hora",
-            "status": "Estado",
-            "price": "Precio",
-            "actions": "Acciones"
-        },
-        "duration": "{{minutes}} minutos",
-        "price": "${{price}}",
-        "participant": {
-            "tutor": "Tutor",
-            "student": "Estudiante"
-        },
-        "filter": {
-            "all": "Todos los estados",
-            "scheduled": "Programadas",
-            "completed": "Completadas",
-            "cancelled": "Canceladas"
-        },
-        "tabs": {
-            "all": "Todas las clases",
-            "upcoming": "Próximas",
-            "in_progress": "En progreso",
-            "ended": "Finalizadas",
-            "cancelled": "Canceladas"
-        },
-        "no_lessons": "Aún no tienes clases",
-        "cancelled_success": "Clase cancelada exitosamente",
-        "joined_success": "Te has unido a la clase exitosamente",
-        "errors": {
-            "fetch_lessons": "Error al cargar las clases",
-            "cancel_lesson": "Error al cancelar la clase",
-            "join_lesson": "Error al unirse a la clase"
-        },
-        "warning": {
-            "too_early": {
-                "title": "Muy temprano",
-                "description": "Puedes unirte a la clase 5 minutos antes de la hora programada."
-            }
-        },
-        "cancel": {
-            "modal": {
-                "title": "Cancelar clase",
-                "confirm": "¿Estás seguro de que quieres cancelar esta clase?",
-                "warning": "Esta acción no se puede deshacer.",
-                "confirm_button": "Sí, cancelar clase",
-                "keep_button": "No, mantener clase"
-            },
-            "reason": "Cancelado por {{role}}"
-        }
-    },
-    "tutors": {
-        "search": {
-            "title": "Encuentra tu tutor perfecto",
-            "placeholder": "Buscar por nombre, idioma o biografía...",
-            "filters": {
-                "language": "Idioma",
-                "price": "Rango de precio",
-                "rating": "Calificación mínima"
-            },
-            "no_results": "No se encontraron tutores que coincidan con tus criterios. Intenta ajustar los filtros.",
-            "lessons": "clases",
-            "view_profile": "Ver perfil"
-        },
-        "card": {
-            "tutor_image": "Foto de perfil del tutor",
-            "tutor_name": "Tutor {{number}}",
-            "languages": "Inglés, Español",
-            "description": "Tutor de idiomas experimentado especializado en conversación y comunicación empresarial.",
-            "price_per_hour": "${price}/hora",
-            "view_profile": "Ver perfil"
-        },
-        "profile": {
-            "title": "Perfil de enseñanza",
-            "about": "Sobre mí",
-            "about_placeholder": "Cuéntales a los estudiantes sobre ti, tu experiencia enseñando y qué hace únicas tus clases...",
-            "about_tip": "Consejo: Incluye información sobre tu experiencia enseñando, metodología y qué pueden esperar los estudiantes de tus clases.",
-            "education": {
-                "add": "Agregar educación",
-                "institution_placeholder": "Ingresa el nombre de la institución",
-                "field_placeholder": "Ingresa el campo de estudio",
-                "start": "Año de inicio",
-                "end": "Año de finalización"
-            },
-            "languages": "Idiomas que enseño",
-            "pricing": "Precios",
-            "reviews": "Reseñas",
-            "schedule": "Horario",
-            "no_bio": "Este tutor aún no ha agregado una biografía."
-        },
-        "errors": {
-            "unauthorized": "Por favor inicia sesión para ver los tutores",
-            "load_failed": "Error al cargar los tutores. Por favor intenta de nuevo más tarde."
-        }
-    },
-    "pages": {
-        "login": {
-            "title": "Inicia sesión en tu cuenta",
-            "username": "Nombre de usuario",
-            "username_placeholder": "Ingresa tu nombre de usuario",
-            "password": "Contraseña",
-            "password_placeholder": "Ingresa tu contraseña",
-            "sign_in_button": "Iniciar sesión",
-            "no_account": "¿No tienes una cuenta?",
-            "sign_up": "Regístrate"
-        },
-        "register": {
-            "title": "Crea tu cuenta",
-            "username": "Nombre de usuario",
-            "username_placeholder": "Elige un nombre de usuario",
-            "email": "Correo electrónico",
-            "email_placeholder": "Ingresa tu correo electrónico",
-            "password": "Contraseña",
-            "password_placeholder": "Elige una contraseña",
-            "confirm_password": "Confirmar contraseña",
-            "confirm_password_placeholder": "Confirma tu contraseña",
-            "i_want_to": "Quiero",
-            "role_student": "Aprender idiomas",
-            "role_tutor": "Enseñar idiomas",
-            "register_button": "Crear cuenta",
-            "have_account": "¿Ya tienes una cuenta?",
-            "sign_in": "Inicia sesión"
-        },
-        "home": {
-            "welcome": "¡Bienvenido a Tongly! 🌍",
-            "description": "Aprende idiomas con tutores profesionales a tu conveniencia",
-            "get_started": "Comenzar",
-            "sign_in": "Iniciar sesión",
-            "go_to_dashboard": "Ir al panel",
-            "features": {
-                "native_tutors": {
-                    "title": "Tutores nativos",
-                    "description": "Aprende con tutores nativos profesionales"
-                },
-                "personalized_learning": {
-                    "title": "Aprendizaje personalizado",
-                    "description": "Obtén una experiencia de aprendizaje personalizada"
-                },
-                "track_progress": {
-                    "title": "Seguimiento de progreso",
-                    "description": "Monitorea tus logros y crecimiento"
-                }
-            }
-        },
-        "dashboard": {
-            "student": {
-                "title": "Panel de estudiante",
-                "welcome": "¡Bienvenido de nuevo, {{name}}!",
-                "progress": {
-                    "title": "Tu progreso",
-                    "level": "Nivel {{level}}",
-                    "points": "{{points}} puntos",
-                    "next_level": "{{points}} puntos para el siguiente nivel"
-                },
-                "upcoming_lessons": "Próximas clases",
-                "completed_lessons": "Clases completadas",
-                "no_lessons": "No hay clases programadas",
-                "quick_actions": {
-                    "title": "Acciones rápidas",
-                    "find_tutor": "Encontrar un tutor",
-                    "schedule_lesson": "Programar clase",
-                    "view_all_lessons": "Ver todas las clases"
-                },
-                "stats": {
-                    "total_lessons": "Total de clases",
-                    "hours_learned": "Horas aprendidas",
-                    "languages": "Idiomas",
-                    "streak": "Días consecutivos"
-                }
-            },
-            "tutor": {
-                "title": "Panel de tutor",
-                "welcome": "¡Bienvenido de nuevo, {{name}}!",
-                "earnings": {
-                    "title": "Ganancias",
-                    "total": "Ganancias totales",
-                    "this_month": "Este mes",
-                    "pending": "Pendiente"
-                },
-                "schedule": {
-                    "title": "Horario de hoy",
-                    "no_lessons": "No hay clases programadas para hoy"
-                },
-                "stats": {
-                    "rating": "Calificación promedio"
-                }
-            }
-        },
-        "profile": {
-            "title": "Configuración de perfil",
-            "personal_info": "Información personal",
-            "teaching_info": "Información de enseñanza",
-            "account_settings": "Configuración de cuenta",
-            "fields": {
-                "first_name": "Nombre",
-                "last_name": "Apellido",
-                "email": "Correo electrónico",
-                "phone": "Teléfono",
-                "bio": "Biografía",
-                "languages": "Idiomas",
-                "education": "Educación",
-                "experience": "Experiencia",
-                "hourly_rate": "Tarifa por hora",
-                "timezone": "Zona horaria"
-            },
-            "buttons": {
-                "save": "Guardar cambios",
-                "cancel": "Cancelar",
-                "upload_photo": "Subir foto",
-                "remove_photo": "Eliminar foto"
-            }
-        },
-        "book_lesson": {
-            "title": "Reservar una clase con {{name}}",
-            "select": {
-                "language": "Seleccionar idioma",
-                "date": "Seleccionar fecha",
-                "time": "Seleccionar hora",
-                "duration": "Duración de la clase"
-            },
-            "lesson_details": {
-                "title": "Detalles de la clase",
-                "duration": "Duración: {{duration}} minutos",
-                "price": "Precio: {{price}}",
-                "language": "Idioma: {{language}}"
-            },
-            "buttons": {
-                "book": "Reservar clase",
-                "cancel": "Cancelar"
-            }
-        }
-    },
-    "components": {
-        "footer": {
-            "about": "Sobre nosotros",
-            "contact": "Contacto",
-            "terms": "Términos de servicio",
-            "privacy": "Política de privacidad",
-            "copyright": "© {{year}} Tongly. Todos los derechos reservados."
-        },
-        "navbar": {
-            "search": "Buscar",
-            "notifications": "Notificaciones",
-            "account": "Cuenta",
-            "dashboard": "Panel"
-        }
+    "roles": {
+      "student": "Estudiante",
+      "tutor": "Tutor"
     }
+  },
+  "pages": {
+    "login": {
+      "title": "Inicia sesión en tu cuenta",
+      "no_account": "¿No tienes una cuenta?",
+      "username_placeholder": "Ingresa tu nombre de usuario",
+      "password_placeholder": "Ingresa tu contraseña",
+      "sign_in_button": "Iniciar sesión"
+    },
+    "register": {
+      "title": "Crear una nueva cuenta",
+      "have_account": "¿Ya tienes una cuenta? Inicia sesión",
+      "username_placeholder": "Elige un nombre de usuario",
+      "email_placeholder": "Ingresa tu correo electrónico",
+      "password_placeholder": "Crea una contraseña",
+      "confirm_password_placeholder": "Confirma tu contraseña",
+      "register_button": "Crear cuenta",
+      "i_want_to": "Quiero",
+      "role_student": "Aprender un idioma (Estudiante)",
+      "role_tutor": "Enseñar un idioma (Tutor)",
+      "confirm_password": "Confirmar Contraseña"
+    },
+    "userSettings": {
+      "title": "Configuración de Usuario",
+      "personal_info": "Información Personal",
+      "account_settings": "Seguridad de la Cuenta"
+    }
+  },
+  "userSettings": {
+    "fields": {
+      "first_name": "Nombre",
+      "last_name": "Apellido",
+      "user_picture_url": "URL de la imagen de perfil",
+      "age": "Edad",
+      "gender": "Género"
+    },
+    "gender": {
+      "not_set": "No especificado",
+      "male": "Masculino",
+      "female": "Femenino"
+    },
+    "buttons": {
+      "change_photo": "Cambiar Foto"
+    }
+  },
+  "notifications": {
+    "personal_info_updated": "La información personal ha sido actualizada",
+    "personal_info_update_failed": "No se pudo actualizar la información personal",
+    "security_settings_updated": "La configuración de seguridad ha sido actualizada",
+    "security_settings_update_failed": "No se pudo actualizar la configuración de seguridad",
+    "profile_picture_uploaded": "La imagen de perfil ha sido subida",
+    "profile_picture_upload_failed": "No se pudo subir la imagen de perfil",
+    "user_data_fetch_failed": "No se pudo cargar los datos del usuario"
+  },
+  "home": {
+    "subtitle": "Aprende idiomas con hablantes nativos",
+    "description": "Conéctate con tutores nativos para recibir lecciones personalizadas de idiomas. Mejora tus habilidades a través de conversaciones reales.",
+    "find_tutors": "Encontrar Tutores",
+    "my_lessons": "Mis Lecciones",
+    "features": {
+      "learn_title": "Aprende de Forma Natural",
+      "learn_description": "Practica con hablantes nativos a través de lecciones en video que se adaptan a tu horario.",
+      "connect_title": "Conéctate Globalmente",
+      "connect_description": "Encuentra compañeros y tutores de idiomas de todo el mundo.",
+      "grow_title": "Sigue tu Progreso",
+      "grow_description": "Establece metas, completa lecciones y sigue tu camino de aprendizaje de idiomas."
+    }
+  }
 } 

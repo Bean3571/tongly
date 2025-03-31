@@ -1,389 +1,107 @@
 {
-    "common": {
-        "loading": "Loading...",
-        "error": "Error",
-        "success": "Success",
-        "cancel": "Cancel",
-        "save": "Save",
-        "edit": "Edit",
-        "delete": "Delete",
-        "confirm": "Confirm",
-        "back": "Back",
-        "try_again": "Try Again",
-        "toggleTheme": "Toggle theme",
-        "platform_name": "Tongly",
-        "languages": {
-            "en": "English",
-            "ru": "Russian",
-            "es": "Spanish"
-        }
+  "common": {
+    "loading": "Loading...",
+    "saving": "Saving...",
+    "updating": "Updating...",
+    "save": "Save",
+    "user": "User"
+  },
+  "validation": {
+    "required": "This field is required",
+    "email_invalid": "Invalid email address",
+    "password_min_length": "Password must be at least 6 characters",
+    "password_match": "Passwords must match",
+    "username_min_length": "Username must be at least 3 characters",
+    "role_invalid": "Invalid role",
+    "first_name_max_length": "First name must be less than 50 characters",
+    "last_name_max_length": "Last name must be less than 50 characters",
+    "url_invalid": "Invalid URL",
+    "age_min": "Age must be at least 13",
+    "age_max": "Age must be less than 120",
+    "sex_invalid": "Invalid gender selection"
+  },
+  "auth": {
+    "register": "Register",
+    "login": "Log in",
+    "username": "Username",
+    "email": "Email",
+    "password": "Password",
+    "current_password": "Current Password",
+    "new_password": "New Password",
+    "confirm_password": "Confirm Password",
+    "errors": {
+      "invalidCredentials": "Invalid username or password"
     },
-    "validation": {
-        "required": "This field is required",
-        "email_invalid": "Invalid email address",
-        "username_min_length": "Username must be at least 3 characters",
-        "password_min_length": "Password must be at least 6 characters",
-        "password_match": "Passwords must match",
-        "role_invalid": "Invalid role selected"
-    },
-    "auth": {
-        "login": "Login",
-        "register": "Register",
-        "logout": "Logout",
-        "email": "Email",
-        "password": "Password",
-        "username": "Username",
-        "forgotPassword": "Forgot Password?",
-        "rememberMe": "Remember Me",
-        "errors": {
-            "invalidCredentials": "Invalid email or password",
-            "emailRequired": "Email is required",
-            "passwordRequired": "Password is required",
-            "usernameRequired": "Username is required"
-        }
-    },
-    "navbar": {
-        "home": "Home",
-        "tutors": "Find Tutors",
-        "lessons": "My Lessons",
-        "profile": "Profile",
-        "settings": "Settings",
-        "earnings": "Earnings",
-        "balance": "Balance"
-    },
-    "wallet": {
-        "title": "Wallet",
-        "balance": "Balance",
-        "deposit": "Deposit",
-        "withdraw": "Withdraw",
-        "transactions": {
-            "deposit": "Deposit",
-            "withdrawal": "Withdrawal",
-            "lessonPayment": "Lesson Payment"
-        },
-        "commission": {
-            "title": "Commission",
-            "description": "Platform commission is {{rate}}% of the lesson price",
-            "student": "Commission is included in the lesson price",
-            "tutor": "Commission is deducted from the lesson price",
-            "amount": "Commission: {{amount}}"
-        },
-        "errors": {
-            "insufficientFunds": "Insufficient funds",
-            "invalidAmount": "Invalid amount",
-            "minAmount": "Minimum amount is {{amount}}",
-            "depositFailed": "Failed to deposit funds",
-            "withdrawalFailed": "Failed to withdraw funds"
-        },
-        "depositModal": {
-            "title": "Deposit Funds",
-            "amountPlaceholder": "Enter amount to deposit",
-            "minAmount": "Minimum deposit amount: {{amount}}"
-        },
-        "withdrawModal": {
-            "title": "Withdraw Funds",
-            "amountPlaceholder": "Enter amount to withdraw",
-            "availableBalance": "Available balance: {{balance}}",
-            "processingTime": "Withdrawals are typically processed within 1-3 business days"
-        },
-        "transactionHistory": "Transaction History",
-        "availableBalance": "Available Balance",
-        "depositSuccess": "Deposit successful",
-        "withdrawalSuccess": "Withdrawal request submitted",
-        "earnings": "Earnings"
-    },
-    "lessons": {
-        "title": "My Lessons",
-        "subtitle": {
-            "upcoming": "Manage your upcoming lessons",
-            "completed": "View your lesson history"
-        },
-        "empty": "No lessons found",
-        "loading": "Loading your lessons...",
-        "upcoming": "Upcoming Lessons",
-        "completed": "Completed Lessons",
-        "status": {
-            "scheduled": "Scheduled",
-            "in_progress": "In Progress",
-            "completed": "Completed",
-            "cancelled": "Cancelled"
-        },
-        "actions": {
-            "join": "Join Lesson",
-            "join_ongoing": "Join Ongoing Lesson",
-            "cancel": "Cancel Lesson",
-            "rate": "Rate Lesson"
-        },
-        "count": {
-            "one": "{{count}} lesson",
-            "other": "{{count}} lessons"
-        },
-        "table": {
-            "tutor": "Tutor",
-            "student": "Student",
-            "language_duration": "Language & Duration",
-            "date_time": "Date & Time",
-            "status": "Status",
-            "actions": "Actions"
-        },
-        "duration": "{{minutes}} minutes",
-        "participant": {
-            "tutor": "Tutor",
-            "student": "Student"
-        },
-        "filter": {
-            "all": "All Status",
-            "scheduled": "Scheduled",
-            "completed": "Completed",
-            "cancelled": "Cancelled"
-        },
-        "tabs": {
-            "all": "All Lessons",
-            "upcoming": "Upcoming",
-            "in_progress": "In Progress",
-            "ended": "Ended",
-            "cancelled": "Cancelled"
-        },
-        "no_lessons": "You don't have any lessons yet",
-        "cancelled_success": "Lesson cancelled successfully",
-        "joined_success": "Joined lesson successfully"
-    },
-    "tutors": {
-        "search": {
-            "title": "Find Your Perfect Tutor",
-            "placeholder": "Search by name, language, or bio...",
-            "filters": {
-                "language": "Language",
-                "price": "Price Range",
-                "rating": "Minimum Rating"
-            },
-            "no_results": "No tutors found matching your criteria. Try adjusting your filters.",
-            "lessons": "lessons",
-            "view_profile": "View Profile"
-        },
-        "card": {
-            "tutor_image": "Tutor profile picture",
-            "tutor_name": "Tutor Name {{number}}",
-            "languages": "English, Spanish",
-            "description": "Experienced language tutor specializing in conversation and business communication.",
-            "price_per_hour": "${price}/hour",
-            "view_profile": "View Profile"
-        },
-        "profile": {
-            "title": "Teaching Profile",
-            "about": "About Me",
-            "about_placeholder": "Tell students about yourself, your teaching experience, and what makes your lessons unique...",
-            "about_tip": "Pro tip: Include information about your teaching experience, methodology, and what students can expect from your lessons.",
-            "education": {
-                "add": "Add Education",
-                "institution_placeholder": "Enter institution name",
-                "field_placeholder": "Enter field of study",
-                "start": "Start Year",
-                "end": "End Year"
-            },
-            "languages": "Languages I Teach",
-            "pricing": "Pricing",
-            "reviews": "Reviews",
-            "schedule": "Schedule",
-            "no_bio": "This tutor has not added a bio yet."
-        },
-        "errors": {
-            "unauthorized": "Please log in to view tutors",
-            "load_failed": "Failed to load tutors. Please try again later."
-        }
-    },
-    "pages": {
-        "login": {
-            "title": "Sign in to your account",
-            "username": "Username",
-            "username_placeholder": "Enter your username",
-            "password": "Password",
-            "password_placeholder": "Enter your password",
-            "sign_in_button": "Sign in",
-            "no_account": "Don't have an account?",
-            "sign_up": "Sign up"
-        },
-        "dashboard": {
-            "student": {
-                "title": "Student Dashboard",
-                "welcome": "Welcome back, {{name}}!",
-                "progress": {
-                    "title": "Your Progress",
-                    "level": "Level {{level}}",
-                    "points": "{{points}} points",
-                    "next_level": "{{points}} points to next level"
-                },
-                "upcoming_lessons": "Upcoming Lessons",
-                "completed_lessons": "Completed Lessons",
-                "no_lessons": "No lessons scheduled",
-                "quick_actions": {
-                    "title": "Quick Actions",
-                    "find_tutor": "Find a Tutor",
-                    "schedule_lesson": "Schedule Lesson",
-                    "view_all_lessons": "View All Lessons"
-                },
-                "stats": {
-                    "total_lessons": "Total Lessons",
-                    "hours_learned": "Hours Learned",
-                    "languages": "Languages",
-                    "streak": "Day Streak"
-                }
-            },
-            "tutor": {
-                "title": "Tutor Dashboard",
-                "welcome": "Welcome back, {{name}}!",
-                "earnings": {
-                    "title": "Earnings",
-                    "total": "Total Earnings",
-                    "this_month": "This Month",
-                    "pending": "Pending"
-                },
-                "schedule": {
-                    "title": "Today's Schedule",
-                    "no_lessons": "No lessons scheduled for today"
-                },
-                "stats": {
-                    "total_students": "Total Students",
-                    "total_lessons": "Total Lessons",
-                    "rating": "Average Rating",
-                    "completion_rate": "Completion Rate"
-                }
-            }
-        },
-        "profile": {
-            "title": "Profile Settings",
-            "personal_info": "Personal Information",
-            "teaching_info": "Teaching Information",
-            "account_settings": "Account Settings",
-            "fields": {
-                "first_name": "First Name",
-                "last_name": "Last Name",
-                "email": "Email",
-                "phone": "Phone",
-                "bio": "Bio",
-                "languages": "Languages",
-                "education": "Education",
-                "experience": "Experience",
-                "hourly_rate": "Hourly Rate",
-                "timezone": "Time Zone"
-            },
-            "buttons": {
-                "save": "Save Changes",
-                "cancel": "Cancel",
-                "upload_photo": "Upload Photo",
-                "remove_photo": "Remove Photo"
-            }
-        },
-        "teaching_profile": {
-            "title": "Teaching Profile",
-            "subtitle": "Complete your profile to start teaching",
-            "education": {
-                "title": "Education",
-                "add": "Add Education",
-                "edit": "Edit Education",
-                "remove": "Remove Education",
-                "fields": {
-                    "degree": "Degree",
-                    "field": "Field of Study",
-                    "institution": "Institution",
-                    "country": "Country",
-                    "start_year": "Start Year",
-                    "end_year": "End Year",
-                    "current": "I currently study here",
-                    "description": "Description"
-                },
-                "placeholders": {
-                    "degree": "e.g., Bachelor's, Master's, Ph.D.",
-                    "field": "e.g., English Literature, Linguistics",
-                    "institution": "e.g., University of Cambridge",
-                    "description": "Describe your studies and achievements"
-                },
-                "validation": {
-                    "degree_required": "Degree is required",
-                    "field_required": "Field of study is required",
-                    "institution_required": "Institution is required",
-                    "start_year_required": "Start year is required",
-                    "end_year_required": "End year is required",
-                    "end_year_invalid": "End year must be after start year"
-                },
-                "buttons": {
-                    "save": "Save Education",
-                    "cancel": "Cancel",
-                    "add_another": "Add Another Education"
-                }
-            }
-        },
-        "register": {
-            "title": "Create your account",
-            "username": "Username",
-            "username_placeholder": "Choose a username",
-            "email": "Email",
-            "email_placeholder": "Enter your email",
-            "password": "Password",
-            "password_placeholder": "Choose a password",
-            "confirm_password": "Confirm Password",
-            "confirm_password_placeholder": "Confirm your password",
-            "i_want_to": "I want to",
-            "role_student": "Learn languages",
-            "role_tutor": "Teach languages",
-            "register_button": "Create Account",
-            "have_account": "Already have an account?",
-            "sign_in": "Sign in"
-        },
-        "home": {
-            "welcome": "Welcome to Tongly! 🌍",
-            "description": "Learn languages with professional tutors at your convenience",
-            "get_started": "Get Started",
-            "sign_in": "Sign In",
-            "go_to_dashboard": "Go to Dashboard",
-            "features": {
-                "native_tutors": {
-                    "title": "Native Tutors",
-                    "description": "Learn from professional native-speaking tutors"
-                },
-                "personalized_learning": {
-                    "title": "Personalized Learning",
-                    "description": "Get a customized learning experience"
-                },
-                "track_progress": {
-                    "title": "Track Progress",
-                    "description": "Monitor your achievements and growth"
-                }
-            }
-        },
-        "book_lesson": {
-            "title": "Book a Lesson with {{name}}",
-            "select": {
-                "language": "Select Language",
-                "date": "Select Date",
-                "time": "Select Time",
-                "duration": "Lesson Duration"
-            },
-            "lesson_details": {
-                "title": "Lesson Details",
-                "duration": "Duration: {{duration}} minutes",
-                "price": "Price: {{price}}",
-                "language": "Language: {{language}}"
-            },
-            "buttons": {
-                "book": "Book Lesson",
-                "cancel": "Cancel"
-            }
-        }
-    },
-    "components": {
-        "footer": {
-            "about": "About Us",
-            "contact": "Contact",
-            "terms": "Terms of Service",
-            "privacy": "Privacy Policy",
-            "copyright": "© {{year}} Tongly. All rights reserved."
-        },
-        "navbar": {
-            "search": "Search",
-            "notifications": "Notifications",
-            "account": "Account",
-            "dashboard": "Dashboard"
-        }
+    "roles": {
+      "student": "Student",
+      "tutor": "Tutor"
     }
+  },
+  "pages": {
+    "login": {
+      "title": "Log in to your account",
+      "no_account": "Don't have an account?",
+      "username_placeholder": "Enter your username",
+      "password_placeholder": "Enter your password",
+      "sign_in_button": "Sign in"
+    },
+    "register": {
+      "title": "Create a new account",
+      "have_account": "Already have an account? Log in",
+      "username_placeholder": "Choose a username",
+      "email_placeholder": "Enter your email",
+      "password_placeholder": "Create a password",
+      "confirm_password_placeholder": "Confirm your password",
+      "register_button": "Create account",
+      "i_want_to": "I want to",
+      "role_student": "Learn a language (Student)",
+      "role_tutor": "Teach a language (Tutor)",
+      "confirm_password": "Confirm Password"
+    },
+    "userSettings": {
+      "title": "User Settings",
+      "personal_info": "Personal Information",
+      "account_settings": "Account Security"
+    }
+  },
+  "userSettings": {
+    "fields": {
+      "first_name": "First Name",
+      "last_name": "Last Name",
+      "user_picture_url": "Profile Picture URL",
+      "age": "Age",
+      "gender": "Gender"
+    },
+    "gender": {
+      "not_set": "Not specified",
+      "male": "Male",
+      "female": "Female"
+    },
+    "buttons": {
+      "change_photo": "Change Photo"
+    }
+  },
+  "notifications": {
+    "personal_info_updated": "Personal information has been updated",
+    "personal_info_update_failed": "Failed to update personal information",
+    "security_settings_updated": "Security settings have been updated",
+    "security_settings_update_failed": "Failed to update security settings",
+    "profile_picture_uploaded": "Profile picture has been uploaded",
+    "profile_picture_upload_failed": "Failed to upload profile picture",
+    "user_data_fetch_failed": "Failed to load user data"
+  },
+  "home": {
+    "subtitle": "Learn languages with native speakers",
+    "description": "Connect with native speaking tutors for personalized language lessons. Improve your skills through real conversations.",
+    "find_tutors": "Find Tutors",
+    "my_lessons": "My Lessons",
+    "features": {
+      "learn_title": "Learn Naturally",
+      "learn_description": "Practice with native speakers through live video lessons that fit your schedule.",
+      "connect_title": "Connect Globally",
+      "connect_description": "Find language partners and tutors from around the world.",
+      "grow_title": "Track Progress",
+      "grow_description": "Set goals, complete lessons, and track your language learning journey."
+    }
+  }
 }

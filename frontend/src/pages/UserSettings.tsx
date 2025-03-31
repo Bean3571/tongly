@@ -8,30 +8,68 @@ import { useTranslation } from '../contexts/I18nContext';
 
 const DEFAULT_AVATAR = 'https://secure.gravatar.com/avatar/default?s=200&d=mp';
 
+// Define a generic user settings type to handle both structure formats
+interface UserSettingsData {
+    first_name?: string | null;
+    last_name?: string | null;
+    profile_picture?: string | null;
+    age?: number | null | string;
+    sex?: string | null;
+}
+
 export const UserSettings = () => {
     const { user, refreshUser } = useAuth();
     const { showNotification } = useNotification();
     const { t } = useTranslation();
     const [isUpdatingPersonal, setIsUpdatingPersonal] = useState(false);
     const [isUpdatingSecurity, setIsUpdatingSecurity] = useState(false);
+    
+    // Log user data for debugging
+    console.log('Current user data:', user);
+    
+    // Helper function to safely access user fields regardless of API response structure
+    const getUserField = (field: string, defaultValue: string = '') => {
+        if (!user) return defaultValue;
+        
+        // Try personal field first (our types/index.ts definition)
+        if (user.personal && user.personal[field as keyof typeof user.personal] !== undefined) {
+            return String(user.personal[field as keyof typeof user.personal] || defaultValue);
+        }
+        
+        // Try userSettings field next (possibly from API client)
+        if ((user as any).userSettings && (user as any).userSettings[field] !== undefined) {
+            return String((user as any).userSettings[field] || defaultValue);
+        }
+        
+        // Try directly on user object
+        if (user[field as keyof typeof user] !== undefined) {
+            return String(user[field as keyof typeof user] || defaultValue);
+        }
+        
+        return defaultValue;
+    };
+
+    // Initialize user info state
     const [userInfo, setUserInfo] = useState({
-        firstName: user?.personal?.first_name || '',
-        lastName: user?.personal?.last_name || '',
-        profilePicture: user?.personal?.profile_picture || '',
-        age: user?.personal?.age?.toString() || '',
-        sex: user?.personal?.sex || '',
+        firstName: getUserField('first_name'),
+        lastName: getUserField('last_name'),
+        userPicture: getUserField('profile_picture'),
+        age: getUserField('age'),
+        sex: getUserField('sex'),
         email: user?.credentials?.email || '',
     });
 
     // Update local state when user data changes
     useEffect(() => {
         if (user) {
+            console.log('Updating user info from:', user);
+            
             setUserInfo({
-                firstName: user.personal?.first_name || '',
-                lastName: user.personal?.last_name || '',
-                profilePicture: user.personal?.profile_picture || '',
-                age: user.personal?.age?.toString() || '',
-                sex: user.personal?.sex || '',
+                firstName: getUserField('first_name'),
+                lastName: getUserField('last_name'),
+                userPicture: getUserField('profile_picture'),
+                age: getUserField('age'),
+                sex: getUserField('sex'),
                 email: user.credentials?.email || '',
             });
         }
@@ -41,7 +79,7 @@ export const UserSettings = () => {
         initialValues: {
             firstName: userInfo.firstName,
             lastName: userInfo.lastName,
-            profilePicture: userInfo.profilePicture,
+            userPicture: userInfo.userPicture,
             age: userInfo.age,
             sex: userInfo.sex || 'not_set',
         },
@@ -49,17 +87,19 @@ export const UserSettings = () => {
         validationSchema: Yup.object({
             firstName: Yup.string().max(50, t('validation.first_name_max_length')),
             lastName: Yup.string().max(50, t('validation.last_name_max_length')),
-            profilePicture: Yup.string().url(t('validation.url_invalid')),
+            userPicture: Yup.string().url(t('validation.url_invalid')),
             age: Yup.number().min(13, t('validation.age_min')).max(120, t('validation.age_max')).nullable().transform((value) => (isNaN(value) ? null : value)),
             sex: Yup.string().oneOf(['male', 'female', 'not_set'], t('validation.sex_invalid')).nullable(),
         }),
         onSubmit: async (values) => {
             try {
                 setIsUpdatingPersonal(true);
+                console.log('Submitting user settings update:', values);
+                
                 await api.user.updateProfile({
                     first_name: values.firstName || null,
                     last_name: values.lastName || null,
-                    profile_picture: values.profilePicture || null,
+                    profile_picture: values.userPicture || null,
                     age: values.age ? parseInt(values.age) : null,
                     sex: values.sex ? values.sex === 'not_set' ? null : (values.sex as 'male' | 'female') : null,
                 });
@@ -128,6 +168,7 @@ export const UserSettings = () => {
     const loadUserData = async () => {
         try {
             await refreshUser();
+            console.log('User data refreshed');
         } catch (error) {
             console.error('Failed to load user data:', error);
             showNotification('error', t('notifications.user_data_fetch_failed'));
@@ -139,25 +180,37 @@ export const UserSettings = () => {
         loadUserData();
     }, []);
 
-    const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
+    // Helper to safely get user picture URL
+    const getUserPictureUrl = () => {
+        if (!user) return DEFAULT_AVATAR;
+        
+        // Try both locations
+        const personalPic = user.personal?.profile_picture;
+        const userSettingsPic = (user as any).userSettings?.profile_picture;
+        
+        return personalPic || userSettingsPic || DEFAULT_AVATAR;
+    };
 
-        try {
-            const formData = new FormData();
-            formData.append('file', file);
-
-            const response = await api.user.uploadProfilePicture(formData);
-            if (response.url) {
-                personalInfoFormik.setFieldValue('profilePicture', response.url);
-            }
-            await refreshUser();
-            showNotification('success', t('notifications.profile_picture_uploaded'));
-        } catch (error) {
-            console.error('Failed to upload profile picture:', error);
-            showNotification('error', t('notifications.profile_picture_upload_failed'));
+    // Get formatted name for display
+    const getDisplayName = () => {
+        const firstName = userInfo.firstName;
+        const lastName = userInfo.lastName;
+        
+        if (firstName && lastName) {
+            return `${firstName} ${lastName}`;
+        } else if (firstName) {
+            return firstName;
+        } else if (lastName) {
+            return lastName;
+        } else {
+            return user?.credentials?.username || t('common.user');
         }
     };
+    
+    // Debug information to log what's available in the user object
+    console.log('User credentials:', user?.credentials);
+    console.log('Current email in userInfo:', userInfo.email);
+    console.log('Current email in user.credentials:', user?.credentials?.email);
 
     // Display current values or loading state
     if (!user) {
@@ -174,39 +227,33 @@ export const UserSettings = () => {
     return (
         <div className="container mx-auto px-4 py-8 bg-white">
             <div className="max-w-3xl mx-auto">
-                <h1 className="text-3xl font-bold text-gray-900 mb-8">{t('pages.profile.title')}</h1>
+                <h1 className="text-3xl font-bold text-gray-900 mb-8">{t('pages.userSettings.title')}</h1>
 
-                {/* Profile Picture Section */}
+                {/* User Picture Section */}
                 <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-8">
                     <div className="flex items-center space-x-8">
-                        <div className="relative group">
+                        <div>
                             <img
-                                src={user?.personal?.profile_picture || DEFAULT_AVATAR}
-                                alt={user?.credentials?.username || t('common.user')}
+                                src={getUserPictureUrl()}
+                                alt={getDisplayName()}
                                 className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
                                 onError={(e) => {
                                     const target = e.target as HTMLImageElement;
                                     target.src = DEFAULT_AVATAR;
                                 }}
                             />
-                            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                                <label className="cursor-pointer text-white">
-                                    <span>{t('profile.buttons.change_photo')}</span>
-                                    <input 
-                                        type="file" 
-                                        className="hidden" 
-                                        accept="image/*"
-                                        onChange={handleFileUpload}
-                                    />
-                                </label>
-                            </div>
                         </div>
                         <div>
                             <h3 className="text-lg font-medium text-gray-900">
-                                {user?.credentials?.username}
+                                {getDisplayName()}
                             </h3>
                             <p className="text-gray-500">
-                                {user?.credentials?.email}
+                                {user.credentials?.username !== "unknown" && (
+                                    <span className="block">@{user.credentials?.username}</span>
+                                )}
+                                {(user.credentials?.email || userInfo.email) && (
+                                    <span className="block">{user.credentials?.email || userInfo.email}</span>
+                                )}
                             </p>
                             <p className="text-sm font-medium text-orange-600 mt-1">
                                 {user?.credentials?.role === 'student' ? t('auth.roles.student') : t('auth.roles.tutor')}
@@ -218,13 +265,24 @@ export const UserSettings = () => {
                 {/* Personal Information Section */}
                 <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-8">
                     <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                        {t('pages.profile.personal_info')}
+                        {t('pages.userSettings.personal_info')}
                     </h2>
+                    
+                    {/* Add debug info to see what's in the user object */}
+                    {process.env.NODE_ENV === 'development' && (
+                        <pre className="bg-gray-100 p-3 rounded text-xs mb-4 overflow-auto max-h-32">
+                            User info: {JSON.stringify({
+                                credentials: user?.credentials,
+                                userInfo: userInfo
+                            }, null, 2)}
+                        </pre>
+                    )}
+                    
                     <form onSubmit={personalInfoFormik.handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-                                    {t('profile.fields.first_name')}
+                                    {t('userSettings.fields.first_name')}
                                 </label>
                                 <input
                                     id="firstName"
@@ -238,7 +296,7 @@ export const UserSettings = () => {
                             </div>
                             <div>
                                 <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-                                    {t('profile.fields.last_name')}
+                                    {t('userSettings.fields.last_name')}
                                 </label>
                                 <input
                                     id="lastName"
@@ -251,24 +309,10 @@ export const UserSettings = () => {
                                 )}
                             </div>
                         </div>
-                        <div>
-                            <label htmlFor="profilePicture" className="block text-sm font-medium text-gray-700">
-                                {t('profile.fields.profile_picture_url')}
-                            </label>
-                            <input
-                                id="profilePicture"
-                                type="text"
-                                {...personalInfoFormik.getFieldProps('profilePicture')}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 bg-white"
-                            />
-                            {personalInfoFormik.touched.profilePicture && personalInfoFormik.errors.profilePicture && (
-                                <p className="mt-1 text-sm text-red-600">{personalInfoFormik.errors.profilePicture}</p>
-                            )}
-                        </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label htmlFor="age" className="block text-sm font-medium text-gray-700">
-                                    {t('profile.fields.age')}
+                                    {t('userSettings.fields.age')}
                                 </label>
                                 <input
                                     id="age"
@@ -282,16 +326,16 @@ export const UserSettings = () => {
                             </div>
                             <div>
                                 <label htmlFor="sex" className="block text-sm font-medium text-gray-700">
-                                    {t('profile.fields.gender')}
+                                    {t('userSettings.fields.gender')}
                                 </label>
                                 <select
                                     id="sex"
                                     {...personalInfoFormik.getFieldProps('sex')}
                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 bg-white"
                                 >
-                                    <option value="not_set">{t('profile.gender.not_set')}</option>
-                                    <option value="male">{t('profile.gender.male')}</option>
-                                    <option value="female">{t('profile.gender.female')}</option>
+                                    <option value="not_set">{t('userSettings.gender.not_set')}</option>
+                                    <option value="male">{t('userSettings.gender.male')}</option>
+                                    <option value="female">{t('userSettings.gender.female')}</option>
                                 </select>
                                 {personalInfoFormik.touched.sex && personalInfoFormik.errors.sex && (
                                     <p className="mt-1 text-sm text-red-600">{personalInfoFormik.errors.sex}</p>
@@ -304,7 +348,7 @@ export const UserSettings = () => {
                                 disabled={isUpdatingPersonal || !personalInfoFormik.dirty || !personalInfoFormik.isValid}
                                 className="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 transition-colors disabled:bg-orange-400 disabled:cursor-not-allowed"
                             >
-                                {isUpdatingPersonal ? t('common.saving') : t('profile.buttons.save')}
+                                {isUpdatingPersonal ? t('common.saving') : t('common.save')}
                             </button>
                         </div>
                     </form>
@@ -313,7 +357,7 @@ export const UserSettings = () => {
                 {/* Account Security Section */}
                 <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
                     <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                        {t('pages.profile.account_settings')}
+                        {t('pages.userSettings.account_settings')}
                     </h2>
                     <form onSubmit={securityFormik.handleSubmit} className="space-y-6">
                         <div>
@@ -322,7 +366,7 @@ export const UserSettings = () => {
                             </label>
                             <input
                                 type="text"    
-                                value={user?.credentials?.username}
+                                value={user.credentials?.username === "unknown" ? "" : (user.credentials?.username || "")}
                                 disabled       
                                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 bg-gray-100 text-gray-500 cursor-not-allowed"
                             />
@@ -389,7 +433,7 @@ export const UserSettings = () => {
                                 disabled={isUpdatingSecurity || (!securityFormik.values.currentPassword && !securityFormik.values.newPassword && securityFormik.values.email === user?.credentials?.email)}
                                 className="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 transition-colors disabled:bg-orange-400 disabled:cursor-not-allowed"
                             >
-                                {isUpdatingSecurity ? t('common.updating') : t('profile.buttons.update_security')}
+                                {isUpdatingSecurity ? t('common.updating') : t('common.save')}
                             </button>
                         </div>
                     </form>

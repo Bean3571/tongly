@@ -23,7 +23,7 @@ const translations: { [key: string]: any } = {
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
 export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [currentLanguage, setCurrentLanguage] = useState('en');
+    const [currentLanguage, setCurrentLanguage] = useState('ru');
 
     const t = (key: string, variables?: TranslationVariables, count?: number): string => {
         const keys = key.split('.');
