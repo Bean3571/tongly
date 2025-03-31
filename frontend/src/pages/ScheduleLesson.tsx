@@ -19,7 +19,7 @@ interface TutorDetails {
   };
 }
 
-export const BookLesson: React.FC = () => {
+export const ScheduleLesson: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { showNotification } = useNotification();

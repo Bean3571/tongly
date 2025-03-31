@@ -7,25 +7,31 @@ import (
 
 // UserRepository defines the interface for user-related database operations
 type UserRepository interface {
-	// User Credentials
-	CreateUserCredentials(ctx context.Context, creds entities.UserCredentials) error
+	// User operations
+	CreateUser(ctx context.Context, user *entities.User) error
 	GetUserByUsername(ctx context.Context, username string) (*entities.User, error)
 	GetUserByID(ctx context.Context, id int) (*entities.User, error)
-	UpdateUserCredentials(ctx context.Context, creds entities.UserCredentials) error
+	UpdateUser(ctx context.Context, user *entities.User) error
 
-	// Personal Information
-	CreatePersonalInfo(ctx context.Context, info entities.UserPersonal) error
-	GetPersonalInfo(ctx context.Context, userID int) (*entities.UserPersonal, error)
-	UpdatePersonalInfo(ctx context.Context, info entities.UserPersonal) error
+	// Language operations
+	AddUserLanguage(ctx context.Context, userLanguage *entities.UserLanguage) error
+	GetUserLanguages(ctx context.Context, userID int) ([]entities.UserLanguage, error)
+	UpdateUserLanguage(ctx context.Context, userLanguage *entities.UserLanguage) error
+	RemoveUserLanguage(ctx context.Context, userID int, languageID int) error
 
-	// Student Details
-	CreateStudentDetails(ctx context.Context, details entities.StudentDetails) error
-	GetStudentDetails(ctx context.Context, userID int) (*entities.StudentDetails, error)
-	UpdateStudentDetails(ctx context.Context, details entities.StudentDetails) error
+	// Interest operations
+	AddUserInterest(ctx context.Context, userID int, interestID int) error
+	GetUserInterests(ctx context.Context, userID int) ([]entities.UserInterest, error)
+	RemoveUserInterest(ctx context.Context, userID int, interestID int) error
 
-	// Tutor Details
-	CreateTutorDetails(ctx context.Context, details *entities.TutorDetails) error
-	GetTutorDetails(ctx context.Context, userID int) (*entities.TutorDetails, error)
-	UpdateTutorDetails(ctx context.Context, details *entities.TutorDetails) error
-	ListTutors(ctx context.Context, limit, offset int, filters map[string]interface{}) ([]*entities.User, error)
+	// Goal operations
+	AddUserGoal(ctx context.Context, userID int, goalID int) error
+	GetUserGoals(ctx context.Context, userID int) ([]entities.UserGoal, error)
+	RemoveUserGoal(ctx context.Context, userID int, goalID int) error
+
+	// Reference data
+	GetAllLanguages(ctx context.Context) ([]entities.Language, error)
+	GetAllInterests(ctx context.Context) ([]entities.Interest, error)
+	GetAllGoals(ctx context.Context) ([]entities.Goal, error)
+	GetAllProficiencies(ctx context.Context) ([]entities.Proficiency, error)
 }

@@ -121,7 +121,7 @@ func (h *UserHandler) UploadProfilePicture(c *gin.Context) {
 	// Update user's profile picture URL
 	fileURL := fmt.Sprintf("/uploads/avatars/%s", newFilename)
 	updateData := entities.UserUpdateRequest{
-		ProfilePicture: &fileURL,
+		ProfilePictureURL: &fileURL,
 	}
 
 	if err := h.userUseCase.UpdateUser(c.Request.Context(), userID.(int), updateData); err != nil {

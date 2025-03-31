@@ -5,7 +5,40 @@ import (
 	"time"
 )
 
-// Deprecated but kept for compatibility with existing code
+// Lesson represents a scheduled or completed lesson
+type Lesson struct {
+	ID          int        `json:"id"`
+	StudentID   int        `json:"student_id"`
+	TutorID     int        `json:"tutor_id"`
+	LanguageID  int        `json:"language_id"`
+	StartTime   time.Time  `json:"start_time"`
+	EndTime     time.Time  `json:"end_time"`
+	CancelledBy *int       `json:"cancelled_by,omitempty"`
+	CancelledAt *time.Time `json:"cancelled_at,omitempty"`
+	Notes       *string    `json:"notes,omitempty"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
+
+	// Related entities (not in the database)
+	Student  *User     `json:"student,omitempty"`
+	Tutor    *User     `json:"tutor,omitempty"`
+	Language *Language `json:"language,omitempty"`
+	Reviews  []Review  `json:"reviews,omitempty"`
+}
+
+// Review represents a lesson review
+type Review struct {
+	ID         int       `json:"id"`
+	LessonID   int       `json:"lesson_id"`
+	ReviewerID int       `json:"reviewer_id"`
+	Rating     int       `json:"rating"`
+	CreatedAt  time.Time `json:"created_at"`
+
+	// Related entities (not in the database)
+	Reviewer *User `json:"reviewer,omitempty"`
+}
+
+// LessonStatus represents the status of a lesson (derived from timestamps)
 type LessonStatus string
 
 const (
@@ -22,66 +55,9 @@ var (
 	ErrLessonNotEndable        = errors.New("lesson cannot be ended at this time")
 )
 
-// IsValidTransition checks if the status transition is valid
-func (s LessonStatus) IsValidTransition(newStatus LessonStatus) bool {
-	validTransitions := map[LessonStatus][]LessonStatus{
-		LessonStatusScheduled: {
-			LessonStatusInProgress,
-			LessonStatusCancelled,
-		},
-		LessonStatusInProgress: {
-			LessonStatusCompleted,
-			LessonStatusInProgress, // Allow re-joining in_progress lessons
-		},
-		LessonStatusCompleted: {}, // No valid transitions from completed
-		LessonStatusCancelled: {}, // No valid transitions from cancelled
-	}
-
-	// If transitioning to the same status, it's valid
-	if s == newStatus {
-		return true
-	}
-
-	allowed, exists := validTransitions[s]
-	if !exists {
-		return false
-	}
-
-	for _, status := range allowed {
-		if status == newStatus {
-			return true
-		}
-	}
-	return false
-}
-
-// Participant represents a user in a lesson (student or tutor)
-type Participant struct {
-	FirstName *string `json:"first_name,omitempty"`
-	LastName  *string `json:"last_name,omitempty"`
-	Username  string  `json:"username"`
-	AvatarURL *string `json:"avatar_url,omitempty"`
-}
-
-// Lesson represents a scheduled or completed lesson
-type Lesson struct {
-	ID        int         `json:"id"`
-	StudentID int         `json:"student_id"`
-	TutorID   int         `json:"tutor_id"`
-	Student   Participant `json:"student"`
-	Tutor     Participant `json:"tutor"`
-	StartTime time.Time   `json:"start_time"`
-	EndTime   time.Time   `json:"end_time"`
-	Duration  int         `json:"duration"` // in minutes
-	Cancelled bool        `json:"cancelled"`
-	Language  string      `json:"language"`
-	CreatedAt time.Time   `json:"created_at"`
-	UpdatedAt time.Time   `json:"updated_at"`
-}
-
 // GetStatus returns the virtual status of the lesson based on time and cancelled flag
 func (l *Lesson) GetStatus() LessonStatus {
-	if l.Cancelled {
+	if l.CancelledAt != nil {
 		return LessonStatusCancelled
 	}
 
@@ -100,7 +76,7 @@ func (l *Lesson) GetStatus() LessonStatus {
 
 // CanCancel checks if the lesson can be cancelled
 func (l *Lesson) CanCancel() error {
-	if l.Cancelled {
+	if l.CancelledAt != nil {
 		return errors.New("lesson is already cancelled")
 	}
 
@@ -119,7 +95,7 @@ func (l *Lesson) CanCancel() error {
 
 // CanStart checks if the lesson can be started
 func (l *Lesson) CanStart() error {
-	if l.Cancelled {
+	if l.CancelledAt != nil {
 		return errors.New("cancelled lessons cannot be started")
 	}
 
@@ -140,7 +116,7 @@ func (l *Lesson) CanStart() error {
 
 // CanEnd checks if the lesson can be ended
 func (l *Lesson) CanEnd() error {
-	if l.Cancelled {
+	if l.CancelledAt != nil {
 		return errors.New("cancelled lessons cannot be ended")
 	}
 
@@ -154,10 +130,11 @@ func (l *Lesson) CanEnd() error {
 
 // LessonBookingRequest represents the data needed to book a new lesson
 type LessonBookingRequest struct {
-	TutorID   int       `json:"tutor_id"`
-	StartTime time.Time `json:"start_time"`
-	Language  string    `json:"language"`
-	Duration  int       `json:"duration"` // Duration in minutes
+	TutorID    int       `json:"tutor_id"`
+	LanguageID int       `json:"language_id"`
+	StartTime  time.Time `json:"start_time"`
+	EndTime    time.Time `json:"end_time"`
+	Notes      *string   `json:"notes,omitempty"`
 }
 
 // Validate checks if the booking request is valid
@@ -166,20 +143,24 @@ func (r *LessonBookingRequest) Validate() error {
 		return errors.New("invalid tutor ID")
 	}
 
+	if r.LanguageID <= 0 {
+		return errors.New("invalid language ID")
+	}
+
 	if r.StartTime.IsZero() {
 		return errors.New("start time is required")
 	}
 
+	if r.EndTime.IsZero() {
+		return errors.New("end time is required")
+	}
+
+	if r.StartTime.After(r.EndTime) {
+		return errors.New("start time must be before end time")
+	}
+
 	if r.StartTime.Before(time.Now()) {
 		return errors.New("start time must be in the future")
-	}
-
-	if r.Language == "" {
-		return errors.New("language is required")
-	}
-
-	if r.Duration <= 0 {
-		return errors.New("duration must be positive")
 	}
 
 	return nil

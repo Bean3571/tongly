@@ -7,19 +7,20 @@ import (
 
 // TutorRepository defines the interface for tutor-related database operations
 type TutorRepository interface {
-	// Tutor Details operations
-	GetTutorByID(ctx context.Context, tutorID int) (*entities.TutorDetails, error)
-	CreateTutorDetails(ctx context.Context, details *entities.TutorDetails) error
-	GetTutorDetails(ctx context.Context, userID int) (*entities.TutorDetails, error)
-	UpdateTutorDetails(ctx context.Context, details *entities.TutorDetails) error
-	ListTutors(ctx context.Context, limit, offset int, filters map[string]interface{}) ([]*entities.User, error)
+	// Tutor profile operations
+	CreateTutorProfile(ctx context.Context, profile *entities.TutorProfile) error
+	GetTutorByID(ctx context.Context, tutorID int) (*entities.TutorProfile, error)
+	GetTutorProfileByUserID(ctx context.Context, userID int) (*entities.TutorProfile, error)
+	UpdateTutorProfile(ctx context.Context, profile *entities.TutorProfile) error
 	UpdateTutorApprovalStatus(ctx context.Context, userID int, approved bool) error
 
-	// Profile operations
-	CreateTutorProfile(ctx context.Context, profile *entities.TutorProfile) error
-	GetTutorProfile(ctx context.Context, tutorID int) (*entities.TutorProfile, error)
-	UpdateTutorProfile(ctx context.Context, profile *entities.TutorProfile) error
+	// Tutor availability operations
+	AddTutorAvailability(ctx context.Context, availability *entities.TutorAvailability) error
+	GetTutorAvailabilities(ctx context.Context, tutorID int) ([]entities.TutorAvailability, error)
+	UpdateTutorAvailability(ctx context.Context, availability *entities.TutorAvailability) error
+	RemoveTutorAvailability(ctx context.Context, id int) error
 
-	// Search operations
-	SearchTutors(ctx context.Context, filters map[string]interface{}) ([]*entities.TutorProfile, error)
+	// Tutor search operations
+	ListTutors(ctx context.Context, limit, offset int) ([]entities.TutorProfile, error)
+	SearchTutors(ctx context.Context, filters map[string]interface{}) ([]entities.TutorProfile, error)
 }

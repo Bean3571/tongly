@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 
 type LessonFilter = 'all' | 'scheduled' | 'past' | 'cancelled';
 
-export const Lessons: React.FC = () => {
+export const MyLessons: React.FC = () => {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<LessonFilter>('all');

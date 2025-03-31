@@ -47,16 +47,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
             logger.info('Attempting login', { username });
             const response = await api.auth.login({ username, password });
-            localStorage.setItem('token', response.token);
-            setUser(response.user);
-            logger.info('Login successful', { userId: response.user.credentials.id });
-            showNotification('success', 'Welcome back!');
             
-            // Check if user is a tutor
-            if (response.user.credentials.role === 'tutor') {
-                navigate('/tutor/dashboard');
+            // Accept the response if it has a token, even if user data is incomplete
+            if (response && response.token) {
+                // Store the token regardless of user data completeness
+                localStorage.setItem('token', response.token);
+                
+                // Ensure user object has minimum required structure
+                if (!response.user) {
+                    response.user = { credentials: { username, role: 'student', id: 0, email: '' } };
+                }
+                
+                if (!response.user.credentials) {
+                    response.user.credentials = { username, role: 'student', id: 0, email: '' };
+                }
+                
+                setUser(response.user);
+                logger.info('Login successful', { userId: response.user.credentials.id });
+                showNotification('success', 'Welcome back!');
+                
+                // Navigate based on role if available
+                if (response.user.credentials.role === 'tutor') {
+                    navigate('/lessons');
+                } else {
+                    navigate('/tutors');
+                }
             } else {
-                navigate('/dashboard');
+                throw new Error('Invalid response from server');
             }
         } catch (error) {
             logger.error('Login failed', { username, error });
@@ -69,16 +86,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
             logger.info('Attempting registration', { username: data.username, email: data.email, role: data.role });
             const response = await api.auth.register(data);
-            localStorage.setItem('token', response.token);
-            setUser(response.user);
-            logger.info('Registration successful', { userId: response.user.credentials.id });
-            showNotification('success', 'Registration successful! Welcome to Tongly.');
             
-            // Redirect based on role
-            if (data.role === 'tutor') {
-                navigate('/tutor/dashboard');
+            // Accept the response if it has a token, even if user data is incomplete
+            if (response && response.token) {
+                // Store the token regardless of user data completeness
+                localStorage.setItem('token', response.token);
+                
+                // Ensure user object has minimum required structure
+                if (!response.user) {
+                    response.user = { 
+                        credentials: { 
+                            username: data.username, 
+                            email: data.email, 
+                            role: (data.role as 'student' | 'tutor' | 'admin') || 'student', 
+                            id: 0 
+                        } 
+                    };
+                }
+                
+                if (!response.user.credentials) {
+                    response.user.credentials = { 
+                        username: data.username, 
+                        email: data.email, 
+                        role: (data.role as 'student' | 'tutor' | 'admin') || 'student', 
+                        id: 0 
+                    };
+                }
+                
+                setUser(response.user);
+                logger.info('Registration successful', { username: data.username });
+                showNotification('success', 'Registration successful! Welcome to Tongly.');
+                
+                // Redirect based on role
+                if (data.role === 'tutor') {
+                    navigate('/lessons');
+                } else {
+                    navigate('/tutors');
+                }
             } else {
-                navigate('/dashboard');
+                throw new Error('Invalid response from server');
             }
         } catch (error: any) {
             logger.error('Registration failed', { 
@@ -92,7 +138,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const logout = () => {
-        logger.info('User logging out', { userId: user?.credentials.id });
+        logger.info('User logging out', { userId: user?.credentials?.id });
         localStorage.removeItem('token');
         setUser(null);
         showNotification('info', 'You have been logged out');
@@ -103,8 +149,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
             logger.debug('Refreshing user data');
             const userData = await api.user.getProfile();
-            setUser(userData);
-            logger.debug('User data refreshed successfully', { userId: userData.credentials.id });
+            
+            // Be more lenient with user data validation
+            if (userData) {
+                // Ensure credentials object exists
+                if (!userData.credentials) {
+                    const username = localStorage.getItem('username') || 'unknown';
+                    userData.credentials = { 
+                        username, 
+                        role: 'student', 
+                        id: 0, 
+                        email: '' 
+                    };
+                }
+                
+                setUser(userData);
+                logger.debug('User data refreshed successfully');
+            } else {
+                throw new Error('No user data received during refresh');
+            }
         } catch (error) {
             logger.error('Failed to refresh user data', { error });
             throw error;

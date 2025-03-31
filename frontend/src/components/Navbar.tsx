@@ -13,6 +13,7 @@ export const Navbar = () => {
 
     const getNavLinks = () => {
         if (!user) return [];
+        if (!user.credentials) return [];
 
         const commonLinks = [
             { to: '/lessons', label: t('navbar.lessons') }
@@ -20,15 +21,15 @@ export const Navbar = () => {
 
         if (user.credentials.role === 'student') {
             return [
-                { to: '/student/dashboard', label: t('navbar.home') },
                 { to: '/tutors', label: t('navbar.tutors') },
+                { to: '/student-settings', label: t('navbar.student_settings') },
                 ...commonLinks
             ];
         }
 
         if (user.credentials.role === 'tutor') {
             return [
-                { to: '/tutor/dashboard', label: t('navbar.home') },
+                { to: '/tutor-settings', label: t('navbar.tutor_settings') },
                 ...commonLinks
             ];
         }
@@ -45,7 +46,7 @@ export const Navbar = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16">
                     <div className="flex items-center">
-                        <Link to="/" className="text-2xl font-bold text-accent-primary">
+                        <Link to="/home" className="text-2xl font-bold text-accent-primary">
                             Языкус
                         </Link>
                         
@@ -85,10 +86,10 @@ export const Navbar = () => {
                                     </button>
                                     <div className="absolute right-0 w-48 mt-2 py-2 bg-surface rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                                         <Link
-                                            to="/profile"
+                                            to="/settings"
                                             className="block px-4 py-2 text-sm text-text-secondary hover:bg-overlay-light hover:text-text-primary w-full text-left"
                                         >
-                                            {t('navbar.profile')}
+                                            {t('navbar.account_settings')}
                                         </Link>
                                         <button
                                             onClick={logout}

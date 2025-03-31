@@ -3,12 +3,11 @@ package repositories
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"strconv"
+	"strings"
+	"time"
 	"tongly-backend/internal/entities"
-	"tongly-backend/internal/logger"
 
 	"github.com/lib/pq"
 )
@@ -25,536 +24,631 @@ func NewUserRepository(db *sql.DB) UserRepository {
 	}
 }
 
-// CreateUserCredentials creates a new user's credentials
-func (r *userRepositoryImpl) CreateUserCredentials(ctx context.Context, creds entities.UserCredentials) error {
+// CreateUser creates a new user in the users table
+func (r *userRepositoryImpl) CreateUser(ctx context.Context, user *entities.User) error {
 	query := `
-        INSERT INTO user_credentials (username, email, password_hash, role)
-        VALUES ($1, $2, $3, $4)
-        RETURNING id`
+		INSERT INTO users (
+			username, password, email, first_name, last_name, 
+			profile_picture_url, sex, age, role, created_at, updated_at
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+		RETURNING id, created_at, updated_at`
 
+	now := time.Now()
 	err := r.db.QueryRowContext(
 		ctx,
 		query,
-		creds.Username,
-		creds.Email,
-		creds.PasswordHash,
-		creds.Role,
-	).Scan(&creds.ID)
+		user.Username,
+		user.PasswordHash,
+		user.Email,
+		user.FirstName,
+		user.LastName,
+		user.ProfilePictureURL,
+		user.Sex,
+		user.Age,
+		user.Role,
+		now,
+		now,
+	).Scan(&user.ID, &user.CreatedAt, &user.UpdatedAt)
 
 	if err != nil {
-		logger.Error("Failed to create user credentials", "error", err)
-		return err
+		// Check for unique constraint violation
+		if pqErr, ok := err.(*pq.Error); ok {
+			if pqErr.Code == "23505" { // unique_violation
+				if strings.Contains(pqErr.Message, "username") {
+					return errors.New("username already exists")
+				} else if strings.Contains(pqErr.Message, "email") {
+					return errors.New("email already exists")
+				}
+			}
+		}
+		return fmt.Errorf("error creating user: %v", err)
 	}
 
 	return nil
 }
 
-// GetUserByUsername retrieves a complete user by username
+// GetUserByUsername retrieves a user by username
 func (r *userRepositoryImpl) GetUserByUsername(ctx context.Context, username string) (*entities.User, error) {
-	user := &entities.User{
-		Credentials: &entities.UserCredentials{},
-	}
+	query := `
+		SELECT 
+			id, username, password, email, first_name, last_name, 
+			profile_picture_url, sex, age, role, created_at, updated_at
+		FROM users 
+		WHERE username = $1`
 
-	query := `SELECT id, username, email, password_hash, role FROM user_credentials WHERE username = $1`
+	var user entities.User
+	var profilePicURL, sex sql.NullString
+	var age sql.NullInt32
+
 	err := r.db.QueryRowContext(ctx, query, username).Scan(
-		&user.Credentials.ID,
-		&user.Credentials.Username,
-		&user.Credentials.Email,
-		&user.Credentials.PasswordHash,
-		&user.Credentials.Role,
+		&user.ID,
+		&user.Username,
+		&user.PasswordHash,
+		&user.Email,
+		&user.FirstName,
+		&user.LastName,
+		&profilePicURL,
+		&sex,
+		&age,
+		&user.Role,
+		&user.CreatedAt,
+		&user.UpdatedAt,
 	)
 
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
 	if err != nil {
-		return nil, err
+		if err == sql.ErrNoRows {
+			return nil, errors.New("user not found")
+		}
+		return nil, fmt.Errorf("error retrieving user: %v", err)
 	}
 
-	// Get personal info
-	user.Personal, _ = r.GetPersonalInfo(ctx, user.Credentials.ID)
-
-	// Get role-specific details
-	if user.Credentials.Role == "student" {
-		user.Student, _ = r.GetStudentDetails(ctx, user.Credentials.ID)
-	} else if user.Credentials.Role == "tutor" {
-		user.Tutor, _ = r.GetTutorDetails(ctx, user.Credentials.ID)
+	// Handle nullable fields
+	if profilePicURL.Valid {
+		user.ProfilePictureURL = &profilePicURL.String
 	}
 
-	return user, nil
+	if sex.Valid {
+		user.Sex = &sex.String
+	}
+
+	if age.Valid {
+		ageVal := int(age.Int32)
+		user.Age = &ageVal
+	}
+
+	return &user, nil
 }
 
-// GetUserByID retrieves a complete user by ID
+// GetUserByID retrieves a user by ID
 func (r *userRepositoryImpl) GetUserByID(ctx context.Context, id int) (*entities.User, error) {
-	user := &entities.User{
-		Credentials: &entities.UserCredentials{},
-	}
+	query := `
+		SELECT 
+			id, username, password, email, first_name, last_name, 
+			profile_picture_url, sex, age, role, created_at, updated_at
+		FROM users 
+		WHERE id = $1`
 
-	query := `SELECT id, username, email, password_hash, role FROM user_credentials WHERE id = $1`
+	var user entities.User
+	var profilePicURL, sex sql.NullString
+	var age sql.NullInt32
+
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
-		&user.Credentials.ID,
-		&user.Credentials.Username,
-		&user.Credentials.Email,
-		&user.Credentials.PasswordHash,
-		&user.Credentials.Role,
+		&user.ID,
+		&user.Username,
+		&user.PasswordHash,
+		&user.Email,
+		&user.FirstName,
+		&user.LastName,
+		&profilePicURL,
+		&sex,
+		&age,
+		&user.Role,
+		&user.CreatedAt,
+		&user.UpdatedAt,
 	)
 
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
 	if err != nil {
-		return nil, err
+		if err == sql.ErrNoRows {
+			return nil, errors.New("user not found")
+		}
+		return nil, fmt.Errorf("error retrieving user: %v", err)
 	}
 
-	// Get personal info
-	user.Personal, _ = r.GetPersonalInfo(ctx, id)
-
-	// Get role-specific details
-	if user.Credentials.Role == "student" {
-		user.Student, _ = r.GetStudentDetails(ctx, id)
-	} else if user.Credentials.Role == "tutor" {
-		user.Tutor, _ = r.GetTutorDetails(ctx, id)
+	// Handle nullable fields
+	if profilePicURL.Valid {
+		user.ProfilePictureURL = &profilePicURL.String
 	}
 
-	return user, nil
+	if sex.Valid {
+		user.Sex = &sex.String
+	}
+
+	if age.Valid {
+		ageVal := int(age.Int32)
+		user.Age = &ageVal
+	}
+
+	return &user, nil
 }
 
-// UpdateUserCredentials updates a user's credentials
-func (r *userRepositoryImpl) UpdateUserCredentials(ctx context.Context, creds entities.UserCredentials) error {
+// UpdateUser updates a user's information
+func (r *userRepositoryImpl) UpdateUser(ctx context.Context, user *entities.User) error {
 	query := `
-        UPDATE user_credentials 
-        SET email = $1, password_hash = $2
-        WHERE id = $3`
+		UPDATE users
+		SET 
+			email = $1,
+			first_name = $2,
+			last_name = $3,
+			profile_picture_url = $4,
+			sex = $5,
+			age = $6,
+			updated_at = $7
+		WHERE id = $8
+		RETURNING updated_at`
 
-	result, err := r.db.ExecContext(ctx, query, creds.Email, creds.PasswordHash, creds.ID)
-	if err != nil {
-		return err
-	}
-
-	rows, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if rows == 0 {
-		return errors.New("user not found")
-	}
-
-	return nil
-}
-
-// CreatePersonalInfo creates personal information for a user
-func (r *userRepositoryImpl) CreatePersonalInfo(ctx context.Context, info entities.UserPersonal) error {
-	query := `
-        INSERT INTO user_personal (user_id, first_name, last_name, profile_picture, age, sex)
-        VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING id`
-
+	now := time.Now()
 	err := r.db.QueryRowContext(
 		ctx,
 		query,
-		info.UserID,
-		info.FirstName,
-		info.LastName,
-		info.ProfilePicture,
-		info.Age,
-		info.Sex,
-	).Scan(&info.ID)
+		user.Email,
+		user.FirstName,
+		user.LastName,
+		user.ProfilePictureURL,
+		user.Sex,
+		user.Age,
+		now,
+		user.ID,
+	).Scan(&user.UpdatedAt)
 
 	if err != nil {
-		logger.Error("Failed to create personal info", "error", err)
-		return err
+		if err == sql.ErrNoRows {
+			return errors.New("user not found")
+		}
+		// Check for unique constraint violation
+		if pqErr, ok := err.(*pq.Error); ok {
+			if pqErr.Code == "23505" && strings.Contains(pqErr.Message, "email") {
+				return errors.New("email already exists")
+			}
+		}
+		return fmt.Errorf("error updating user: %v", err)
 	}
 
 	return nil
 }
 
-// GetPersonalInfo retrieves personal information for a user
-func (r *userRepositoryImpl) GetPersonalInfo(ctx context.Context, userID int) (*entities.UserPersonal, error) {
-	info := &entities.UserPersonal{}
-
+// AddUserLanguage adds a language proficiency for a user
+func (r *userRepositoryImpl) AddUserLanguage(ctx context.Context, userLanguage *entities.UserLanguage) error {
 	query := `
-        SELECT id, user_id, first_name, last_name, profile_picture, age, sex
-        FROM user_personal
-        WHERE user_id = $1`
+		INSERT INTO user_languages (user_id, language_id, proficiency_id, created_at)
+		VALUES ($1, $2, $3, $4)
+		ON CONFLICT (user_id, language_id) 
+		DO UPDATE SET proficiency_id = $3, created_at = $4
+		RETURNING created_at`
 
-	err := r.db.QueryRowContext(ctx, query, userID).Scan(
-		&info.ID,
-		&info.UserID,
-		&info.FirstName,
-		&info.LastName,
-		&info.ProfilePicture,
-		&info.Age,
-		&info.Sex,
-	)
-
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	return info, nil
-}
-
-// UpdatePersonalInfo updates personal information for a user
-func (r *userRepositoryImpl) UpdatePersonalInfo(ctx context.Context, info entities.UserPersonal) error {
-	query := `
-        UPDATE user_personal 
-        SET first_name = $1, last_name = $2, profile_picture = $3, age = $4, sex = $5
-        WHERE user_id = $6`
-
-	result, err := r.db.ExecContext(
+	now := time.Now()
+	err := r.db.QueryRowContext(
 		ctx,
 		query,
-		info.FirstName,
-		info.LastName,
-		info.ProfilePicture,
-		info.Age,
-		info.Sex,
-		info.UserID,
-	)
-	if err != nil {
-		return err
-	}
+		userLanguage.UserID,
+		userLanguage.LanguageID,
+		userLanguage.ProficiencyID,
+		now,
+	).Scan(&userLanguage.CreatedAt)
 
-	rows, err := result.RowsAffected()
 	if err != nil {
-		return err
-	}
-	if rows == 0 {
-		return errors.New("personal info not found")
+		return fmt.Errorf("error adding user language: %v", err)
 	}
 
 	return nil
 }
 
-// CreateStudentDetails creates student details for a user
-func (r *userRepositoryImpl) CreateStudentDetails(ctx context.Context, details entities.StudentDetails) error {
+// GetUserLanguages retrieves all languages for a user
+func (r *userRepositoryImpl) GetUserLanguages(ctx context.Context, userID int) ([]entities.UserLanguage, error) {
 	query := `
-        INSERT INTO student_details (user_id, learning_languages, learning_goals, interests)
-        VALUES ($1, $2, $3, $4)
-        RETURNING id`
+		SELECT ul.user_id, ul.language_id, ul.proficiency_id, ul.created_at,
+			   l.name as language_name, p.name as proficiency_name
+		FROM user_languages ul
+		JOIN languages l ON ul.language_id = l.id
+		JOIN language_proficiency p ON ul.proficiency_id = p.id
+		WHERE ul.user_id = $1
+		ORDER BY ul.created_at DESC`
 
-	learningLanguagesJSON, err := json.Marshal(details.LearningLanguages)
+	rows, err := r.db.QueryContext(ctx, query, userID)
 	if err != nil {
-		return err
-	}
-
-	err = r.db.QueryRowContext(
-		ctx,
-		query,
-		details.UserID,
-		learningLanguagesJSON,
-		pq.Array(details.LearningGoals),
-		pq.Array(details.Interests),
-	).Scan(&details.ID)
-
-	if err != nil {
-		logger.Error("Failed to create student details", "error", err)
-		return err
-	}
-
-	return nil
-}
-
-// GetStudentDetails retrieves student details for a user
-func (r *userRepositoryImpl) GetStudentDetails(ctx context.Context, userID int) (*entities.StudentDetails, error) {
-	details := &entities.StudentDetails{}
-	var learningLanguagesJSON []byte
-
-	query := `
-        SELECT id, user_id, learning_languages, learning_goals, interests
-        FROM student_details
-        WHERE user_id = $1`
-
-	err := r.db.QueryRowContext(ctx, query, userID).Scan(
-		&details.ID,
-		&details.UserID,
-		&learningLanguagesJSON,
-		pq.Array(&details.LearningGoals),
-		pq.Array(&details.Interests),
-	)
-
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(learningLanguagesJSON, &details.LearningLanguages)
-	if err != nil {
-		return nil, err
-	}
-
-	return details, nil
-}
-
-// UpdateStudentDetails updates student details for a user
-func (r *userRepositoryImpl) UpdateStudentDetails(ctx context.Context, details entities.StudentDetails) error {
-	query := `
-        UPDATE student_details 
-        SET learning_languages = $1, learning_goals = $2, interests = $3
-        WHERE user_id = $4`
-
-	learningLanguagesJSON, err := json.Marshal(details.LearningLanguages)
-	if err != nil {
-		return err
-	}
-
-	result, err := r.db.ExecContext(
-		ctx,
-		query,
-		learningLanguagesJSON,
-		pq.Array(details.LearningGoals),
-		pq.Array(details.Interests),
-		details.UserID,
-	)
-	if err != nil {
-		return err
-	}
-
-	rows, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if rows == 0 {
-		return errors.New("student details not found")
-	}
-
-	return nil
-}
-
-// CreateTutorDetails creates tutor details for a user
-func (r *userRepositoryImpl) CreateTutorDetails(ctx context.Context, details *entities.TutorDetails) error {
-	query := `
-        INSERT INTO tutor_details (
-            user_id, bio, teaching_languages, education,
-            interests, hourly_rate, introduction_video, approved
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        RETURNING id`
-
-	// Convert arrays to JSONB
-	teachingLanguagesJSON, err := json.Marshal(details.TeachingLanguages)
-	if err != nil {
-		return fmt.Errorf("failed to marshal teaching languages: %v", err)
-	}
-
-	educationJSON, err := json.Marshal(details.Education)
-	if err != nil {
-		return fmt.Errorf("failed to marshal education: %v", err)
-	}
-
-	err = r.db.QueryRowContext(
-		ctx,
-		query,
-		details.UserID,
-		details.Bio,
-		teachingLanguagesJSON,
-		educationJSON,
-		pq.Array(details.Interests),
-		details.IntroductionVideo,
-		details.Approved,
-	).Scan(&details.ID)
-
-	if err != nil {
-		logger.Error("Failed to create tutor details", "error", err)
-		return fmt.Errorf("failed to create tutor details: %v", err)
-	}
-
-	return nil
-}
-
-// GetTutorDetails retrieves tutor details for a user
-func (r *userRepositoryImpl) GetTutorDetails(ctx context.Context, userID int) (*entities.TutorDetails, error) {
-	query := `
-        SELECT id, user_id, bio, teaching_languages, education,
-               interests, hourly_rate, introduction_video, approved,
-               created_at, updated_at
-        FROM tutor_details
-        WHERE user_id = $1`
-
-	var details entities.TutorDetails
-	var teachingLanguagesJSON, educationJSON []byte
-
-	err := r.db.QueryRowContext(ctx, query, userID).Scan(
-		&details.ID,
-		&details.UserID,
-		&details.Bio,
-		&teachingLanguagesJSON,
-		&educationJSON,
-		pq.Array(&details.Interests),
-		&details.IntroductionVideo,
-		&details.Approved,
-		&details.CreatedAt,
-		&details.UpdatedAt,
-	)
-
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
-	if err != nil {
-		logger.Error("Failed to get tutor details", "error", err)
-		return nil, fmt.Errorf("failed to get tutor details: %v", err)
-	}
-
-	// Unmarshal JSON fields
-	if err := json.Unmarshal(teachingLanguagesJSON, &details.TeachingLanguages); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal teaching languages: %v", err)
-	}
-	if err := json.Unmarshal(educationJSON, &details.Education); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal education: %v", err)
-	}
-
-	return &details, nil
-}
-
-// UpdateTutorDetails updates tutor details for a user
-func (r *userRepositoryImpl) UpdateTutorDetails(ctx context.Context, details *entities.TutorDetails) error {
-	query := `
-        UPDATE tutor_details
-        SET bio = $1,
-            teaching_languages = $2,
-            education = $3,
-            interests = $4,
-            hourly_rate = $5,
-            introduction_video = $6,
-            approved = $7
-        WHERE user_id = $8`
-
-	// Convert arrays to JSONB
-	teachingLanguagesJSON, err := json.Marshal(details.TeachingLanguages)
-	if err != nil {
-		return fmt.Errorf("failed to marshal teaching languages: %v", err)
-	}
-
-	educationJSON, err := json.Marshal(details.Education)
-	if err != nil {
-		return fmt.Errorf("failed to marshal education: %v", err)
-	}
-
-	result, err := r.db.ExecContext(
-		ctx,
-		query,
-		details.Bio,
-		teachingLanguagesJSON,
-		educationJSON,
-		pq.Array(details.Interests),
-		details.IntroductionVideo,
-		details.Approved,
-		details.UserID,
-	)
-
-	if err != nil {
-		logger.Error("Failed to update tutor details", "error", err)
-		return fmt.Errorf("failed to update tutor details: %v", err)
-	}
-
-	rows, err := result.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %v", err)
-	}
-	if rows == 0 {
-		return fmt.Errorf("tutor details not found for user ID: %d", details.UserID)
-	}
-
-	return nil
-}
-
-// ListTutors retrieves a list of tutors with optional filtering
-func (r *userRepositoryImpl) ListTutors(ctx context.Context, limit, offset int, filters map[string]interface{}) ([]*entities.User, error) {
-	query := `
-        WITH tutor_data AS (
-            SELECT 
-                uc.id as user_id,
-                uc.username,
-                uc.email,
-                uc.role,
-                up.first_name,
-                up.last_name,
-                up.profile_picture,
-                td.bio,
-                td.teaching_languages,
-                td.education,
-                td.interests,
-                td.introduction_video,
-                td.approved
-            FROM user_credentials uc
-            LEFT JOIN user_personal up ON uc.id = up.user_id
-            LEFT JOIN tutor_details td ON uc.id = td.user_id
-            WHERE uc.role = 'tutor'
-        )
-        SELECT * FROM tutor_data WHERE 1=1`
-
-	args := []interface{}{}
-	argPosition := 1
-
-	// Add filters
-	if language, ok := filters["language"].(string); ok && language != "" {
-		query += ` AND teaching_languages @> $` + strconv.Itoa(argPosition) + `::jsonb`
-		languageFilter := fmt.Sprintf(`[{"language":"%s"}]`, language)
-		args = append(args, languageFilter)
-		argPosition++
-	}
-
-	// Add pagination
-	query += ` ORDER BY user_id DESC LIMIT $` + strconv.Itoa(argPosition) +
-		` OFFSET $` + strconv.Itoa(argPosition+1)
-	args = append(args, limit, offset)
-
-	rows, err := r.db.QueryContext(ctx, query, args...)
-	if err != nil {
-		logger.Error("Failed to list tutors", "error", err)
-		return nil, fmt.Errorf("failed to list tutors: %v", err)
+		return nil, fmt.Errorf("error retrieving user languages: %v", err)
 	}
 	defer rows.Close()
 
-	var tutors []*entities.User
+	var userLanguages []entities.UserLanguage
 	for rows.Next() {
-		var (
-			user             entities.User
-			creds            entities.UserCredentials
-			personal         entities.UserPersonal
-			details          entities.TutorDetails
-			teachingLangJSON []byte
-			educationJSON    []byte
-		)
+		var ul entities.UserLanguage
+		var language entities.Language
+		var proficiency entities.Proficiency
 
 		err := rows.Scan(
-			&creds.ID,
-			&creds.Username,
-			&creds.Email,
-			&creds.Role,
-			&personal.FirstName,
-			&personal.LastName,
-			&personal.ProfilePicture,
-			&details.Bio,
-			&teachingLangJSON,
-			&educationJSON,
-			pq.Array(&details.Interests),
-			&details.IntroductionVideo,
-			&details.Approved,
+			&ul.UserID,
+			&ul.LanguageID,
+			&ul.ProficiencyID,
+			&ul.CreatedAt,
+			&language.Name,
+			&proficiency.Name,
 		)
 
 		if err != nil {
-			logger.Error("Failed to scan tutor row", "error", err)
-			return nil, fmt.Errorf("failed to scan tutor row: %v", err)
+			return nil, fmt.Errorf("error scanning user language row: %v", err)
 		}
 
-		if err := json.Unmarshal(teachingLangJSON, &details.TeachingLanguages); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal teaching languages: %v", err)
-		}
+		language.ID = ul.LanguageID
+		proficiency.ID = ul.ProficiencyID
+		ul.Language = &language
+		ul.Proficiency = &proficiency
 
-		if err := json.Unmarshal(educationJSON, &details.Education); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal education: %v", err)
-		}
-
-		user.Credentials = &creds
-		user.Personal = &personal
-		user.Tutor = &details
-		tutors = append(tutors, &user)
+		userLanguages = append(userLanguages, ul)
 	}
 
-	return tutors, nil
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating user language rows: %v", err)
+	}
+
+	return userLanguages, nil
+}
+
+// UpdateUserLanguage updates a user's language proficiency
+func (r *userRepositoryImpl) UpdateUserLanguage(ctx context.Context, userLanguage *entities.UserLanguage) error {
+	query := `
+		UPDATE user_languages
+		SET proficiency_id = $1
+		WHERE user_id = $2 AND language_id = $3`
+
+	result, err := r.db.ExecContext(
+		ctx,
+		query,
+		userLanguage.ProficiencyID,
+		userLanguage.UserID,
+		userLanguage.LanguageID,
+	)
+
+	if err != nil {
+		return fmt.Errorf("error updating user language: %v", err)
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("error getting rows affected: %v", err)
+	}
+	if rows == 0 {
+		return errors.New("language not found for user")
+	}
+
+	return nil
+}
+
+// RemoveUserLanguage removes a language for a user
+func (r *userRepositoryImpl) RemoveUserLanguage(ctx context.Context, userID int, languageID int) error {
+	query := `DELETE FROM user_languages WHERE user_id = $1 AND language_id = $2`
+
+	result, err := r.db.ExecContext(ctx, query, userID, languageID)
+	if err != nil {
+		return fmt.Errorf("error removing user language: %v", err)
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("error getting rows affected: %v", err)
+	}
+	if rows == 0 {
+		return errors.New("language not found for user")
+	}
+
+	return nil
+}
+
+// AddUserInterest adds an interest for a user
+func (r *userRepositoryImpl) AddUserInterest(ctx context.Context, userID int, interestID int) error {
+	query := `
+		INSERT INTO user_interests (user_id, interest_id, created_at)
+		VALUES ($1, $2, $3)
+		ON CONFLICT (user_id, interest_id) DO NOTHING`
+
+	now := time.Now()
+	_, err := r.db.ExecContext(
+		ctx,
+		query,
+		userID,
+		interestID,
+		now,
+	)
+
+	if err != nil {
+		return fmt.Errorf("error adding user interest: %v", err)
+	}
+
+	return nil
+}
+
+// GetUserInterests retrieves all interests for a user
+func (r *userRepositoryImpl) GetUserInterests(ctx context.Context, userID int) ([]entities.UserInterest, error) {
+	query := `
+		SELECT ui.user_id, ui.interest_id, ui.created_at, i.name
+		FROM user_interests ui
+		JOIN interests i ON ui.interest_id = i.id
+		WHERE ui.user_id = $1
+		ORDER BY ui.created_at DESC`
+
+	rows, err := r.db.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving user interests: %v", err)
+	}
+	defer rows.Close()
+
+	var userInterests []entities.UserInterest
+	for rows.Next() {
+		var ui entities.UserInterest
+		var interest entities.Interest
+
+		err := rows.Scan(
+			&ui.UserID,
+			&ui.InterestID,
+			&ui.CreatedAt,
+			&interest.Name,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("error scanning user interest row: %v", err)
+		}
+
+		interest.ID = ui.InterestID
+		ui.Interest = &interest
+
+		userInterests = append(userInterests, ui)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating user interest rows: %v", err)
+	}
+
+	return userInterests, nil
+}
+
+// RemoveUserInterest removes an interest for a user
+func (r *userRepositoryImpl) RemoveUserInterest(ctx context.Context, userID int, interestID int) error {
+	query := `DELETE FROM user_interests WHERE user_id = $1 AND interest_id = $2`
+
+	result, err := r.db.ExecContext(ctx, query, userID, interestID)
+	if err != nil {
+		return fmt.Errorf("error removing user interest: %v", err)
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("error getting rows affected: %v", err)
+	}
+	if rows == 0 {
+		return errors.New("interest not found for user")
+	}
+
+	return nil
+}
+
+// AddUserGoal adds a goal for a user
+func (r *userRepositoryImpl) AddUserGoal(ctx context.Context, userID int, goalID int) error {
+	query := `
+		INSERT INTO user_goals (user_id, goal_id, created_at)
+		VALUES ($1, $2, $3)
+		ON CONFLICT (user_id, goal_id) DO NOTHING`
+
+	now := time.Now()
+	_, err := r.db.ExecContext(
+		ctx,
+		query,
+		userID,
+		goalID,
+		now,
+	)
+
+	if err != nil {
+		return fmt.Errorf("error adding user goal: %v", err)
+	}
+
+	return nil
+}
+
+// GetUserGoals retrieves all goals for a user
+func (r *userRepositoryImpl) GetUserGoals(ctx context.Context, userID int) ([]entities.UserGoal, error) {
+	query := `
+		SELECT ug.user_id, ug.goal_id, ug.created_at, g.name
+		FROM user_goals ug
+		JOIN goals g ON ug.goal_id = g.id
+		WHERE ug.user_id = $1
+		ORDER BY ug.created_at DESC`
+
+	rows, err := r.db.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving user goals: %v", err)
+	}
+	defer rows.Close()
+
+	var userGoals []entities.UserGoal
+	for rows.Next() {
+		var ug entities.UserGoal
+		var goal entities.Goal
+
+		err := rows.Scan(
+			&ug.UserID,
+			&ug.GoalID,
+			&ug.CreatedAt,
+			&goal.Name,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("error scanning user goal row: %v", err)
+		}
+
+		goal.ID = ug.GoalID
+		ug.Goal = &goal
+
+		userGoals = append(userGoals, ug)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating user goal rows: %v", err)
+	}
+
+	return userGoals, nil
+}
+
+// RemoveUserGoal removes a goal for a user
+func (r *userRepositoryImpl) RemoveUserGoal(ctx context.Context, userID int, goalID int) error {
+	query := `DELETE FROM user_goals WHERE user_id = $1 AND goal_id = $2`
+
+	result, err := r.db.ExecContext(ctx, query, userID, goalID)
+	if err != nil {
+		return fmt.Errorf("error removing user goal: %v", err)
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("error getting rows affected: %v", err)
+	}
+	if rows == 0 {
+		return errors.New("goal not found for user")
+	}
+
+	return nil
+}
+
+// GetAllLanguages retrieves all available languages
+func (r *userRepositoryImpl) GetAllLanguages(ctx context.Context) ([]entities.Language, error) {
+	query := `SELECT id, name, created_at FROM languages ORDER BY name`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving languages: %v", err)
+	}
+	defer rows.Close()
+
+	var languages []entities.Language
+	for rows.Next() {
+		var language entities.Language
+
+		err := rows.Scan(
+			&language.ID,
+			&language.Name,
+			&language.CreatedAt,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("error scanning language row: %v", err)
+		}
+
+		languages = append(languages, language)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating language rows: %v", err)
+	}
+
+	return languages, nil
+}
+
+// GetAllInterests retrieves all available interests
+func (r *userRepositoryImpl) GetAllInterests(ctx context.Context) ([]entities.Interest, error) {
+	query := `SELECT id, name, created_at FROM interests ORDER BY name`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving interests: %v", err)
+	}
+	defer rows.Close()
+
+	var interests []entities.Interest
+	for rows.Next() {
+		var interest entities.Interest
+
+		err := rows.Scan(
+			&interest.ID,
+			&interest.Name,
+			&interest.CreatedAt,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("error scanning interest row: %v", err)
+		}
+
+		interests = append(interests, interest)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating interest rows: %v", err)
+	}
+
+	return interests, nil
+}
+
+// GetAllGoals retrieves all available goals
+func (r *userRepositoryImpl) GetAllGoals(ctx context.Context) ([]entities.Goal, error) {
+	query := `SELECT id, name, created_at FROM goals ORDER BY name`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving goals: %v", err)
+	}
+	defer rows.Close()
+
+	var goals []entities.Goal
+	for rows.Next() {
+		var goal entities.Goal
+
+		err := rows.Scan(
+			&goal.ID,
+			&goal.Name,
+			&goal.CreatedAt,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("error scanning goal row: %v", err)
+		}
+
+		goals = append(goals, goal)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating goal rows: %v", err)
+	}
+
+	return goals, nil
+}
+
+// GetAllProficiencies retrieves all available language proficiency levels
+func (r *userRepositoryImpl) GetAllProficiencies(ctx context.Context) ([]entities.Proficiency, error) {
+	query := `SELECT id, name, created_at FROM language_proficiency ORDER BY id`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving proficiencies: %v", err)
+	}
+	defer rows.Close()
+
+	var proficiencies []entities.Proficiency
+	for rows.Next() {
+		var proficiency entities.Proficiency
+
+		err := rows.Scan(
+			&proficiency.ID,
+			&proficiency.Name,
+			&proficiency.CreatedAt,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("error scanning proficiency row: %v", err)
+		}
+
+		proficiencies = append(proficiencies, proficiency)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating proficiency rows: %v", err)
+	}
+
+	return proficiencies, nil
 }

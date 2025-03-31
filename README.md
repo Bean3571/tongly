@@ -1,6 +1,6 @@
 # Tongly
 
-Tongly is a web-based platform that connects students and tutors for real-time language learning through video calls. The platform offers features like user registration, scheduling lessons, tutor feedback and ratings, gamification (language challenges and leaderboards), localization (multi-language support), and monetization through a virtual wallet.
+Tongly is a web-based platform that connects students and tutors for real-time language learning through video calls. The platform offers features like user registration, scheduling lessons, tutor feedback and ratings, gamification (language challenges and leaderboards), localization (multi-language support)
 
 ---
 
@@ -8,12 +8,6 @@ Tongly is a web-based platform that connects students and tutors for real-time l
 
 1. [Features](#features)
 2. [Technologies](#technologies)
-3. [Installation](#installation)
-4. [Configuration](#configuration)
-5. [Running the Project](#running-the-project)
-6. [API Documentation](#api-documentation)
-7. [Contributing](#contributing)
-8. [License](#license)
 
 ---
 
@@ -23,7 +17,6 @@ Tongly is a web-based platform that connects students and tutors for real-time l
 - **Tutor Management**: Tutors can manage their profiles, availability, and schedules.
 - **Lesson Scheduling**: Students can book lessons with tutors.
 - **Gamification**: Language challenges and leaderboards to engage students.
-- **Monetization**: Virtual wallet for payments and withdrawals.
 - **Localization**: Multi-language support for a global audience.
 
 ---

@@ -59,7 +59,7 @@ export const LanguageSwitcher: React.FC = () => {
                 aria-label="Select language"
             >
                 <span className="text-xl" aria-hidden="true">{currentLocaleConfig.flag}</span>
-                <span className="hidden sm:inline">{currentLocaleConfig.name}</span>
+                <span className="hidden sm:inline">{currentLocaleConfig.nativeName}</span>
             </button>
 
             {isOpen && (
@@ -89,10 +89,7 @@ export const LanguageSwitcher: React.FC = () => {
                                 {locale.flag}
                             </span>
                             <div>
-                                <div>{locale.name}</div>
-                                <div className="text-xs text-gray-500 dark:text-gray-400">
-                                    {locale.nativeName}
-                                </div>
+                                <div>{locale.nativeName}</div>
                             </div>
                         </div>
                     ))}

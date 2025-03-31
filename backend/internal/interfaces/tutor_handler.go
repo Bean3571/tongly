@@ -55,12 +55,7 @@ func (h *TutorHandler) ListTutors(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
 
-	// Parse filters from query parameters
-	filters := usecases.TutorFilters{
-		Language: c.Query("language"),
-	}
-
-	tutors, err := h.TutorUseCase.ListTutors(c.Request.Context(), page, pageSize, filters)
+	tutors, err := h.TutorUseCase.ListTutors(c.Request.Context(), page, pageSize)
 	if err != nil {
 		logger.Error("Failed to list tutors", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to list tutors"})
@@ -200,11 +195,17 @@ func (h *TutorHandler) UpdateTutorProfile(c *gin.Context) {
 
 // SearchTutors handles the search request for tutors
 func (h *TutorHandler) SearchTutors(c *gin.Context) {
-	filters := entities.TutorSearchFilters{
-		Languages: strings.Split(c.Query("languages"), ","),
+	languages := c.Query("languages")
+	var languagesList []string
+	if languages != "" {
+		languagesList = strings.Split(languages, ",")
 	}
 
-	tutors, err := h.TutorUseCase.SearchTutors(c.Request.Context(), filters)
+	filters := entities.TutorSearchFilters{
+		Languages: languagesList,
+	}
+
+	tutors, err := h.TutorUseCase.SearchTutors(c.Request.Context(), &filters)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

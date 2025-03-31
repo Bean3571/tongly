@@ -1,83 +1,76 @@
 package entities
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"time"
 
-type LearningGoal string
-
-const (
-	GoalBusiness  LearningGoal = "business"  // 💼 Business
-	GoalJob       LearningGoal = "job"       // 💼 Job Opportunities
-	GoalStudy     LearningGoal = "study"     // 📚 Academic Studies
-	GoalTrip      LearningGoal = "trip"      // ✈️ Travel
-	GoalMigration LearningGoal = "migration" // 🌍 Migration
-	GoalExams     LearningGoal = "exams"     // 📝 Language Exams
-	GoalCulture   LearningGoal = "culture"   // 🎨 Cultural Interest
-	GoalFriends   LearningGoal = "friends"   // 👥 Making Friends
-	GoalHobby     LearningGoal = "hobby"     // 🎯 Personal Interest
+	"golang.org/x/crypto/bcrypt"
 )
 
-// Interest categories
-var Interests = []string{
-	"music",       // 🎵 Music
-	"movies",      // 🎬 Movies & TV Shows
-	"books",       // 📚 Books & Literature
-	"sports",      // ⚽ Sports
-	"technology",  // 💻 Technology
-	"art",         // 🎨 Art
-	"cooking",     // 🍳 Cooking
-	"travel",      // ✈️ Travel
-	"photography", // 📷 Photography
-	"gaming",      // 🎮 Gaming
-	"nature",      // 🌿 Nature
-	"fashion",     // 👗 Fashion
-	"science",     // 🔬 Science
-	"history",     // 📜 History
-	"business",    // 💼 Business
-	"politics",    // 🏛️ Politics
-	"health",      // 🏥 Health & Wellness
-	"education",   // 🎓 Education
-}
-
-// UserCredentials represents the authentication data
-type UserCredentials struct {
-	ID           int    `json:"id"`
-	Username     string `json:"username"`
-	Password     string `json:"password,omitempty"`
-	PasswordHash string `json:"-"`
-	Email        string `json:"email"`
-	Role         string `json:"role"`
-}
-
-// UserPersonal represents user's personal information
-type UserPersonal struct {
-	ID             int     `json:"id"`
-	UserID         int     `json:"user_id"`
-	FirstName      *string `json:"first_name,omitempty"`
-	LastName       *string `json:"last_name,omitempty"`
-	ProfilePicture *string `json:"profile_picture,omitempty"`
-	Age            *int    `json:"age,omitempty"`
-	Sex            *string `json:"sex,omitempty"`
-}
-
-// StudentDetails represents student-specific data
-type StudentDetails struct {
-	ID                int             `json:"id"`
-	UserID            int             `json:"user_id"`
-	LearningLanguages []LanguageLevel `json:"learning_languages"`
-	LearningGoals     []string        `json:"learning_goals"`
-	Interests         []string        `json:"interests"`
-}
-
-// User represents the complete user data
+// User represents a user in the system
 type User struct {
-	Credentials *UserCredentials `json:"credentials"`
-	Personal    *UserPersonal    `json:"personal,omitempty"`
-	Student     *StudentDetails  `json:"student,omitempty"`
-	Tutor       *TutorDetails    `json:"tutor,omitempty"`
+	ID                int       `json:"id"`
+	Username          string    `json:"username"`
+	Email             string    `json:"email"`
+	PasswordHash      string    `json:"-"`
+	FirstName         string    `json:"first_name"`
+	LastName          string    `json:"last_name"`
+	ProfilePictureURL *string   `json:"profile_picture_url,omitempty"`
+	Sex               *string   `json:"sex,omitempty"`
+	Age               *int      `json:"age,omitempty"`
+	Role              string    `json:"role"`
+	CreatedAt         time.Time `json:"created_at"`
+	UpdatedAt         time.Time `json:"updated_at"`
+}
+
+// Proficiency represents a language proficiency level
+type Proficiency struct {
+	ID        int       `json:"id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// UserLanguage represents a user's language proficiency
+type UserLanguage struct {
+	UserID        int          `json:"user_id"`
+	LanguageID    int          `json:"language_id"`
+	ProficiencyID int          `json:"proficiency_id"`
+	Language      *Language    `json:"language,omitempty"`
+	Proficiency   *Proficiency `json:"proficiency,omitempty"`
+	CreatedAt     time.Time    `json:"created_at"`
+}
+
+// UserInterest represents a user's interest
+type UserInterest struct {
+	UserID     int       `json:"user_id"`
+	InterestID int       `json:"interest_id"`
+	Interest   *Interest `json:"interest,omitempty"`
+	CreatedAt  time.Time `json:"created_at"`
+}
+
+// UserGoal represents a user's learning goal
+type UserGoal struct {
+	UserID    int       `json:"user_id"`
+	GoalID    int       `json:"goal_id"`
+	Goal      *Goal     `json:"goal,omitempty"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// Interest represents an interest category
+type Interest struct {
+	ID        int       `json:"id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// Goal represents a learning goal
+type Goal struct {
+	ID        int       `json:"id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 // HashPassword hashes the user's password using bcrypt
-func (u *UserCredentials) HashPassword(password string) error {
+func (u *User) HashPassword(password string) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
@@ -87,7 +80,7 @@ func (u *UserCredentials) HashPassword(password string) error {
 }
 
 // ValidatePassword checks if the provided password matches the hashed password
-func (u *UserCredentials) ValidatePassword(password string) bool {
+func (u *User) ValidatePassword(password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password))
 	return err == nil
 }

@@ -26,14 +26,13 @@ func NewLessonHandler(
 func (h *LessonHandler) RegisterRoutes(r *gin.Engine) {
 	lessons := r.Group("/api/lessons")
 	{
-
 		// Lesson management
 		lessons.POST("", middleware.AuthMiddleware(), h.BookLesson)
 		lessons.GET("/:id", middleware.AuthMiddleware(), h.GetLesson)
 		lessons.POST("/:id/cancel", middleware.AuthMiddleware(), h.CancelLesson)
-		lessons.GET("/upcoming", middleware.AuthMiddleware(), h.GetLessons)
-		lessons.GET("/completed", middleware.AuthMiddleware(), h.GetLessons)
-
+		lessons.GET("", middleware.AuthMiddleware(), h.GetAllLessons)
+		lessons.GET("/upcoming", middleware.AuthMiddleware(), h.GetUpcomingLessons)
+		lessons.GET("/completed", middleware.AuthMiddleware(), h.GetCompletedLessons)
 	}
 }
 
@@ -118,7 +117,7 @@ func (h *LessonHandler) CancelLesson(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Lesson cancelled successfully"})
 }
 
-func (h *LessonHandler) GetLessons(c *gin.Context) {
+func (h *LessonHandler) GetAllLessons(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
@@ -126,6 +125,38 @@ func (h *LessonHandler) GetLessons(c *gin.Context) {
 	}
 
 	lessons, err := h.lessonUseCase.GetLessons(c.Request.Context(), userID.(int))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, lessons)
+}
+
+func (h *LessonHandler) GetUpcomingLessons(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	lessons, err := h.lessonUseCase.GetUpcomingLessons(c.Request.Context(), userID.(int))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, lessons)
+}
+
+func (h *LessonHandler) GetCompletedLessons(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	lessons, err := h.lessonUseCase.GetCompletedLessons(c.Request.Context(), userID.(int))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

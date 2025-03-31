@@ -28,5 +28,5 @@ type LessonRepository interface {
 	GetUpcomingByUserID(ctx context.Context, userID int) ([]entities.Lesson, error)
 
 	// Status management
-	CancelLesson(ctx context.Context, lessonID int) error
+	CancelLesson(ctx context.Context, lessonID int, userID int) error
 }

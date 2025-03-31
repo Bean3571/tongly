@@ -69,22 +69,25 @@ func main() {
 	userRepo := repositories.NewUserRepository(db)
 	tutorRepo := repositories.NewTutorRepository(db)
 	lessonRepo := repositories.NewLessonRepository(db)
+	studentRepo := repositories.NewStudentRepository(db)
 
 	// Initialize use cases
 	authUseCase := usecases.NewAuthUseCase(userRepo)
-	tutorUseCase := usecases.NewTutorUseCase(userRepo, tutorRepo)
+	tutorUseCase := usecases.NewTutorUseCase(tutorRepo, userRepo)
 	userUseCase := usecases.NewUserUseCase(userRepo)
 	lessonUseCase := usecases.NewLessonUseCase(
 		lessonRepo,
 		tutorRepo,
 		userRepo,
 	)
+	studentUseCase := usecases.NewStudentUseCase(studentRepo, userRepo)
 
 	// Initialize handlers
 	authHandler := interfaces.NewAuthHandler(authUseCase, tutorUseCase)
 	tutorHandler := interfaces.NewTutorHandler(tutorUseCase)
 	userHandler := interfaces.NewUserHandler(userUseCase)
 	lessonHandler := interfaces.NewLessonHandler(lessonUseCase)
+	studentHandler := interfaces.NewStudentHandler(studentUseCase)
 
 	// Create a new Gin router with recommended production settings
 	gin.SetMode(gin.ReleaseMode)
@@ -104,7 +107,7 @@ func main() {
 	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
 
 	// Register other routes
-	router.SetupRouter(r, authHandler, tutorHandler, userHandler, lessonHandler)
+	router.SetupRouter(r, authHandler, tutorHandler, userHandler, lessonHandler, studentHandler)
 
 	// Start server with graceful shutdown
 	srv := &http.Server{

@@ -30,22 +30,22 @@ func (uc *authUseCaseImpl) Register(ctx context.Context, username, email, passwo
 		"email", email,
 		"role", role)
 
-	// Create user credentials
-	creds := entities.UserCredentials{
+	// Create new user
+	user := &entities.User{
 		Username: username,
 		Email:    email,
 		Role:     role,
 	}
 
 	// Hash the password
-	if err := creds.HashPassword(password); err != nil {
+	if err := user.HashPassword(password); err != nil {
 		logger.Error("Failed to hash password", "error", err)
 		return nil, errors.New("failed to process password")
 	}
 
-	// Create user credentials
-	if err := uc.userRepo.CreateUserCredentials(ctx, creds); err != nil {
-		logger.Error("Failed to create user credentials",
+	// Create user
+	if err := uc.userRepo.CreateUser(ctx, user); err != nil {
+		logger.Error("Failed to create user",
 			"username", username,
 			"error", err)
 		return nil, err
@@ -62,7 +62,7 @@ func (uc *authUseCaseImpl) Register(ctx context.Context, username, email, passwo
 
 	logger.Info("User registration completed successfully",
 		"username", username,
-		"user_id", user.Credentials.ID)
+		"user_id", user.ID)
 	return user, nil
 }
 
@@ -86,13 +86,13 @@ func (uc *authUseCaseImpl) Authenticate(ctx context.Context, username, password 
 	logger.Info("User found, validating password", "username", username)
 
 	// Validate the password
-	if !user.Credentials.ValidatePassword(password) {
+	if !user.ValidatePassword(password) {
 		logger.Error("Invalid password", "username", username)
 		return nil, errors.New("invalid credentials")
 	}
 
 	logger.Info("Authentication successful",
 		"username", username,
-		"user_id", user.Credentials.ID)
+		"user_id", user.ID)
 	return user, nil
 }

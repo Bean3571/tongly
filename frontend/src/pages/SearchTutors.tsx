@@ -21,7 +21,7 @@ interface FilterState {
   searchQuery: string;
 }
 
-const TutorSearch: React.FC = () => {
+const SearchTutors: React.FC = () => {
   const navigate = useNavigate();
   const { showNotification } = useNotification();
   const [tutors, setTutors] = useState<Tutor[]>([]);
@@ -216,4 +216,4 @@ const TutorSearch: React.FC = () => {
   );
 };
 
-export default TutorSearch;
+export default SearchTutors;

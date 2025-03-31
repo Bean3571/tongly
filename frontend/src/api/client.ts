@@ -321,6 +321,31 @@ interface RegisterResponse {
     user: User;
 }
 
+export interface Language {
+    id: string;
+    name: string;
+}
+
+export interface Interest {
+    id: string;
+    name: string;
+}
+
+export interface Goal {
+    id: string;
+    name: string;
+}
+
+export interface LanguageProficiency {
+    id: string;
+    name: string;
+}
+
+export interface DegreeType {
+    id: string;
+    name: string;
+}
+
 export const api = {
     auth: {
         login: async (credentials: LoginCredentials): Promise<LoginResponse> => {
@@ -463,6 +488,53 @@ export const api = {
                     response: error.response?.data,
                     status: error.response?.status
                 });
+                throw error;
+            }
+        },
+    },
+    lists: {
+        getLanguages: async (): Promise<Language[]> => {
+            try {
+                const response = await apiClient.get<Language[]>('/api/lists/languages');
+                return response.data;
+            } catch (error) {
+                console.error('Failed to fetch languages:', error);
+                throw error;
+            }
+        },
+        getInterests: async (): Promise<Interest[]> => {
+            try {
+                const response = await apiClient.get<Interest[]>('/api/lists/interests');
+                return response.data;
+            } catch (error) {
+                console.error('Failed to fetch interests:', error);
+                throw error;
+            }
+        },
+        getGoals: async (): Promise<Goal[]> => {
+            try {
+                const response = await apiClient.get<Goal[]>('/api/lists/goals');
+                return response.data;
+            } catch (error) {
+                console.error('Failed to fetch goals:', error);
+                throw error;
+            }
+        },
+        getLanguageProficiencies: async (): Promise<LanguageProficiency[]> => {
+            try {
+                const response = await apiClient.get<LanguageProficiency[]>('/api/lists/language-proficiencies');
+                return response.data;
+            } catch (error) {
+                console.error('Failed to fetch language proficiencies:', error);
+                throw error;
+            }
+        },
+        getDegrees: async (): Promise<DegreeType[]> => {
+            try {
+                const response = await apiClient.get<DegreeType[]>('/api/lists/degrees');
+                return response.data;
+            } catch (error) {
+                console.error('Failed to fetch degrees:', error);
                 throw error;
             }
         },

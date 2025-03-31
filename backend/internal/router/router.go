@@ -16,6 +16,7 @@ func SetupRouter(
 	tutorHandler *interfaces.TutorHandler,
 	userHandler *interfaces.UserHandler,
 	lessonHandler *interfaces.LessonHandler,
+	studentHandler *interfaces.StudentHandler,
 ) {
 	// Add CORS middleware first
 	r.Use(cors.New(cors.Config{
@@ -62,12 +63,17 @@ func SetupRouter(
 			protected.GET("/tutors/profile", tutorHandler.GetTutorProfile)
 			protected.PUT("/tutors/:id/approval", tutorHandler.UpdateTutorApprovalStatus)
 
+			// Student routes
+			protected.GET("/students/profile", studentHandler.GetStudentProfile)
+			protected.PUT("/students/profile", studentHandler.UpdateStudentProfile)
+			protected.PUT("/students/streak", studentHandler.UpdateStudentStreak)
+
 			// Lesson routes
 			lessons := protected.Group("/lessons")
 			{
 				// List endpoints must come before parameterized routes
-				lessons.GET("/upcoming", lessonHandler.GetLessons)
-				lessons.GET("/completed", lessonHandler.GetLessons)
+				lessons.GET("/upcoming", lessonHandler.GetUpcomingLessons)
+				lessons.GET("/completed", lessonHandler.GetCompletedLessons)
 
 				// Parameterized routes
 				lessons.POST("", lessonHandler.BookLesson)
@@ -83,6 +89,7 @@ func NewRouter(
 	userHandler *interfaces.UserHandler,
 	tutorHandler *interfaces.TutorHandler,
 	lessonHandler *interfaces.LessonHandler,
+	studentHandler *interfaces.StudentHandler,
 ) *gin.Engine {
 	router := gin.Default()
 
@@ -127,9 +134,14 @@ func NewRouter(
 		protected.GET("/tutors/profile", tutorHandler.GetTutorProfile)
 		protected.PUT("/tutors/:id/approval", tutorHandler.UpdateTutorApprovalStatus)
 
+		// Student routes
+		protected.GET("/students/profile", studentHandler.GetStudentProfile)
+		protected.PUT("/students/profile", studentHandler.UpdateStudentProfile)
+		protected.PUT("/students/streak", studentHandler.UpdateStudentStreak)
+
 		// Lesson routes
-		protected.GET("/lessons/upcoming", lessonHandler.GetLessons)
-		protected.GET("/lessons/completed", lessonHandler.GetLessons)
+		protected.GET("/lessons/upcoming", lessonHandler.GetUpcomingLessons)
+		protected.GET("/lessons/completed", lessonHandler.GetCompletedLessons)
 		protected.POST("/lessons", lessonHandler.BookLesson)
 		protected.GET("/lessons/:id", lessonHandler.GetLesson)
 		protected.POST("/lessons/:id/cancel", lessonHandler.CancelLesson)

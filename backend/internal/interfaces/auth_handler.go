@@ -60,11 +60,11 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	if req.Role == "tutor" {
 		tutorReq := entities.TutorRegistrationRequest{
 			Bio:               "", // These will be filled out later
-			TeachingLanguages: []entities.Language{},
+			TeachingLanguages: []entities.UserLanguageUpdate{},
 			Education:         []entities.Education{},
 		}
 
-		if err := h.tutorUseCase.RegisterTutor(c.Request.Context(), user.Credentials.ID, tutorReq); err != nil {
+		if err := h.tutorUseCase.RegisterTutor(c.Request.Context(), user.ID, tutorReq); err != nil {
 			logger.Error("Failed to create tutor profile", "error", err)
 			// Continue with registration even if tutor profile creation fails
 			// The user can create it later through the tutor registration endpoint
@@ -72,14 +72,14 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	// Generate token
-	token, err := jwt.GenerateToken(user.Credentials.ID, user.Credentials.Role)
+	token, err := jwt.GenerateToken(user.ID, user.Role)
 	if err != nil {
 		logger.Error("Failed to generate token", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
 
-	logger.Info("Registration successful", "username", user.Credentials.Username)
+	logger.Info("Registration successful", "username", user.Username)
 	c.JSON(http.StatusOK, gin.H{
 		"token": token,
 		"user":  user,
@@ -104,14 +104,14 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	token, err := jwt.GenerateToken(user.Credentials.ID, user.Credentials.Role)
+	token, err := jwt.GenerateToken(user.ID, user.Role)
 	if err != nil {
 		logger.Error("Failed to generate token", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
 
-	logger.Info("Login successful", "username", user.Credentials.Username)
+	logger.Info("Login successful", "username", user.Username)
 	c.JSON(http.StatusOK, gin.H{
 		"token": token,
 		"user":  user,

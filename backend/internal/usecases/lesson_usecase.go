@@ -16,7 +16,8 @@ type LessonUseCase interface {
 	CancelLesson(ctx context.Context, userID int, lessonID int, request *entities.LessonCancellationRequest) error
 	GetLessonByID(ctx context.Context, userID int, lessonID int) (*entities.Lesson, error)
 	GetLessons(ctx context.Context, userID int) ([]entities.Lesson, error)
-	UpdateLessonStatus(ctx context.Context, lesson *entities.Lesson) error
+	GetUpcomingLessons(ctx context.Context, userID int) ([]entities.Lesson, error)
+	GetCompletedLessons(ctx context.Context, userID int) ([]entities.Lesson, error)
 }
 
 type lessonUseCase struct {
@@ -29,7 +30,6 @@ func NewLessonUseCase(
 	lessonRepo repositories.LessonRepository,
 	tutorRepo repositories.TutorRepository,
 	userRepo repositories.UserRepository,
-
 ) LessonUseCase {
 	return &lessonUseCase{
 		lessonRepo: lessonRepo,
@@ -45,13 +45,12 @@ func (uc *lessonUseCase) BookLesson(ctx context.Context, studentID int, request 
 	}
 
 	// Validate tutor exists and check approval status
-	tutor, err := uc.tutorRepo.GetTutorByID(ctx, request.TutorID)
+	tutorProfile, err := uc.tutorRepo.GetTutorByID(ctx, request.TutorID)
 	if err != nil {
 		return nil, err
 	}
 
 	// Check if the time slot is available
-	endTime := request.StartTime.Add(time.Duration(request.Duration) * time.Minute)
 	existingLessons, err := uc.lessonRepo.GetLessonsByTutor(ctx, request.TutorID)
 	if err != nil {
 		return nil, err
@@ -60,25 +59,24 @@ func (uc *lessonUseCase) BookLesson(ctx context.Context, studentID int, request 
 	// Check for time slot conflicts
 	for _, lesson := range existingLessons {
 		// Skip cancelled lessons when checking for conflicts
-		if lesson.Cancelled {
+		if lesson.CancelledAt != nil {
 			continue
 		}
 
-		if (request.StartTime.Before(lesson.EndTime) && endTime.After(lesson.StartTime)) ||
-			(request.StartTime.Equal(lesson.StartTime) && endTime.Equal(lesson.EndTime)) {
+		if (request.StartTime.Before(lesson.EndTime) && request.EndTime.After(lesson.StartTime)) ||
+			(request.StartTime.Equal(lesson.StartTime) && request.EndTime.Equal(lesson.EndTime)) {
 			return nil, errors.New("time slot is not available")
 		}
 	}
 
 	// Create the lesson
 	lesson := &entities.Lesson{
-		StudentID: studentID,
-		TutorID:   request.TutorID,
-		StartTime: request.StartTime,
-		EndTime:   endTime,
-		Duration:  request.Duration,
-		Cancelled: false,
-		Language:  request.Language,
+		StudentID:  studentID,
+		TutorID:    request.TutorID,
+		LanguageID: request.LanguageID,
+		StartTime:  request.StartTime,
+		EndTime:    request.EndTime,
+		Notes:      request.Notes,
 	}
 
 	err = uc.lessonRepo.CreateLesson(ctx, lesson)
@@ -87,7 +85,7 @@ func (uc *lessonUseCase) BookLesson(ctx context.Context, studentID int, request 
 	}
 
 	// If tutor is not approved, return a specific error type that includes the lesson
-	if !tutor.Approved {
+	if !tutorProfile.Approved {
 		return lesson, &entities.TutorNotApprovedError{
 			Message: "Lesson booked successfully, but tutor is not yet approved. The lesson will be pending until tutor approval.",
 			Lesson:  lesson,
@@ -118,7 +116,22 @@ func (uc *lessonUseCase) CancelLesson(ctx context.Context, userID int, lessonID 
 		return err
 	}
 
-	lesson.Cancelled = true
+	// Set cancellation info
+	now := time.Now()
+	lesson.CancelledBy = &userID
+	lesson.CancelledAt = &now
+
+	// If notes provided in the request, append them to existing notes
+	if request.Reason != "" {
+		cancellationNote := fmt.Sprintf("Cancelled: %s", request.Reason)
+		if lesson.Notes != nil {
+			combinedNotes := *lesson.Notes + "\n" + cancellationNote
+			lesson.Notes = &combinedNotes
+		} else {
+			lesson.Notes = &cancellationNote
+		}
+	}
+
 	return uc.lessonRepo.UpdateLesson(ctx, lesson)
 }
 
@@ -140,8 +153,12 @@ func (uc *lessonUseCase) GetLessons(ctx context.Context, userID int) ([]entities
 	return uc.lessonRepo.GetLessons(ctx, userID)
 }
 
-func (uc *lessonUseCase) UpdateLessonStatus(ctx context.Context, lesson *entities.Lesson) error {
-	return uc.lessonRepo.UpdateLesson(ctx, lesson)
+func (uc *lessonUseCase) GetUpcomingLessons(ctx context.Context, userID int) ([]entities.Lesson, error) {
+	return uc.lessonRepo.GetUpcomingByUserID(ctx, userID)
+}
+
+func (uc *lessonUseCase) GetCompletedLessons(ctx context.Context, userID int) ([]entities.Lesson, error) {
+	return uc.lessonRepo.GetCompletedByUserID(ctx, userID)
 }
 
 // Helper functions
