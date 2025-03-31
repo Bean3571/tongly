@@ -5,6 +5,7 @@ import (
 	"tongly-backend/internal/entities"
 	"tongly-backend/internal/logger"
 	"tongly-backend/internal/usecases"
+	"tongly-backend/pkg/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -118,10 +119,11 @@ func (h *StudentHandler) UpdateStudentStreak(c *gin.Context) {
 
 // RegisterRoutes registers all student routes
 func (h *StudentHandler) RegisterRoutes(r *gin.Engine) {
-	students := r.Group("/students")
+	students := r.Group("/api/students")
+	students.Use(middleware.AuthMiddleware())
 	{
-		students.GET("/profile", h.GetStudentProfile)
-		students.PUT("/profile", h.UpdateStudentProfile)
-		students.PUT("/streak", h.UpdateStudentStreak)
+		students.GET("/me", h.GetStudentProfile)
+		students.PUT("/me", h.UpdateStudentProfile)
+		students.PATCH("/me/streak", h.UpdateStudentStreak)
 	}
 }

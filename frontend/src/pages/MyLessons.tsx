@@ -3,7 +3,7 @@ import { Lesson } from '../types/lesson';
 import LessonCard from '../components/LessonCard';
 import { useTranslation } from '../contexts/I18nContext';
 import { useNotification } from '../contexts/NotificationContext';
-import { lessonService } from '../services/api';
+import { api } from '../api/client';
 import { useNavigate } from 'react-router-dom';
 
 type LessonFilter = 'all' | 'scheduled' | 'past' | 'cancelled';
@@ -23,9 +23,11 @@ export const MyLessons: React.FC = () => {
   const fetchLessons = async () => {
     try {
       setLoading(true);
-      const data = await lessonService.getLessons();
-      // Ensure unique lessons by ID
-      const uniqueLessons = Array.from(new Map(data.map(lesson => [lesson.id, lesson])).values());
+      const data = await api.lessons.getAll();
+      
+      const lessonsArray = Array.isArray(data) ? data : [data];
+      
+      const uniqueLessons = Array.from(new Map(lessonsArray.map(lesson => [lesson.id, lesson])).values());
       setLessons(uniqueLessons);
     } catch (error) {
       console.error('Error fetching lessons:', error);
@@ -37,7 +39,7 @@ export const MyLessons: React.FC = () => {
 
   const handleCancel = async (lessonId: number) => {
     try {
-      await lessonService.cancelLesson(lessonId);
+      await api.lessons.cancel(lessonId);
       showNotification('success', t('lessons.cancelled_success'));
       setLessons(prevLessons =>
         prevLessons.map(lesson =>
@@ -54,7 +56,7 @@ export const MyLessons: React.FC = () => {
 
   const handleJoin = async (lessonId: number) => {
     try {
-      const roomInfo = await lessonService.joinLesson(lessonId);
+      const roomInfo = await api.lessons.joinRoom(lessonId);
       showNotification('success', t('lessons.joined_success'));
       navigate(`/lessons/${lessonId}/room`, { state: roomInfo });
     } catch (error) {

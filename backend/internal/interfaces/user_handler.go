@@ -7,6 +7,7 @@ import (
 	"tongly-backend/internal/entities"
 	"tongly-backend/internal/logger"
 	"tongly-backend/internal/usecases"
+	"tongly-backend/pkg/middleware"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -144,5 +145,18 @@ func isValidImageType(filename string) bool {
 		return true
 	default:
 		return false
+	}
+}
+
+// RegisterRoutes sets up the user-related routes
+func (h *UserHandler) RegisterRoutes(r *gin.Engine) {
+	users := r.Group("/api/users")
+	users.Use(middleware.AuthMiddleware())
+	{
+		// Current user profile endpoints
+		users.GET("/me", h.GetUserProfile)
+		users.PUT("/me", h.UpdateUserProfile)
+		users.PATCH("/me/password", h.UpdatePassword)
+		users.POST("/me/avatar", h.UploadProfilePicture)
 	}
 }

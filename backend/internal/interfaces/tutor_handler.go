@@ -65,7 +65,7 @@ func (h *TutorHandler) ListTutors(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"tutors": tutors})
 }
 
-// UpdateTutorApprovalStatus handles PUT /tutors/:id/approval
+// UpdateTutorApprovalStatus handles PATCH /tutors/:id/status
 func (h *TutorHandler) UpdateTutorApprovalStatus(c *gin.Context) {
 	logger.Info("Handling update tutor approval status request", "path", c.Request.URL.Path)
 
@@ -214,13 +214,23 @@ func (h *TutorHandler) SearchTutors(c *gin.Context) {
 	c.JSON(http.StatusOK, tutors)
 }
 
+// RegisterRoutes sets up the tutor-related routes
 func (h *TutorHandler) RegisterRoutes(r *gin.Engine) {
-	tutors := r.Group("/tutors")
+	tutors := r.Group("/api/tutors")
+	tutors.Use(middleware.AuthMiddleware())
 	{
+		// List and create tutors
 		tutors.GET("", h.ListTutors)
-		tutors.PUT("/:id/approval", middleware.AuthMiddleware(), h.UpdateTutorApprovalStatus)
-		tutors.GET("/profile", middleware.AuthMiddleware(), h.GetTutorProfile)
-		tutors.PUT("/profile", middleware.AuthMiddleware(), h.UpdateTutorProfile)
+		tutors.POST("", h.RegisterTutor)
+
+		// Tutor profile management
+		tutors.GET("/me", h.GetTutorProfile)
+		tutors.PUT("/me", h.UpdateTutorProfile)
+
+		// Search functionality
 		tutors.GET("/search", h.SearchTutors)
+
+		// Admin functionality
+		tutors.PATCH("/:id/status", h.UpdateTutorApprovalStatus)
 	}
 }

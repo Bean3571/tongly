@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { notification } from 'antd';
-import { api } from '../utils/api';
+import { api } from '../api/client';
 import { envConfig } from '@/config/env';
 
 export interface Lesson {
@@ -17,8 +17,8 @@ export interface Lesson {
     student_name?: string;
 }
 
-interface UseLessonsProps {
-    type: 'scheduled' | 'past' | 'cancelled';
+export interface UseLessonsProps {
+    type: 'all' | 'scheduled' | 'past' | 'cancelled';
     autoRefresh?: boolean;
 }
 
@@ -67,49 +67,40 @@ export const useLessons = ({ type, autoRefresh = false }: UseLessonsProps) => {
 
             console.log(`Fetching lessons...`);
             
-            // Choose endpoint based on the type
-            let endpoint;
+            // Get lessons using the updated API
+            let lessonsData: any;
             const now = new Date();
             
+            // Use status query parameter based on the type
             switch (type) {
                 case 'scheduled':
-                    endpoint = '/lessons/scheduled';
+                    // Use upcoming status for scheduled lessons
+                    lessonsData = await api.lessons.getUpcoming();
                     break;
                 case 'past':
-                    endpoint = '/lessons/past';
+                    // Use completed status for past lessons
+                    lessonsData = await api.lessons.getCompleted();
                     break;
                 case 'cancelled':
-                    endpoint = '/lessons/cancelled';
+                    // Get all lessons and filter client-side for cancelled
+                    lessonsData = await api.lessons.getAll();
                     break;
                 default:
-                    endpoint = '/lessons';
+                    // Get all lessons
+                    lessonsData = await api.lessons.getAll();
             }
             
-            const response = await api.get(endpoint, {
-                signal: abortControllerRef.current.signal
-            });
-            
-            console.log('Lessons API Response:', response);
+            console.log('Lessons API Response:', lessonsData);
 
-            if (!response || !response.data) {
+            if (!lessonsData) {
                 throw new Error('No data received from server');
             }
 
-            let lessonsData = response.data;
+            // Ensure we're working with an array
+            const lessonsArray = Array.isArray(lessonsData) ? lessonsData : [lessonsData];
             
-            // If response is an object with a data property, use that
-            if (!Array.isArray(lessonsData) && lessonsData.data) {
-                lessonsData = lessonsData.data;
-            }
-
-            // Final check if we have an array
-            if (!Array.isArray(lessonsData)) {
-                console.error('Response is not an array:', lessonsData);
-                throw new Error('Invalid response format from server');
-            }
-
             // Filter lessons based on the requested type if the backend doesn't already filter
-            const filteredLessons = lessonsData.filter((lesson): lesson is Lesson => {
+            const filteredLessons = lessonsArray.filter((lesson): lesson is Lesson => {
                 if (!lesson || typeof lesson !== 'object') {
                     console.error('Invalid lesson data:', lesson);
                     return false;
@@ -119,19 +110,12 @@ export const useLessons = ({ type, autoRefresh = false }: UseLessonsProps) => {
                     return false;
                 }
                 
-                // If we're getting all lessons, process them client-side based on the requested type
-                const endTime = new Date(lesson.end_time);
-                
-                switch(type) {
-                    case 'scheduled':
-                        return !lesson.cancelled && endTime >= now;
-                    case 'past':
-                        return !lesson.cancelled && endTime < now;
-                    case 'cancelled':
-                        return lesson.cancelled;
-                    default:
-                        return true;
+                // Additional filtering for cancelled lessons, as the backend API doesn't have a cancelled filter
+                if (type === 'cancelled') {
+                    return lesson.cancelled;
                 }
+                
+                return true;
             });
 
             console.log('Filtered lessons:', filteredLessons);
@@ -172,7 +156,8 @@ export const useLessons = ({ type, autoRefresh = false }: UseLessonsProps) => {
 
     const cancelLesson = async (lessonId: number, reason: string) => {
         try {
-            await api.post(`/lessons/${lessonId}/cancel`, { reason });
+            // Use the updated API with DELETE method
+            await api.lessons.cancel(lessonId, reason);
 
             notification.success({
                 message: 'Lesson Cancelled',

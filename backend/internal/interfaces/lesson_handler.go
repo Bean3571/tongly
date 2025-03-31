@@ -25,14 +25,19 @@ func NewLessonHandler(
 
 func (h *LessonHandler) RegisterRoutes(r *gin.Engine) {
 	lessons := r.Group("/api/lessons")
+	lessons.Use(middleware.AuthMiddleware())
 	{
-		// Lesson management
-		lessons.POST("", middleware.AuthMiddleware(), h.BookLesson)
-		lessons.GET("/:id", middleware.AuthMiddleware(), h.GetLesson)
-		lessons.POST("/:id/cancel", middleware.AuthMiddleware(), h.CancelLesson)
-		lessons.GET("", middleware.AuthMiddleware(), h.GetAllLessons)
-		lessons.GET("/upcoming", middleware.AuthMiddleware(), h.GetUpcomingLessons)
-		lessons.GET("/completed", middleware.AuthMiddleware(), h.GetCompletedLessons)
+		// Get all lessons with optional filtering
+		lessons.GET("", h.GetAllLessons)
+
+		// Create a new lesson
+		lessons.POST("", h.BookLesson)
+
+		// Get a specific lesson
+		lessons.GET("/:id", h.GetLesson)
+
+		// Cancel a lesson
+		lessons.DELETE("/:id", h.CancelLesson)
 	}
 }
 
@@ -104,9 +109,18 @@ func (h *LessonHandler) CancelLesson(c *gin.Context) {
 	}
 
 	var request entities.LessonCancellationRequest
-	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
-		return
+	// For DELETE requests, get the reason from query parameters if present
+	if c.Request.Method == http.MethodDelete {
+		reason := c.Query("reason")
+		if reason != "" {
+			request.Reason = reason
+		}
+	} else {
+		// For backward compatibility, also support POST with JSON body
+		if err := c.ShouldBindJSON(&request); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+			return
+		}
 	}
 
 	if err := h.lessonUseCase.CancelLesson(c.Request.Context(), userID.(int), lessonID, &request); err != nil {
@@ -124,7 +138,23 @@ func (h *LessonHandler) GetAllLessons(c *gin.Context) {
 		return
 	}
 
-	lessons, err := h.lessonUseCase.GetLessons(c.Request.Context(), userID.(int))
+	// Get status filter from query parameters
+	status := c.Query("status")
+
+	var err error
+	var lessons interface{} // Use interface{} to handle different return types
+
+	// Filter lessons based on status parameter
+	switch status {
+	case "upcoming":
+		lessons, err = h.lessonUseCase.GetUpcomingLessons(c.Request.Context(), userID.(int))
+	case "completed":
+		lessons, err = h.lessonUseCase.GetCompletedLessons(c.Request.Context(), userID.(int))
+	default:
+		// No status filter or unknown status - return all lessons
+		lessons, err = h.lessonUseCase.GetLessons(c.Request.Context(), userID.(int))
+	}
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

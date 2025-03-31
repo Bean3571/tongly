@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNotification } from '../contexts/NotificationContext';
 import TutorCard from '../components/TutorCard';
+import { api } from '../api/client'; // Import our new API client
 
 interface Tutor {
   id: string;
@@ -41,28 +42,9 @@ const SearchTutors: React.FC = () => {
   const loadTutors = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-
-      const response = await fetch('http://localhost:8080/api/tutors', {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          showNotification('error', 'Please log in to view tutors');
-          navigate('/login');
-          return;
-        }
-        throw new Error(`Failed to fetch tutors: ${response.statusText}`);
-      }
-
-      const data = await response.json();
+      
+      // Use our new API client with type assertion
+      const data = await api.tutors.listTutors() as any;
       console.log('Raw tutor data:', data);
       
       // Get the tutors array from the response
@@ -112,23 +94,77 @@ const SearchTutors: React.FC = () => {
     }
   };
 
-  // Apply filters client-side for now
+  // Apply language filter using the search API
+  const handleLanguageFilter = async (language: string) => {
+    try {
+      setLoading(true);
+      setFilters(prev => ({
+        ...prev,
+        language
+      }));
+
+      if (language) {
+        // If language filter is applied, use the search API with type assertion
+        const data = await api.tutors.searchTutors({ languages: language }) as any[];
+        console.log('Filtered tutor data:', data);
+        
+        // Transform the data like before
+        const tutorsArray = Array.isArray(data) ? data : [];
+        const transformedTutors: Tutor[] = tutorsArray.map((tutor: any) => {
+          const firstName = tutor.personal?.first_name || '';
+          const lastName = tutor.personal?.last_name || '';
+          const fullName = `${firstName} ${lastName}`.trim();
+          const username = tutor.credentials?.username || '';
+          const displayName = fullName || username || 'New Tutor';
+
+          return {
+            id: tutor.credentials?.id?.toString() || '',
+            name: displayName,
+            languages: Array.isArray(tutor.tutor?.teaching_languages) 
+              ? tutor.tutor.teaching_languages.map((lang: any) => lang.language || 'Unknown')
+              : ['Not specified'],
+            rating: parseFloat(tutor.tutor?.rating) || 0,
+            avatarUrl: tutor.personal?.profile_picture || '/default-avatar.png',
+            shortBio: tutor.tutor?.bio || 'This tutor has not added a bio yet.',
+            credentials: tutor.credentials,
+          };
+        });
+
+        const validTutors = transformedTutors.filter(tutor => tutor.id);
+        setTutors(validTutors);
+      } else {
+        // If no language filter, load all tutors
+        loadTutors();
+      }
+    } catch (error) {
+      console.error('Error filtering tutors:', error);
+      showNotification('error', 'Failed to filter tutors. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Apply filters client-side for search query and rating
   const filteredTutors = tutors.filter(tutor => {
-    const matchesLanguage = !filters.language || tutor.languages.includes(filters.language);
     const matchesRating = tutor.rating >= filters.minRating;
     const matchesSearch = !filters.searchQuery || 
       tutor.name.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
       tutor.shortBio.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
       tutor.languages.some(lang => lang.toLowerCase().includes(filters.searchQuery.toLowerCase()));
 
-    return matchesLanguage && matchesRating && matchesSearch;
+    return matchesRating && matchesSearch;
   });
 
   const handleFilterChange = (name: keyof FilterState, value: string | number) => {
-    setFilters(prev => ({
-      ...prev,
-      [name]: value,
-    }));
+    if (name === 'language') {
+      // Use the API for language filtering
+      handleLanguageFilter(value as string);
+    } else {
+      setFilters(prev => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   if (loading) {
@@ -177,7 +213,6 @@ const SearchTutors: React.FC = () => {
                 ))}
               </select>
             </div>
-
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">

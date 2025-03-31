@@ -14,7 +14,6 @@ import (
 	"tongly-backend/internal/interfaces"
 	"tongly-backend/internal/logger"
 	"tongly-backend/internal/repositories"
-	"tongly-backend/internal/router"
 	"tongly-backend/internal/usecases"
 	"tongly-backend/pkg/middleware"
 
@@ -104,10 +103,26 @@ func main() {
 	config.AllowHeaders = append(config.AllowHeaders,
 		"Authorization",
 	)
-	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
+	config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
+	r.Use(cors.New(config))
 
-	// Register other routes
-	router.SetupRouter(r, authHandler, tutorHandler, userHandler, lessonHandler, studentHandler)
+	// Ensure uploads directories exist
+	os.MkdirAll("uploads/avatars", 0755)
+
+	// Register static file routes
+	r.Static("/uploads", "./uploads")
+
+	// Register health check route
+	r.GET("/api/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "ok"})
+	})
+
+	// Register all handler routes
+	authHandler.RegisterRoutes(r)
+	userHandler.RegisterRoutes(r)
+	tutorHandler.RegisterRoutes(r)
+	studentHandler.RegisterRoutes(r)
+	lessonHandler.RegisterRoutes(r)
 
 	// Start server with graceful shutdown
 	srv := &http.Server{

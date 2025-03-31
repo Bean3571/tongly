@@ -21,7 +21,7 @@ func SetupRouter(
 	// Add CORS middleware first
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
@@ -36,52 +36,69 @@ func SetupRouter(
 	// Public routes
 	api := r.Group("/api")
 	{
+		// Health check endpoint
+		api.GET("/health", func(c *gin.Context) {
+			c.JSON(200, gin.H{"status": "ok"})
+		})
+
 		// Auth routes
 		auth := api.Group("/auth")
 		{
 			auth.POST("/register", authHandler.Register)
 			auth.POST("/login", authHandler.Login)
+			auth.POST("/refresh", middleware.AuthMiddleware(), authHandler.RefreshToken)
 		}
 
 		// Protected routes
 		protected := api.Group("/")
 		protected.Use(middleware.AuthMiddleware())
 		{
-			// Auth routes that require authentication
-			protected.POST("/auth/refresh", authHandler.RefreshToken)
-
-			// User profile routes
-			protected.GET("/profile", userHandler.GetUserProfile)
-			protected.PUT("/profile", userHandler.UpdateUserProfile)
-			protected.PUT("/profile/password", userHandler.UpdatePassword)
-			protected.POST("/profile/avatar", userHandler.UploadProfilePicture)
+			// User routes
+			users := protected.Group("/users")
+			{
+				users.GET("/me", userHandler.GetUserProfile)
+				users.PUT("/me", userHandler.UpdateUserProfile)
+				users.PATCH("/me/password", userHandler.UpdatePassword)
+				users.POST("/me/avatar", userHandler.UploadProfilePicture)
+			}
 
 			// Tutor routes
-			protected.POST("/tutors", tutorHandler.RegisterTutor)
-			protected.GET("/tutors", tutorHandler.ListTutors)
-			protected.PUT("/tutors/profile", tutorHandler.UpdateTutorProfile)
-			protected.GET("/tutors/profile", tutorHandler.GetTutorProfile)
-			protected.PUT("/tutors/:id/approval", tutorHandler.UpdateTutorApprovalStatus)
+			tutors := protected.Group("/tutors")
+			{
+				tutors.GET("", tutorHandler.ListTutors)
+				tutors.POST("", tutorHandler.RegisterTutor)
+				tutors.GET("/me", tutorHandler.GetTutorProfile)
+				tutors.PUT("/me", tutorHandler.UpdateTutorProfile)
+				tutors.PATCH("/:id/status", tutorHandler.UpdateTutorApprovalStatus)
+				// Add search endpoint
+				tutors.GET("/search", tutorHandler.SearchTutors)
+			}
 
 			// Student routes
-			protected.GET("/students/profile", studentHandler.GetStudentProfile)
-			protected.PUT("/students/profile", studentHandler.UpdateStudentProfile)
-			protected.PUT("/students/streak", studentHandler.UpdateStudentStreak)
+			students := protected.Group("/students")
+			{
+				students.GET("/me", studentHandler.GetStudentProfile)
+				students.PUT("/me", studentHandler.UpdateStudentProfile)
+				students.PATCH("/me/streak", studentHandler.UpdateStudentStreak)
+			}
 
 			// Lesson routes
 			lessons := protected.Group("/lessons")
 			{
-				// List endpoints must come before parameterized routes
-				lessons.GET("/upcoming", lessonHandler.GetUpcomingLessons)
-				lessons.GET("/completed", lessonHandler.GetCompletedLessons)
-
-				// Parameterized routes
+				lessons.GET("", lessonHandler.GetAllLessons)
 				lessons.POST("", lessonHandler.BookLesson)
 				lessons.GET("/:id", lessonHandler.GetLesson)
-				lessons.POST("/:id/cancel", lessonHandler.CancelLesson)
+				lessons.DELETE("/:id", lessonHandler.CancelLesson)
+
+				// Filter endpoints as query params rather than separate routes
+				// These would now be used like: GET /api/lessons?status=upcoming
+				// or GET /api/lessons?status=completed
 			}
 		}
 	}
+
+	// Setup static file serving
+	r.Static("/uploads", "./uploads")
 }
 
 func NewRouter(
@@ -93,59 +110,15 @@ func NewRouter(
 ) *gin.Engine {
 	router := gin.Default()
 
-	// Enable CORS
-	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
-	}))
-
-	// Serve static files from uploads directory
-	router.Static("/uploads", "./uploads")
-
-	// Public routes
-	public := router.Group("/api")
-	{
-		// Auth routes
-		public.POST("/auth/register", authHandler.Register)
-		public.POST("/auth/login", authHandler.Login)
-	}
-
-	// Protected routes
-	protected := router.Group("/api")
-	protected.Use(middleware.AuthMiddleware())
-	{
-		// Auth routes that require authentication
-		protected.POST("/auth/refresh", authHandler.RefreshToken)
-
-		// User profile routes
-		protected.GET("/profile", userHandler.GetUserProfile)
-		protected.PUT("/profile", userHandler.UpdateUserProfile)
-		protected.PUT("/profile/password", userHandler.UpdatePassword)
-		protected.POST("/profile/avatar", userHandler.UploadProfilePicture)
-
-		// Tutor routes
-		protected.POST("/tutors", tutorHandler.RegisterTutor)
-		protected.GET("/tutors", tutorHandler.ListTutors)
-		protected.PUT("/tutors/profile", tutorHandler.UpdateTutorProfile)
-		protected.GET("/tutors/profile", tutorHandler.GetTutorProfile)
-		protected.PUT("/tutors/:id/approval", tutorHandler.UpdateTutorApprovalStatus)
-
-		// Student routes
-		protected.GET("/students/profile", studentHandler.GetStudentProfile)
-		protected.PUT("/students/profile", studentHandler.UpdateStudentProfile)
-		protected.PUT("/students/streak", studentHandler.UpdateStudentStreak)
-
-		// Lesson routes
-		protected.GET("/lessons/upcoming", lessonHandler.GetUpcomingLessons)
-		protected.GET("/lessons/completed", lessonHandler.GetCompletedLessons)
-		protected.POST("/lessons", lessonHandler.BookLesson)
-		protected.GET("/lessons/:id", lessonHandler.GetLesson)
-		protected.POST("/lessons/:id/cancel", lessonHandler.CancelLesson)
-	}
+	// Setup the router with all handlers
+	SetupRouter(
+		router,
+		authHandler,
+		tutorHandler,
+		userHandler,
+		lessonHandler,
+		studentHandler,
+	)
 
 	return router
 }

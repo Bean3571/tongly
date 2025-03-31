@@ -6,6 +6,7 @@ import (
 	"tongly-backend/internal/logger"
 	"tongly-backend/internal/usecases"
 	"tongly-backend/pkg/jwt"
+	"tongly-backend/pkg/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -119,11 +120,18 @@ func (h *AuthHandler) Login(c *gin.Context) {
 }
 
 func (h *AuthHandler) RegisterRoutes(r *gin.Engine) {
-	auth := r.Group("/auth")
+	auth := r.Group("/api/auth")
 	{
+		// Public authentication endpoints
 		auth.POST("/register", h.Register)
 		auth.POST("/login", h.Login)
-		auth.POST("/refresh", h.RefreshToken)
+
+		// Protected authentication endpoints
+		authProtected := auth.Group("")
+		authProtected.Use(middleware.AuthMiddleware())
+		{
+			auth.POST("/refresh", h.RefreshToken)
+		}
 	}
 }
 

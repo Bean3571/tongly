@@ -174,9 +174,51 @@ class ApiClient {
         }
     }
 
+    async patch<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
+        try {
+            const response = await fetch(`${this.baseUrl}${endpoint}`, {
+                method: 'PATCH',
+                headers: this.getHeaders(),
+                body: data ? JSON.stringify(data) : undefined,
+            });
+
+            return await this.handleResponse<T>(response);
+        } catch (error) {
+            if (error instanceof Error) {
+                this.showError({ message: error.message });
+            }
+            throw error;
+        }
+    }
+
     async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
         try {
             const response = await fetch(`${this.baseUrl}${endpoint}`, {
+                method: 'DELETE',
+                headers: this.getHeaders(),
+            });
+
+            return await this.handleResponse<T>(response);
+        } catch (error) {
+            if (error instanceof Error) {
+                this.showError({ message: error.message });
+            }
+            throw error;
+        }
+    }
+    
+    async deleteWithParams<T>(endpoint: string, params?: Record<string, string>): Promise<ApiResponse<T>> {
+        try {
+            const url = new URL(`${this.baseUrl}${endpoint}`);
+            if (params) {
+                Object.entries(params).forEach(([key, value]) => {
+                    if (value !== undefined) {
+                        url.searchParams.append(key, value);
+                    }
+                });
+            }
+
+            const response = await fetch(url.toString(), {
                 method: 'DELETE',
                 headers: this.getHeaders(),
             });
@@ -374,11 +416,20 @@ export const api = {
                 throw error;
             }
         },
+        refreshToken: async (): Promise<{ token: string }> => {
+            try {
+                const response = await apiClient.post<{ token: string }>('/api/auth/refresh');
+                return response.data;
+            } catch (error) {
+                console.error('Failed to refresh token:', error);
+                throw error;
+            }
+        }
     },
     user: {
         getProfile: async (): Promise<User> => {
             try {
-                const response = await apiClient.get<User>('/api/profile');
+                const response = await apiClient.get<User>('/api/users/me');
                 return response.data;
             } catch (error) {
                 console.error('Failed to get profile:', error);
@@ -387,7 +438,7 @@ export const api = {
         },
         updateProfile: async (data: ProfileUpdateData): Promise<User> => {
             try {
-                const response = await apiClient.put<User>('/api/profile', data);
+                const response = await apiClient.put<User>('/api/users/me', data);
                 return response.data;
             } catch (error) {
                 console.error('Failed to update profile:', error);
@@ -396,8 +447,8 @@ export const api = {
         },
         updatePassword: async (currentPassword: string, newPassword: string): Promise<{ message: string }> => {
             try {
-                console.log('Making password update request to /api/profile/password');
-                const response = await apiClient.put<{ message: string }>('/api/profile/password', {
+                console.log('Making password update request to /api/users/me/password');
+                const response = await apiClient.put<{ message: string }>('/api/users/me/password', {
                     current_password: currentPassword,
                     new_password: newPassword,
                 });
@@ -415,7 +466,7 @@ export const api = {
         },
         uploadProfilePicture: async (formData: FormData): Promise<{ url: string }> => {
             try {
-                const response = await apiClient.post<{ url: string }>('/api/profile/avatar', formData, {
+                const response = await apiClient.post<{ url: string }>('/api/users/me/avatar', formData, {
                     headers: {
                         'Content-Type': undefined,
                     },
@@ -439,7 +490,7 @@ export const api = {
         },
         updateProfile: async (data: TutorProfileUpdateData) => {
             try {
-                const response = await apiClient.put('/api/tutors/profile', data);
+                const response = await apiClient.put('/api/tutors/me', data);
                 return response.data;
             } catch (error: any) {
                 logger.error('Failed to update tutor profile:', error);
@@ -448,34 +499,48 @@ export const api = {
         },
         getProfile: async () => {
             try {
-                const response = await apiClient.get('/api/tutors/profile');
+                const response = await apiClient.get('/api/tutors/me');
                 return response.data;
             } catch (error: any) {
                 logger.error('Failed to get tutor profile:', error);
                 throw error;
             }
         },
-        uploadVideo: async (formData: FormData): Promise<VideoUploadResponse> => {
+        listTutors: async (page: number = 1, pageSize: number = 10) => {
             try {
-                logger.info('Uploading video:', {
-                    url: '/api/tutors/video',
-                    formData: '[FORM DATA]'
-                });
-                const response = await apiClient.post<VideoUploadResponse>('/api/tutors/video', formData, {
-                    headers: {
-                        'Content-Type': undefined, // Let the browser set the correct Content-Type for FormData
-                    },
+                const response = await apiClient.get('/api/tutors', {
+                    page: page.toString(),
+                    page_size: pageSize.toString()
                 });
                 return response.data;
             } catch (error: any) {
-                logger.error('Failed to upload video:', error);
+                logger.error('Failed to list tutors:', error);
+                throw error;
+            }
+        },
+        searchTutors: async (filters: any) => {
+            try {
+                const params: Record<string, string> = {};
+                
+                if (filters.languages) {
+                    if (Array.isArray(filters.languages)) {
+                        params.languages = filters.languages.join(',');
+                    } else {
+                        params.languages = filters.languages;
+                    }
+                }
+                
+                const response = await apiClient.get('/api/tutors/search', params);
+                return response.data;
+            } catch (error: any) {
+                logger.error('Failed to search tutors:', error);
                 throw error;
             }
         },
         updateTutorProfile: async (data: TutorProfileUpdateRequest) => {
             try {
                 logger.info('Updating tutor profile:', {
-                    url: '/api/tutors/profile',
+                    url: '/api/tutors/me',
                     data: {
                         ...data,
                         // Redact any sensitive information
@@ -483,7 +548,7 @@ export const api = {
                     }
                 });
 
-                const response = await apiClient.put('/api/tutors/profile', data);
+                const response = await apiClient.put('/api/tutors/me', data);
                 
                 logger.info('Tutor profile update successful:', {
                     data: response.data
@@ -498,6 +563,143 @@ export const api = {
                 throw error;
             }
         },
+        uploadVideo: async (formData: FormData): Promise<VideoUploadResponse> => {
+            try {
+                logger.info('Uploading video:', {
+                    url: '/api/tutors/me/video',
+                    formData: '[FORM DATA]'
+                });
+                const response = await apiClient.post<VideoUploadResponse>('/api/tutors/me/video', formData, {
+                    headers: {
+                        'Content-Type': undefined, // Let the browser set the correct Content-Type for FormData
+                    },
+                });
+                return response.data;
+            } catch (error: any) {
+                logger.error('Failed to upload video:', error);
+                throw error;
+            }
+        },
+    },
+    students: {
+        getProfile: async () => {
+            try {
+                const response = await apiClient.get('/api/students/me');
+                return response.data;
+            } catch (error: any) {
+                logger.error('Failed to get student profile:', error);
+                throw error;
+            }
+        },
+        updateProfile: async (data: any) => {
+            try {
+                const response = await apiClient.put('/api/students/me', data);
+                return response.data;
+            } catch (error: any) {
+                logger.error('Failed to update student profile:', error);
+                throw error;
+            }
+        },
+        updateStreak: async (data: any) => {
+            try {
+                const response = await apiClient.put('/api/students/me/streak', data);
+                return response.data;
+            } catch (error: any) {
+                logger.error('Failed to update streak:', error);
+                throw error;
+            }
+        }
+    },
+    lessons: {
+        getAll: async (status?: string) => {
+            try {
+                const params: Record<string, string> = {};
+                if (status) {
+                    params.status = status;
+                }
+                
+                const response = await apiClient.get('/api/lessons', params);
+                return response.data;
+            } catch (error: any) {
+                logger.error('Failed to get lessons:', error);
+                throw error;
+            }
+        },
+        getUpcoming: async () => {
+            try {
+                return await api.lessons.getAll('upcoming');
+            } catch (error: any) {
+                logger.error('Failed to get upcoming lessons:', error);
+                throw error;
+            }
+        },
+        getCompleted: async () => {
+            try {
+                return await api.lessons.getAll('completed');
+            } catch (error: any) {
+                logger.error('Failed to get completed lessons:', error);
+                throw error;
+            }
+        },
+        getById: async (id: number) => {
+            try {
+                const response = await apiClient.get(`/api/lessons/${id}`);
+                return response.data;
+            } catch (error: any) {
+                logger.error('Failed to get lesson:', error);
+                throw error;
+            }
+        },
+        book: async (data: any) => {
+            try {
+                const response = await apiClient.post('/api/lessons', data);
+                return response.data;
+            } catch (error: any) {
+                logger.error('Failed to book lesson:', error);
+                throw error;
+            }
+        },
+        cancel: async (id: number, reason?: string) => {
+            try {
+                const params: Record<string, string> = {};
+                if (reason) {
+                    params.reason = reason;
+                }
+                
+                const response = await apiClient.deleteWithParams(`/api/lessons/${id}`, params);
+                return response.data;
+            } catch (error: any) {
+                logger.error('Failed to cancel lesson:', error);
+                throw error;
+            }
+        },
+        joinRoom: async (id: number) => {
+            try {
+                const response = await apiClient.post(`/api/lessons/${id}/room/join`);
+                return response.data;
+            } catch (error: any) {
+                logger.error('Failed to join lesson room:', error);
+                throw error;
+            }
+        },
+        getRoomInfo: async (id: number) => {
+            try {
+                const response = await apiClient.get(`/api/lessons/${id}/room`);
+                return response.data;
+            } catch (error: any) {
+                logger.error('Failed to get room info:', error);
+                throw error;
+            }
+        },
+        leaveRoom: async (id: number) => {
+            try {
+                const response = await apiClient.post(`/api/lessons/${id}/room/leave`);
+                return response.data;
+            } catch (error: any) {
+                logger.error('Failed to leave lesson room:', error);
+                throw error;
+            }
+        }
     },
     lists: {
         getLanguages: async (): Promise<Language[]> => {
