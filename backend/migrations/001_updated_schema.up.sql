@@ -38,7 +38,7 @@ CREATE TABLE goals (
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
-    password VARCHAR(100) NOT NULL,
+    password_hash VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
@@ -87,8 +87,6 @@ CREATE TABLE student_profiles (
     user_id INTEGER PRIMARY KEY,
     current_streak INTEGER DEFAULT 0,
     longest_streak INTEGER DEFAULT 0,
-    last_game_date DATE,
-    total_lessons_taken INTEGER DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -102,8 +100,6 @@ CREATE TABLE tutor_profiles (
     intro_video_url VARCHAR(255),
     approved BOOLEAN DEFAULT FALSE,
     years_experience INTEGER,
-    rating DECIMAL(3,2),
-    total_lessons_given INTEGER DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

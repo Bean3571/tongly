@@ -9,19 +9,19 @@ type Language struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-// LanguageLevel is deprecated: Only kept for compatibility with existing code
-type LanguageLevel struct {
-	Language string `json:"language"`
-	Level    string `json:"level"`
+// LanguageProficiency represents a language proficiency level
+type LanguageProficiency struct {
+	ID        int       `json:"id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
-// Deprecated language list
-var Languages = []string{
-	"English", "Spanish", "French", "German", "Chinese", "Japanese",
-	"Korean", "Russian", "Arabic", "Portuguese", "Italian",
-}
-
-// Deprecated language levels (CEFR)
-var LanguageLevels = []string{
-	"A1", "A2", "B1", "B2", "C1", "C2",
+// UserLanguage represents a user's language proficiency
+type UserLanguage struct {
+	UserID        int                  `json:"user_id"`
+	LanguageID    int                  `json:"language_id"`
+	ProficiencyID int                  `json:"proficiency_id"`
+	Language      *Language            `json:"language,omitempty"`
+	Proficiency   *LanguageProficiency `json:"proficiency,omitempty"`
+	CreatedAt     time.Time            `json:"created_at"`
 }

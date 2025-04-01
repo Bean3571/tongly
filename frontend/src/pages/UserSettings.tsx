@@ -18,7 +18,7 @@ interface UserSettingsData {
 }
 
 export const UserSettings = () => {
-    const { user, refreshUser } = useAuth();
+    const { user, refreshUser, setUser } = useAuth();
     const { showNotification } = useNotification();
     const { t } = useTranslation();
     const [isUpdatingPersonal, setIsUpdatingPersonal] = useState(false);
@@ -29,19 +29,14 @@ export const UserSettings = () => {
     const getUserField = (field: string, defaultValue: string = '') => {
         if (!user) return defaultValue;
         
-        // Try personal field first (our types/index.ts definition)
-        if (user.personal && user.personal[field as keyof typeof user.personal] !== undefined) {
-            return String(user.personal[field as keyof typeof user.personal] || defaultValue);
+        // Try credentials first
+        if (user.credentials && user.credentials[field as keyof typeof user.credentials] !== undefined) {
+            return String(user.credentials[field as keyof typeof user.credentials] || defaultValue);
         }
         
-        // Try userSettings field next (possibly from API client)
-        if ((user as any).userSettings && (user as any).userSettings[field] !== undefined) {
-            return String((user as any).userSettings[field] || defaultValue);
-        }
-        
-        // Try directly on user object (backend might return fields at root level)
-        if (user[field as keyof typeof user] !== undefined) {
-            return String(user[field as keyof typeof user] || defaultValue);
+        // Try profile
+        if (user.profile && user.profile[field as keyof typeof user.profile] !== undefined) {
+            return String(user.profile[field as keyof typeof user.profile] || defaultValue);
         }
         
         return defaultValue;
@@ -64,11 +59,11 @@ export const UserSettings = () => {
             setUserInfo({
                 firstName: getUserField('first_name'),
                 lastName: getUserField('last_name'),
-                userPicture: getUserField('profile_picture') || getUserField('profile_picture_url'),
+                userPicture: getUserField('profile_picture'),
                 age: getUserField('age'),
                 sex: getUserField('sex'),
-                email: user.credentials?.email || getUserField('email'),
-                username: user.credentials?.username || getUserField('username'),
+                email: getUserField('email'),
+                username: getUserField('username'),
             });
         }
     }, [user]);
@@ -157,7 +152,6 @@ export const UserSettings = () => {
                         console.error("Password update failed with error:", passwordError);
                         // Show specific error for password update
                         const errorMessage = 
-                            passwordError.response?.data?.error || 
                             "Failed to update password. Please check your current password and try again.";
                         showNotification('error', errorMessage);
                         throw passwordError; // Re-throw to prevent other updates
@@ -190,7 +184,7 @@ export const UserSettings = () => {
                 }
             } catch (error) {
                 console.error('Failed to update security settings:', error);
-                showNotification('error', t('notifications.security_settings_update_failed'));
+                showNotification('error', t('errors.failed_to_update_security'));
             } finally {
                 setIsUpdatingSecurity(false);
             }
@@ -201,63 +195,30 @@ export const UserSettings = () => {
     const loadUserData = async () => {
         try {
             setIsLoading(true);
-            
-            // First refresh from Auth context
             await refreshUser();
-            
-            // Then directly get profile data from API
             const profileData = await api.user.getProfile();
             
-            if (profileData) {
-                // Handle different API response structures
-                // This will adapt to the backend's actual data structure
-                const extractedEmail = profileData.credentials?.email || 
-                                      (profileData as any).email || 
-                                      '';
-                
-                const extractedUsername = profileData.credentials?.username || 
-                                         (profileData as any).username || 
-                                         '';
-                
-                console.log("API Profile data received:", {
-                    email: extractedEmail,
-                    username: extractedUsername,
-                    rawData: JSON.stringify(profileData)
-                });
-                
-                // Update securityFormik with email
-                securityFormik.setFieldValue('email', extractedEmail);
-                
-                // Update userInfo state with the latest data
-                setUserInfo(prevState => ({
-                    ...prevState,
-                    email: extractedEmail,
-                    username: extractedUsername
-                }));
-                
-                // If we don't have credentials in the user object from context
-                // but have them directly in the API response, create a local patched user
-                if ((!user?.credentials || user.credentials.username === 'unknown') && 
-                    ((profileData as any).username || (profileData as any).email)) {
-                    
-                    // Log what we're doing for debugging
-                    console.log("Creating patched user credentials from API response", {
-                        id: (profileData as any).id,
-                        username: (profileData as any).username,
-                        email: (profileData as any).email,
-                        role: (profileData as any).role
-                    });
-                    
-                    // Since we can't update the user context directly from here,
-                    // we need to refresh the entire auth context after fixing our data mapping
-                    if (typeof refreshUser === 'function') {
-                        await refreshUser();
-                    }
-                }
-            }
+            // Extract email and username from credentials
+            const email = profileData.credentials?.email || '';
+            const username = profileData.credentials?.username || '';
+            
+            console.log('Received profile data:', profileData);
+            
+            // Update security form with email
+            securityFormik.setFieldValue('email', email);
+            
+            // Update user info state with latest data
+            setUserInfo(prev => ({
+                ...prev,
+                email,
+                username,
+            }));
+            
+            // Update the user context with the latest data
+            setUser(profileData);
         } catch (error) {
-            console.error('Failed to load user data:', error);
-            showNotification('error', t('notifications.user_data_fetch_failed'));
+            console.error('Error loading user data:', error);
+            showNotification('error', t('errors.failed_to_load_user_data'));
         } finally {
             setIsLoading(false);
         }
@@ -278,12 +239,7 @@ export const UserSettings = () => {
     // Helper to safely get user picture URL
     const getUserPictureUrl = () => {
         if (!user) return DEFAULT_AVATAR;
-        
-        // Try both locations
-        const personalPic = user.personal?.profile_picture;
-        const userSettingsPic = (user as any).userSettings?.profile_picture;
-        
-        return personalPic || userSettingsPic || DEFAULT_AVATAR;
+        return user.profile?.profile_picture || DEFAULT_AVATAR;
     };
 
     // Get formatted name for display
@@ -338,28 +294,30 @@ export const UserSettings = () => {
 
                 {/* User Picture Section */}
                 <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-8">
-                    <div className="flex items-center space-x-8">
-                        <div>
+                    <div className="flex items-center space-x-4">
+                        <div className="relative">
                             <img
                                 src={getUserPictureUrl()}
                                 alt={getDisplayName()}
-                                className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
-                                onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.src = DEFAULT_AVATAR;
-                                }}
+                                className="w-16 h-16 rounded-full object-cover"
                             />
+                            <div className="absolute bottom-0 right-0 bg-orange-500 rounded-full p-1">
+                                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </div>
                         </div>
                         <div>
                             <h3 className="text-lg font-medium text-gray-900">
                                 {getDisplayName()}
                             </h3>
                             <p className="text-gray-500">
-                                {user.credentials?.username !== "unknown" && (
-                                    <span className="block">@{user.credentials?.username}</span>
+                                {user?.credentials?.username && (
+                                    <span className="block">@{user.credentials.username}</span>
                                 )}
-                                {(user.credentials?.email || userInfo.email) && (
-                                    <span className="block">{user.credentials?.email || userInfo.email}</span>
+                                {user?.credentials?.email && (
+                                    <span className="block">{user.credentials.email}</span>
                                 )}
                             </p>
                             <p className="text-sm font-medium text-orange-600 mt-1">

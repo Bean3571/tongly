@@ -1,8 +1,7 @@
 import { notification } from 'antd';
 import type { AxiosRequestConfig } from 'axios/index';
-import type { LanguageLevel, Degree } from '../types';
 import { logger } from '../services/logger';
-import { TutorProfileUpdateRequest } from '../types/tutor';
+import { Education, LanguageLevel, TutorProfileUpdateRequest } from '../types/tutor';
 
 const baseURL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
@@ -339,9 +338,8 @@ interface TutorRegistrationData {
 }
 
 export interface TutorProfileUpdateData {
-    nativeLanguages?: string[];
     teachingLanguages?: LanguageLevel[];
-    degrees?: Degree[];
+    education?: Education[];
     bio?: string;
     interests?: string[];
     offersTrial?: boolean;

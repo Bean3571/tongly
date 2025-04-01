@@ -10,8 +10,8 @@ import (
 type User struct {
 	ID                int       `json:"id"`
 	Username          string    `json:"username"`
+	PasswordHash      string    `json:"password_hash"`
 	Email             string    `json:"email"`
-	PasswordHash      string    `json:"-"`
 	FirstName         string    `json:"first_name"`
 	LastName          string    `json:"last_name"`
 	ProfilePictureURL *string   `json:"profile_picture_url,omitempty"`
@@ -22,51 +22,12 @@ type User struct {
 	UpdatedAt         time.Time `json:"updated_at"`
 }
 
-// Proficiency represents a language proficiency level
-type Proficiency struct {
-	ID        int       `json:"id"`
-	Name      string    `json:"name"`
-	CreatedAt time.Time `json:"created_at"`
-}
-
-// UserLanguage represents a user's language proficiency
-type UserLanguage struct {
-	UserID        int          `json:"user_id"`
-	LanguageID    int          `json:"language_id"`
-	ProficiencyID int          `json:"proficiency_id"`
-	Language      *Language    `json:"language,omitempty"`
-	Proficiency   *Proficiency `json:"proficiency,omitempty"`
-	CreatedAt     time.Time    `json:"created_at"`
-}
-
-// UserInterest represents a user's interest
-type UserInterest struct {
-	UserID     int       `json:"user_id"`
-	InterestID int       `json:"interest_id"`
-	Interest   *Interest `json:"interest,omitempty"`
-	CreatedAt  time.Time `json:"created_at"`
-}
-
-// UserGoal represents a user's learning goal
-type UserGoal struct {
-	UserID    int       `json:"user_id"`
-	GoalID    int       `json:"goal_id"`
-	Goal      *Goal     `json:"goal,omitempty"`
-	CreatedAt time.Time `json:"created_at"`
-}
-
-// Interest represents an interest category
-type Interest struct {
-	ID        int       `json:"id"`
-	Name      string    `json:"name"`
-	CreatedAt time.Time `json:"created_at"`
-}
-
-// Goal represents a learning goal
-type Goal struct {
-	ID        int       `json:"id"`
-	Name      string    `json:"name"`
-	CreatedAt time.Time `json:"created_at"`
+// UserRegistrationRequest represents data needed for user registration
+type UserRegistrationRequest struct {
+	Username     string `json:"username" validate:"required"`
+	PasswordHash string `json:"password" validate:"required"`
+	Email        string `json:"email" validate:"required,email"`
+	Role         string `json:"role" validate:"required,oneof=student tutor"`
 }
 
 // HashPassword hashes the user's password using bcrypt
