@@ -189,7 +189,7 @@ CREATE TRIGGER update_lessons_updated_at
 
 -- Initial data for proficiency, languages, interests, goals
 INSERT INTO language_proficiency (name) VALUES
-('A1'), ('A2'), ('B1'), ('B2'), ('C1'), ('C2');
+('A1'), ('A2'), ('B1'), ('B2'), ('C1'), ('C2'), ('Native');
 
 INSERT INTO languages (name) VALUES 
 ('English'), ('Spanish'), ('French'), ('German'), ('Italian'),

@@ -12,8 +12,9 @@ import (
 )
 
 type AuthHandler struct {
-	authUseCase  usecases.AuthUseCase
-	tutorUseCase *usecases.TutorUseCase
+	authUseCase    usecases.AuthUseCase
+	tutorUseCase   *usecases.TutorUseCase
+	studentUseCase *usecases.StudentUseCase
 }
 
 type LoginCredentials struct {
@@ -31,10 +32,12 @@ type RegisterRequest struct {
 func NewAuthHandler(
 	authUseCase usecases.AuthUseCase,
 	tutorUseCase *usecases.TutorUseCase,
+	studentUseCase *usecases.StudentUseCase,
 ) *AuthHandler {
 	return &AuthHandler{
-		authUseCase:  authUseCase,
-		tutorUseCase: tutorUseCase,
+		authUseCase:    authUseCase,
+		tutorUseCase:   tutorUseCase,
+		studentUseCase: studentUseCase,
 	}
 }
 
@@ -57,7 +60,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	// If registering as a tutor, create tutor profile
+	// Create appropriate profile based on role
 	if req.Role == "tutor" {
 		tutorReq := entities.TutorRegistrationRequest{
 			Bio:               "", // These will be filled out later
@@ -69,6 +72,13 @@ func (h *AuthHandler) Register(c *gin.Context) {
 			logger.Error("Failed to create tutor profile", "error", err)
 			// Continue with registration even if tutor profile creation fails
 			// The user can create it later through the tutor registration endpoint
+		}
+	} else if req.Role == "student" {
+		studentReq := &entities.StudentUpdateRequest{}
+		if err := h.studentUseCase.RegisterStudent(c.Request.Context(), user.ID, studentReq); err != nil {
+			logger.Error("Failed to create student profile", "error", err)
+			// Continue with registration even if student profile creation fails
+			// The user can create it later through the student profile endpoint
 		}
 	}
 

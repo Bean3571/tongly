@@ -82,7 +82,7 @@ func main() {
 	studentUseCase := usecases.NewStudentUseCase(studentRepo, userRepo)
 
 	// Initialize handlers
-	authHandler := interfaces.NewAuthHandler(authUseCase, tutorUseCase)
+	authHandler := interfaces.NewAuthHandler(authUseCase, tutorUseCase, studentUseCase)
 	tutorHandler := interfaces.NewTutorHandler(tutorUseCase)
 	userHandler := interfaces.NewUserHandler(userUseCase)
 	lessonHandler := interfaces.NewLessonHandler(lessonUseCase)

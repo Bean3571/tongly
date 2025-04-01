@@ -41,75 +41,24 @@ func (uc *TutorUseCase) RegisterTutor(ctx context.Context, userID int, req entit
 		return err
 	}
 
-	// Validate tutor data
-	if req.Bio == "" {
-		return errors.New("bio is required")
-	}
-	if len(req.TeachingLanguages) == 0 {
-		return errors.New("at least one teaching language is required")
-	}
-
-	// Convert Education from interface{} if needed
-	var educationList []entities.Education
-	if req.Education != nil {
-		switch education := req.Education.(type) {
-		case []entities.Education:
-			educationList = education
-		case []interface{}:
-			// Convert slice of interfaces to slice of Education
-			for _, edu := range education {
-				if eduMap, ok := edu.(map[string]interface{}); ok {
-					var degree, institution, fieldOfStudy, startYear, endYear, documentURL string
-
-					if val, ok := eduMap["degree"].(string); ok {
-						degree = val
-					}
-					if val, ok := eduMap["institution"].(string); ok {
-						institution = val
-					}
-					if val, ok := eduMap["field_of_study"].(string); ok {
-						fieldOfStudy = val
-					}
-					if val, ok := eduMap["start_year"].(string); ok {
-						startYear = val
-					}
-					if val, ok := eduMap["end_year"].(string); ok {
-						endYear = val
-					}
-					if val, ok := eduMap["documentUrl"].(string); ok {
-						documentURL = val
-					}
-
-					educationList = append(educationList, entities.Education{
-						Degree:       degree,
-						Institution:  institution,
-						FieldOfStudy: fieldOfStudy,
-						StartYear:    startYear,
-						EndYear:      endYear,
-						DocumentURL:  documentURL,
-					})
-				}
-			}
-		}
-	}
-
-	// Create tutor profile
+	// Create tutor profile with default values
 	profile := &entities.TutorProfile{
 		UserID:            userID,
 		Bio:               req.Bio,
 		TeachingLanguages: []entities.Language{}, // Will be populated by the repository
-		Education:         educationList,
-		IntroductionVideo: req.IntroductionVideo,
-		Approved:          false, // New tutors start as unapproved
+		Education:         req.Education,
+		Interests:         []int{},
+		Approved:          false,
 	}
 
-	// Create tutor profile
-	if err := uc.TutorRepo.CreateTutorProfile(ctx, profile); err != nil {
-		logger.Error("Failed to create tutor profile", "error", err)
-		return fmt.Errorf("failed to create tutor: %w", err)
+	// Create the profile
+	err = uc.TutorRepo.CreateTutorProfile(ctx, profile)
+	if err != nil {
+		logger.Error("Failed to create tutor profile", "error", err, "user_id", userID)
+		return fmt.Errorf("failed to create tutor profile: %w", err)
 	}
 
-	logger.Info("Tutor registration successful", "user_id", userID)
+	logger.Info("Successfully registered tutor", "user_id", userID)
 	return nil
 }
 

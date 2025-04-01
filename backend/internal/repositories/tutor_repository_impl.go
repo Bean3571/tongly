@@ -24,229 +24,150 @@ func NewTutorRepository(db *sql.DB) TutorRepository {
 	}
 }
 
-func (r *TutorRepositoryImpl) CreateTutorDetails(ctx context.Context, details *entities.TutorDetails) error {
+// CreateTutorProfile creates a tutor profile
+func (r *TutorRepositoryImpl) CreateTutorProfile(ctx context.Context, profile *entities.TutorProfile) error {
 	query := `
-		INSERT INTO tutor_details (
-			user_id, bio, teaching_languages, education,
-			interests, introduction_video, approved
-		) VALUES ($1, $2, $3, $4, $5, $6, $7)
-		RETURNING id`
+		INSERT INTO tutor_profiles (
+			user_id, bio, education, intro_video_url, approved,
+			years_experience, rating, total_lessons_given,
+			created_at, updated_at
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9)
+		RETURNING user_id`
 
-	// Convert arrays to JSONB
-	teachingLanguagesJSON, err := json.Marshal(details.TeachingLanguages)
+	educationJSON, err := json.Marshal(profile.Education)
 	if err != nil {
-		logger.Error("Failed to marshal teaching languages",
-			"error", err,
-			"teaching_languages", details.TeachingLanguages)
-		return fmt.Errorf("failed to marshal teaching languages: %v", err)
-	}
-
-	educationJSON, err := json.Marshal(details.Education)
-	if err != nil {
-		logger.Error("Failed to marshal education",
-			"error", err,
-			"education", details.Education)
 		return fmt.Errorf("failed to marshal education: %v", err)
 	}
 
-	logger.Info("Creating tutor details",
-		"user_id", details.UserID,
-		"teaching_languages", string(teachingLanguagesJSON),
-		"education", string(educationJSON),
-		"introduction_video", details.IntroductionVideo)
-
+	now := time.Now()
 	err = r.DB.QueryRowContext(
 		ctx,
 		query,
-		details.UserID,
-		details.Bio,
-		teachingLanguagesJSON,
+		profile.UserID,
+		profile.Bio,
 		educationJSON,
-		pq.Array(details.Interests),
-		details.IntroductionVideo,
-		details.Approved,
-	).Scan(&details.ID)
+		profile.IntroductionVideo,
+		profile.Approved,
+		nil, // years_experience
+		nil, // rating
+		0,   // total_lessons_given
+		now,
+	).Scan(&profile.UserID)
 
 	if err != nil {
-		logger.Error("Failed to create tutor details",
-			"error", err,
-			"user_id", details.UserID,
-			"query", query,
-			"params", map[string]interface{}{
-				"user_id":            details.UserID,
-				"bio":                details.Bio,
-				"teaching_languages": string(teachingLanguagesJSON),
-				"education":          string(educationJSON),
-				"interests":          details.Interests,
-				"introduction_video": details.IntroductionVideo,
-				"approved":           details.Approved,
-			})
-		return fmt.Errorf("failed to create tutor details: %v", err)
+		return fmt.Errorf("failed to create tutor profile: %v", err)
 	}
 
-	logger.Info("Successfully created tutor details",
-		"id", details.ID,
-		"user_id", details.UserID)
+	profile.CreatedAt = now
+	profile.UpdatedAt = now
+
 	return nil
 }
 
-func (r *TutorRepositoryImpl) GetTutorDetails(ctx context.Context, userID int) (*entities.TutorDetails, error) {
+// UpdateTutorProfile updates a tutor profile
+func (r *TutorRepositoryImpl) UpdateTutorProfile(ctx context.Context, profile *entities.TutorProfile) error {
 	query := `
-		SELECT id, user_id, bio, teaching_languages, education,
-			   interests, introduction_video, approved,
-			   created_at, updated_at
-		FROM tutor_details
+		UPDATE tutor_profiles
+		SET bio = $1,
+			education = $2,
+			intro_video_url = $3,
+			approved = $4,
+			years_experience = $5,
+			rating = $6,
+			total_lessons_given = $7,
+			updated_at = $8
+		WHERE user_id = $9
+		RETURNING updated_at`
+
+	educationJSON, err := json.Marshal(profile.Education)
+	if err != nil {
+		return fmt.Errorf("failed to marshal education: %v", err)
+	}
+
+	now := time.Now()
+	err = r.DB.QueryRowContext(
+		ctx,
+		query,
+		profile.Bio,
+		educationJSON,
+		profile.IntroductionVideo,
+		profile.Approved,
+		nil, // years_experience
+		nil, // rating
+		0,   // total_lessons_given
+		now,
+		profile.UserID,
+	).Scan(&profile.UpdatedAt)
+
+	if err != nil {
+		return fmt.Errorf("failed to update tutor profile: %v", err)
+	}
+
+	return nil
+}
+
+// GetTutorProfileByUserID retrieves a tutor profile by user ID
+func (r *TutorRepositoryImpl) GetTutorProfileByUserID(ctx context.Context, userID int) (*entities.TutorProfile, error) {
+	query := `
+		SELECT user_id, bio, education, intro_video_url, approved,
+			years_experience, rating, total_lessons_given,
+			created_at, updated_at
+		FROM tutor_profiles
 		WHERE user_id = $1`
 
-	logger.Info("Getting tutor details",
-		"user_id", userID,
-		"query", query,
-		"params", map[string]interface{}{
-			"user_id": userID,
-		})
-
-	var details entities.TutorDetails
-	var teachingLanguagesJSON, educationJSON []byte
+	profile := &entities.TutorProfile{}
+	var educationJSON []byte
 
 	err := r.DB.QueryRowContext(ctx, query, userID).Scan(
-		&details.ID,
-		&details.UserID,
-		&details.Bio,
-		&teachingLanguagesJSON,
+		&profile.UserID,
+		&profile.Bio,
 		&educationJSON,
-		pq.Array(&details.Interests),
-		&details.IntroductionVideo,
-		&details.Approved,
-		&details.CreatedAt,
-		&details.UpdatedAt,
+		&profile.IntroductionVideo,
+		&profile.Approved,
+		nil, // years_experience
+		nil, // rating
+		nil, // total_lessons_given
+		&profile.CreatedAt,
+		&profile.UpdatedAt,
 	)
 
 	if err == sql.ErrNoRows {
-		logger.Info("No tutor details found", "user_id", userID)
 		return nil, nil
 	}
 	if err != nil {
-		logger.Error("Failed to get tutor details",
-			"error", err,
-			"user_id", userID)
-		return nil, fmt.Errorf("failed to get tutor details: %v", err)
+		return nil, fmt.Errorf("failed to get tutor profile by user ID: %v", err)
 	}
 
 	// Unmarshal JSON fields
-	if err := json.Unmarshal(teachingLanguagesJSON, &details.TeachingLanguages); err != nil {
-		logger.Error("Failed to unmarshal teaching languages",
-			"error", err,
-			"json", string(teachingLanguagesJSON))
-		return nil, fmt.Errorf("failed to unmarshal teaching languages: %v", err)
-	}
-	if err := json.Unmarshal(educationJSON, &details.Education); err != nil {
-		logger.Error("Failed to unmarshal education",
-			"error", err,
-			"json", string(educationJSON))
+	if err := json.Unmarshal(educationJSON, &profile.Education); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal education: %v", err)
 	}
 
-	logger.Info("Successfully retrieved tutor details",
-		"user_id", userID,
-		"details", map[string]interface{}{
-			"id":                 details.ID,
-			"teaching_languages": details.TeachingLanguages,
-			"education":          details.Education,
-			"introduction_video": details.IntroductionVideo,
-		})
-
-	return &details, nil
+	return profile, nil
 }
 
-func (r *TutorRepositoryImpl) UpdateTutorDetails(ctx context.Context, details *entities.TutorDetails) error {
-	query := `
-		UPDATE tutor_details
-		SET bio = $1,
-			teaching_languages = $2,
-			education = $3,
-			interests = $4,
-			introduction_video = $5,
-			approved = $6
-		WHERE user_id = $7
-		RETURNING id, teaching_languages, education`
+// GetTutorProfile retrieves a tutor profile by ID
+func (r *TutorRepositoryImpl) GetTutorProfile(ctx context.Context, tutorID int) (*entities.TutorProfile, error) {
+	return r.GetTutorProfileByUserID(ctx, tutorID)
+}
 
-	// Convert arrays to JSONB
-	teachingLanguagesJSON, err := json.Marshal(details.TeachingLanguages)
-	if err != nil {
-		logger.Error("Failed to marshal teaching languages for update",
-			"error", err,
-			"teaching_languages", details.TeachingLanguages)
-		return fmt.Errorf("failed to marshal teaching languages: %v", err)
-	}
-
-	educationJSON, err := json.Marshal(details.Education)
-	if err != nil {
-		logger.Error("Failed to marshal education for update",
-			"error", err,
-			"education", details.Education)
-		return fmt.Errorf("failed to marshal education: %v", err)
-	}
-
-	logger.Info("Executing tutor details update",
-		"user_id", details.UserID,
-		"query_params", map[string]interface{}{
-			"bio":                details.Bio,
-			"teaching_languages": string(teachingLanguagesJSON),
-			"education":          string(educationJSON),
-			"interests":          details.Interests,
-			"introduction_video": details.IntroductionVideo,
-			"approved":           details.Approved,
-		})
-
-	var (
-		updatedID                int
-		updatedTeachingLangsJSON []byte
-		updatedEducationJSON     []byte
-	)
-
-	err = r.DB.QueryRowContext(
-		ctx,
-		query,
-		details.Bio,
-		teachingLanguagesJSON,
-		educationJSON,
-		pq.Array(details.Interests),
-		details.IntroductionVideo,
-		details.Approved,
-		details.UserID,
-	).Scan(&updatedID, &updatedTeachingLangsJSON, &updatedEducationJSON)
-
-	if err != nil {
-		logger.Error("Failed to execute update query",
-			"error", err,
-			"user_id", details.UserID,
-			"query", query)
-		return fmt.Errorf("failed to update tutor details: %v", err)
-	}
-
-	logger.Info("Successfully updated tutor details",
-		"user_id", details.UserID,
-		"updated_values", map[string]interface{}{
-			"id":                      updatedID,
-			"teaching_languages_json": string(updatedTeachingLangsJSON),
-			"education_json":          string(updatedEducationJSON),
-		})
-
-	return nil
+// GetTutorByID retrieves a tutor profile by ID - alias for GetTutorProfile
+func (r *TutorRepositoryImpl) GetTutorByID(ctx context.Context, tutorID int) (*entities.TutorProfile, error) {
+	return r.GetTutorProfile(ctx, tutorID)
 }
 
 // ListTutors retrieves a list of tutors with pagination
 func (r *TutorRepositoryImpl) ListTutors(ctx context.Context, limit, offset int) ([]entities.TutorProfile, error) {
 	query := `
 		SELECT 
-			td.id, td.user_id, td.bio, td.teaching_languages, td.education,
-			td.interests, td.introduction_video, td.approved,
-			td.created_at, td.updated_at,
+			tp.user_id, tp.bio, tp.education, tp.intro_video_url, tp.approved,
+			tp.years_experience, tp.rating, tp.total_lessons_given,
+			tp.created_at, tp.updated_at,
 			u.username, u.email, u.first_name, u.last_name, 
 			u.profile_picture_url, u.role
-		FROM tutor_details td
-		JOIN users u ON td.user_id = u.id
-		ORDER BY td.id DESC
+		FROM tutor_profiles tp
+		JOIN users u ON tp.user_id = u.id
+		ORDER BY tp.created_at DESC
 		LIMIT $1 OFFSET $2`
 
 	rows, err := r.DB.QueryContext(ctx, query, limit, offset)
@@ -259,18 +180,18 @@ func (r *TutorRepositoryImpl) ListTutors(ctx context.Context, limit, offset int)
 	for rows.Next() {
 		var profile entities.TutorProfile
 		var user entities.User
-		var teachingLanguagesJSON, educationJSON []byte
+		var educationJSON []byte
 		var profilePicURL sql.NullString
 
 		err := rows.Scan(
-			&profile.ID,
 			&profile.UserID,
 			&profile.Bio,
-			&teachingLanguagesJSON,
 			&educationJSON,
-			pq.Array(&profile.Interests),
 			&profile.IntroductionVideo,
 			&profile.Approved,
+			nil, // years_experience
+			nil, // rating
+			nil, // total_lessons_given
 			&profile.CreatedAt,
 			&profile.UpdatedAt,
 			&user.Username,
@@ -291,10 +212,6 @@ func (r *TutorRepositoryImpl) ListTutors(ctx context.Context, limit, offset int)
 		}
 
 		// Unmarshal JSON fields
-		if err := json.Unmarshal(teachingLanguagesJSON, &profile.TeachingLanguages); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal teaching languages: %v", err)
-		}
-
 		if err := json.Unmarshal(educationJSON, &profile.Education); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal education: %v", err)
 		}
@@ -312,9 +229,95 @@ func (r *TutorRepositoryImpl) ListTutors(ctx context.Context, limit, offset int)
 	return tutors, nil
 }
 
+// SearchTutors searches for tutors based on filters
+func (r *TutorRepositoryImpl) SearchTutors(ctx context.Context, filters map[string]interface{}) ([]entities.TutorProfile, error) {
+	query := `
+		SELECT 
+			tp.user_id, tp.bio, tp.education, tp.intro_video_url, tp.approved,
+			tp.years_experience, tp.rating, tp.total_lessons_given,
+			tp.created_at, tp.updated_at,
+			u.username, u.email, u.first_name, u.last_name, 
+			u.profile_picture_url, u.role
+		FROM tutor_profiles tp
+		JOIN users u ON tp.user_id = u.id
+		WHERE tp.approved = true`
+
+	args := []interface{}{}
+	argPosition := 1
+
+	// Add filters to query
+	if languages, ok := filters["languages"].([]string); ok && len(languages) > 0 {
+		query += fmt.Sprintf(` AND education ?| $%d`, argPosition)
+		args = append(args, pq.Array(languages))
+		argPosition++
+	}
+
+	// Add ordering
+	query += ` ORDER BY tp.created_at DESC`
+
+	rows, err := r.DB.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to search tutors: %v", err)
+	}
+	defer rows.Close()
+
+	var tutors []entities.TutorProfile
+	for rows.Next() {
+		var profile entities.TutorProfile
+		var user entities.User
+		var educationJSON []byte
+		var profilePicURL sql.NullString
+
+		err := rows.Scan(
+			&profile.UserID,
+			&profile.Bio,
+			&educationJSON,
+			&profile.IntroductionVideo,
+			&profile.Approved,
+			nil, // years_experience
+			nil, // rating
+			nil, // total_lessons_given
+			&profile.CreatedAt,
+			&profile.UpdatedAt,
+			&user.Username,
+			&user.Email,
+			&user.FirstName,
+			&user.LastName,
+			&profilePicURL,
+			&user.Role,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan tutor row: %v", err)
+		}
+
+		// Handle nullable fields
+		if profilePicURL.Valid {
+			user.ProfilePictureURL = &profilePicURL.String
+		}
+
+		// Unmarshal JSON fields
+		if err := json.Unmarshal(educationJSON, &profile.Education); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal education: %v", err)
+		}
+
+		user.ID = profile.UserID
+		profile.User = &user
+
+		tutors = append(tutors, profile)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating tutor rows: %v", err)
+	}
+
+	return tutors, nil
+}
+
+// UpdateTutorApprovalStatus updates a tutor's approval status
 func (r *TutorRepositoryImpl) UpdateTutorApprovalStatus(ctx context.Context, userID int, approved bool) error {
 	query := `
-		UPDATE tutor_details
+		UPDATE tutor_profiles
 		SET approved = $1
 		WHERE user_id = $2`
 
@@ -331,15 +334,10 @@ func (r *TutorRepositoryImpl) UpdateTutorApprovalStatus(ctx context.Context, use
 		return fmt.Errorf("failed to get rows affected: %v", err)
 	}
 	if rows == 0 {
-		return fmt.Errorf("tutor details not found for user ID: %d", userID)
+		return fmt.Errorf("tutor profile not found for user ID: %d", userID)
 	}
 
 	return nil
-}
-
-// GetTutorByID retrieves a tutor profile by ID - alias for GetTutorProfile
-func (r *TutorRepositoryImpl) GetTutorByID(ctx context.Context, tutorID int) (*entities.TutorProfile, error) {
-	return r.GetTutorProfile(ctx, tutorID)
 }
 
 // getUserByID is a helper method to get a user by ID
@@ -390,267 +388,6 @@ func (r *TutorRepositoryImpl) getUserByID(ctx context.Context, userID int) (*ent
 	}
 
 	return &user, nil
-}
-
-// CreateTutorProfile creates a tutor profile
-func (r *TutorRepositoryImpl) CreateTutorProfile(ctx context.Context, profile *entities.TutorProfile) error {
-	query := `
-		INSERT INTO tutor_details (
-			user_id, bio, teaching_languages, education, interests,
-			introduction_video, approved, created_at, updated_at
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $8)
-		RETURNING id, created_at, updated_at`
-
-	teachingLanguagesJSON, err := json.Marshal(profile.TeachingLanguages)
-	if err != nil {
-		return fmt.Errorf("failed to marshal teaching languages: %v", err)
-	}
-
-	educationJSON, err := json.Marshal(profile.Education)
-	if err != nil {
-		return fmt.Errorf("failed to marshal education: %v", err)
-	}
-
-	now := time.Now()
-	err = r.DB.QueryRowContext(
-		ctx,
-		query,
-		profile.UserID,
-		profile.Bio,
-		teachingLanguagesJSON,
-		educationJSON,
-		pq.Array(profile.Interests),
-		profile.IntroductionVideo,
-		profile.Approved,
-		now,
-	).Scan(&profile.ID, &profile.CreatedAt, &profile.UpdatedAt)
-
-	if err != nil {
-		return fmt.Errorf("failed to create tutor profile: %v", err)
-	}
-
-	return nil
-}
-
-// UpdateTutorProfile updates a tutor profile
-func (r *TutorRepositoryImpl) UpdateTutorProfile(ctx context.Context, profile *entities.TutorProfile) error {
-	query := `
-		UPDATE tutor_details
-		SET bio = $1,
-			teaching_languages = $2,
-			interests = $3,
-			profile_picture_url = $4,
-			introduction_video = $5,
-			education = $6,
-			approved = $7,
-			updated_at = $8
-		WHERE id = $9
-		RETURNING updated_at`
-
-	teachingLanguagesJSON, err := json.Marshal(profile.TeachingLanguages)
-	if err != nil {
-		return fmt.Errorf("failed to marshal teaching languages: %v", err)
-	}
-
-	educationJSON, err := json.Marshal(profile.Education)
-	if err != nil {
-		return fmt.Errorf("failed to marshal education: %v", err)
-	}
-
-	now := time.Now()
-	err = r.DB.QueryRowContext(
-		ctx,
-		query,
-		profile.Bio,
-		teachingLanguagesJSON,
-		pq.Array(profile.Interests),
-		profile.ProfilePictureURL,
-		profile.IntroductionVideo,
-		educationJSON,
-		profile.Approved,
-		now,
-		profile.ID,
-	).Scan(&profile.UpdatedAt)
-
-	if err != nil {
-		return fmt.Errorf("failed to update tutor profile: %v", err)
-	}
-
-	return nil
-}
-
-// CreateTutor creates a new tutor profile
-func (r *TutorRepositoryImpl) CreateTutor(ctx context.Context, details *entities.TutorDetails) error {
-	query := `
-		INSERT INTO tutors (
-			id, teaching_languages, education, interests, 
-			introduction_video, approved
-		) VALUES (
-			$1, $2, $3, $4, $5, $6
-		)
-	`
-
-	_, err := r.DB.ExecContext(ctx, query,
-		details.ID,
-		details.TeachingLanguages,
-		details.Education,
-		details.Interests,
-		details.IntroductionVideo,
-		details.Approved,
-	)
-
-	return err
-}
-
-// UpdateTutor updates an existing tutor profile
-func (r *TutorRepositoryImpl) UpdateTutor(ctx context.Context, details *entities.TutorDetails) error {
-	query := `
-		UPDATE tutors
-		SET teaching_languages = $1,
-			education = $2,
-			interests = $3,
-			introduction_video = $4,
-			approved = $5
-		WHERE id = $6
-	`
-
-	result, err := r.DB.ExecContext(ctx, query,
-		details.TeachingLanguages,
-		details.Education,
-		details.Interests,
-		details.IntroductionVideo,
-		details.Approved,
-		details.ID,
-	)
-
-	if err != nil {
-		return err
-	}
-
-	rows, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-
-	if rows == 0 {
-		return fmt.Errorf("tutor with ID %d not found", details.ID)
-	}
-
-	return nil
-}
-
-// SearchTutors searches for tutors based on filters
-func (r *TutorRepositoryImpl) SearchTutors(ctx context.Context, filters map[string]interface{}) ([]entities.TutorProfile, error) {
-	query := `
-		SELECT 
-			td.id, td.user_id, td.bio, td.teaching_languages, td.education,
-			td.interests, td.introduction_video, td.approved,
-			td.created_at, td.updated_at,
-			u.username, u.email, u.first_name, u.last_name, 
-			u.profile_picture_url, u.role
-		FROM tutor_details td
-		JOIN users u ON td.user_id = u.id
-		WHERE td.approved = true`
-
-	args := []interface{}{}
-	argPosition := 1
-
-	// Add filters to query
-	if languages, ok := filters["languages"].([]string); ok && len(languages) > 0 {
-		query += fmt.Sprintf(` AND teaching_languages ?| $%d`, argPosition)
-		args = append(args, pq.Array(languages))
-		argPosition++
-	}
-
-	// Add ordering
-	query += ` ORDER BY td.created_at DESC`
-
-	rows, err := r.DB.QueryContext(ctx, query, args...)
-	if err != nil {
-		return nil, fmt.Errorf("failed to search tutors: %v", err)
-	}
-	defer rows.Close()
-
-	var tutors []entities.TutorProfile
-	for rows.Next() {
-		var profile entities.TutorProfile
-		var user entities.User
-		var teachingLanguagesJSON, educationJSON []byte
-		var profilePicURL sql.NullString
-
-		err := rows.Scan(
-			&profile.ID,
-			&profile.UserID,
-			&profile.Bio,
-			&teachingLanguagesJSON,
-			&educationJSON,
-			pq.Array(&profile.Interests),
-			&profile.IntroductionVideo,
-			&profile.Approved,
-			&profile.CreatedAt,
-			&profile.UpdatedAt,
-			&user.Username,
-			&user.Email,
-			&user.FirstName,
-			&user.LastName,
-			&profilePicURL,
-			&user.Role,
-		)
-
-		if err != nil {
-			return nil, fmt.Errorf("failed to scan tutor row: %v", err)
-		}
-
-		// Handle nullable fields
-		if profilePicURL.Valid {
-			user.ProfilePictureURL = &profilePicURL.String
-		}
-
-		// Unmarshal JSON fields
-		if err := json.Unmarshal(teachingLanguagesJSON, &profile.TeachingLanguages); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal teaching languages: %v", err)
-		}
-
-		if err := json.Unmarshal(educationJSON, &profile.Education); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal education: %v", err)
-		}
-
-		user.ID = profile.UserID
-		profile.User = &user
-
-		tutors = append(tutors, profile)
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating tutor rows: %v", err)
-	}
-
-	return tutors, nil
-}
-
-func (r *TutorRepositoryImpl) Create(ctx context.Context, tutor *entities.TutorDetails) error {
-	// Implementation
-	return nil
-}
-
-func (r *TutorRepositoryImpl) GetByID(ctx context.Context, id int) (*entities.TutorDetails, error) {
-	// Implementation
-	return nil, nil
-}
-
-func (r *TutorRepositoryImpl) Update(ctx context.Context, tutor *entities.TutorDetails) error {
-	// Implementation
-	return nil
-}
-
-func (r *TutorRepositoryImpl) Delete(ctx context.Context, id int) error {
-	// Implementation
-	return nil
-}
-
-func (r *TutorRepositoryImpl) List(ctx context.Context, pagination common.PaginationParams, filter common.FilterParams) ([]entities.TutorDetails, error) {
-	// Implementation
-	return nil, nil
 }
 
 // getUserLanguages gets the languages for a tutor
@@ -751,7 +488,7 @@ func (r *TutorRepositoryImpl) getUserInterests(ctx context.Context, userID int) 
 // AddTutorAvailability adds availability for a tutor
 func (r *TutorRepositoryImpl) AddTutorAvailability(ctx context.Context, availability *entities.TutorAvailability) error {
 	query := `
-		INSERT INTO tutor_availabilities (
+		INSERT INTO tutor_availability (
 			tutor_id, day_of_week, start_time, end_time, is_recurring,
 			created_at, updated_at
 		) VALUES ($1, $2, $3, $4, $5, $6, $6)
@@ -790,7 +527,7 @@ func (r *TutorRepositoryImpl) GetTutorAvailabilities(ctx context.Context, tutorI
 	query := `
 		SELECT id, tutor_id, day_of_week, start_time, end_time, is_recurring,
 			   created_at, updated_at
-		FROM tutor_availabilities
+		FROM tutor_availability
 		WHERE tutor_id = $1
 		ORDER BY day_of_week, start_time`
 
@@ -841,7 +578,7 @@ func (r *TutorRepositoryImpl) GetTutorAvailabilities(ctx context.Context, tutorI
 // UpdateTutorAvailability updates an existing availability
 func (r *TutorRepositoryImpl) UpdateTutorAvailability(ctx context.Context, availability *entities.TutorAvailability) error {
 	query := `
-		UPDATE tutor_availabilities
+		UPDATE tutor_availability
 		SET day_of_week = $1,
 			start_time = $2,
 			end_time = $3,
@@ -877,7 +614,7 @@ func (r *TutorRepositoryImpl) UpdateTutorAvailability(ctx context.Context, avail
 
 // RemoveTutorAvailability removes an availability
 func (r *TutorRepositoryImpl) RemoveTutorAvailability(ctx context.Context, id int) error {
-	query := `DELETE FROM tutor_availabilities WHERE id = $1`
+	query := `DELETE FROM tutor_availability WHERE id = $1`
 
 	result, err := r.DB.ExecContext(ctx, query, id)
 	if err != nil {
@@ -899,104 +636,28 @@ func (r *TutorRepositoryImpl) RemoveTutorAvailability(ctx context.Context, id in
 	return nil
 }
 
-// GetTutorProfileByUserID retrieves a tutor profile by user ID
-func (r *TutorRepositoryImpl) GetTutorProfileByUserID(ctx context.Context, userID int) (*entities.TutorProfile, error) {
-	query := `
-		SELECT id, user_id, bio, teaching_languages, education, interests,
-			introduction_video, approved, created_at, updated_at,
-			profile_picture_url
-		FROM tutor_details
-		WHERE user_id = $1`
-
-	profile := &entities.TutorProfile{}
-	var teachingLanguagesJSON, educationJSON []byte
-	var profilePicURL sql.NullString
-
-	err := r.DB.QueryRowContext(ctx, query, userID).Scan(
-		&profile.ID,
-		&profile.UserID,
-		&profile.Bio,
-		&teachingLanguagesJSON,
-		&educationJSON,
-		pq.Array(&profile.Interests),
-		&profile.IntroductionVideo,
-		&profile.Approved,
-		&profile.CreatedAt,
-		&profile.UpdatedAt,
-		&profilePicURL,
-	)
-
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, fmt.Errorf("failed to get tutor profile by user ID: %v", err)
-	}
-
-	// Handle nullable fields
-	if profilePicURL.Valid {
-		profile.ProfilePictureURL = &profilePicURL.String
-	}
-
-	// Unmarshal JSON fields
-	if err := json.Unmarshal(teachingLanguagesJSON, &profile.TeachingLanguages); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal teaching languages: %v", err)
-	}
-
-	if err := json.Unmarshal(educationJSON, &profile.Education); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal education: %v", err)
-	}
-
-	return profile, nil
+// Interface implementation methods
+func (r *TutorRepositoryImpl) Create(ctx context.Context, tutor *entities.TutorDetails) error {
+	// Implementation
+	return nil
 }
 
-// GetTutorProfile retrieves a tutor profile by ID
-func (r *TutorRepositoryImpl) GetTutorProfile(ctx context.Context, tutorID int) (*entities.TutorProfile, error) {
-	query := `
-		SELECT id, user_id, bio, teaching_languages, education, interests,
-			introduction_video, approved, created_at, updated_at,
-			profile_picture_url
-		FROM tutor_details
-		WHERE id = $1`
+func (r *TutorRepositoryImpl) GetByID(ctx context.Context, id int) (*entities.TutorDetails, error) {
+	// Implementation
+	return nil, nil
+}
 
-	profile := &entities.TutorProfile{}
-	var teachingLanguagesJSON, educationJSON []byte
-	var profilePicURL sql.NullString
+func (r *TutorRepositoryImpl) Update(ctx context.Context, tutor *entities.TutorDetails) error {
+	// Implementation
+	return nil
+}
 
-	err := r.DB.QueryRowContext(ctx, query, tutorID).Scan(
-		&profile.ID,
-		&profile.UserID,
-		&profile.Bio,
-		&teachingLanguagesJSON,
-		&educationJSON,
-		pq.Array(&profile.Interests),
-		&profile.IntroductionVideo,
-		&profile.Approved,
-		&profile.CreatedAt,
-		&profile.UpdatedAt,
-		&profilePicURL,
-	)
+func (r *TutorRepositoryImpl) Delete(ctx context.Context, id int) error {
+	// Implementation
+	return nil
+}
 
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, fmt.Errorf("failed to get tutor profile: %v", err)
-	}
-
-	// Handle nullable fields
-	if profilePicURL.Valid {
-		profile.ProfilePictureURL = &profilePicURL.String
-	}
-
-	// Unmarshal JSON fields
-	if err := json.Unmarshal(teachingLanguagesJSON, &profile.TeachingLanguages); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal teaching languages: %v", err)
-	}
-
-	if err := json.Unmarshal(educationJSON, &profile.Education); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal education: %v", err)
-	}
-
-	return profile, nil
+func (r *TutorRepositoryImpl) List(ctx context.Context, pagination common.PaginationParams, filter common.FilterParams) ([]entities.TutorDetails, error) {
+	// Implementation
+	return nil, nil
 }
