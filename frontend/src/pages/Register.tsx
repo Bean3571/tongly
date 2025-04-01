@@ -4,6 +4,7 @@ import * as Yup from 'yup';
 import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { useTranslation } from '../contexts/I18nContext';
+import { UserRegistrationRequest, UserRole } from '../types';
 
 export const Register = () => {
     const { register } = useAuth();
@@ -15,7 +16,7 @@ export const Register = () => {
             email: '',
             password: '',
             confirmPassword: '',
-            role: 'student'
+            role: UserRole.STUDENT
         },
         validationSchema: Yup.object({
             username: Yup.string()
@@ -31,16 +32,16 @@ export const Register = () => {
                 .oneOf([Yup.ref('password')], t('validation.password_match'))
                 .required(t('validation.required')),
             role: Yup.string()
-                .oneOf(['student', 'tutor'], t('validation.role_invalid'))
+                .oneOf([UserRole.STUDENT, UserRole.TUTOR], t('validation.role_invalid'))
                 .required(t('validation.required'))
         }),
         onSubmit: async (values) => {
             try {
-                const registrationData = {
+                const registrationData: UserRegistrationRequest = {
                     username: values.username,
                     email: values.email,
                     password: values.password,
-                    role: values.role,
+                    role: values.role as UserRole,
                 };
                 
                 console.log('Submitting registration data:', {
@@ -145,8 +146,8 @@ export const Register = () => {
                                 {...formik.getFieldProps('role')}
                                 className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md bg-white text-gray-900"
                             >
-                                <option value="student">{t('pages.register.role_student')}</option>
-                                <option value="tutor">{t('pages.register.role_tutor')}</option>
+                                <option value={UserRole.STUDENT}>{t('pages.register.role_student')}</option>
+                                <option value={UserRole.TUTOR}>{t('pages.register.role_tutor')}</option>
                             </select>
                             {formik.touched.role && formik.errors.role && (
                                 <p className="mt-1 text-sm text-red-600">{formik.errors.role}</p>

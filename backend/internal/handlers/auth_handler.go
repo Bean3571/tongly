@@ -2,7 +2,6 @@ package interfaces
 
 import (
 	"net/http"
-	"tongly-backend/internal/entities"
 	"tongly-backend/internal/logger"
 	"tongly-backend/internal/usecases"
 	"tongly-backend/pkg/jwt"
@@ -23,10 +22,10 @@ type LoginCredentials struct {
 }
 
 type RegisterRequest struct {
-	Username string `json:"username" binding:"required"`
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=6"`
-	Role     string `json:"role" binding:"required,oneof=student tutor"`
+	Username     string `json:"username" binding:"required"`
+	Email        string `json:"email" binding:"required,email"`
+	PasswordHash string `json:"password_hash" binding:"required,min=6"`
+	Role         string `json:"role" binding:"required,oneof=student tutor"`
 }
 
 func NewAuthHandler(
@@ -53,33 +52,11 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	// Register the user
-	user, err := h.authUseCase.Register(c.Request.Context(), req.Username, req.Email, req.Password, req.Role)
+	user, err := h.authUseCase.Register(c.Request.Context(), req.Username, req.Email, req.PasswordHash, req.Role)
 	if err != nil {
 		logger.Error("Registration failed", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register user"})
 		return
-	}
-
-	// Create appropriate profile based on role
-	if req.Role == "tutor" {
-		tutorReq := entities.TutorRegistrationRequest{
-			Bio:               "", // These will be filled out later
-			TeachingLanguages: []entities.UserLanguageUpdate{},
-			Education:         []entities.Education{},
-		}
-
-		if err := h.tutorUseCase.RegisterTutor(c.Request.Context(), user.ID, tutorReq); err != nil {
-			logger.Error("Failed to create tutor profile", "error", err)
-			// Continue with registration even if tutor profile creation fails
-			// The user can create it later through the tutor registration endpoint
-		}
-	} else if req.Role == "student" {
-		studentReq := &entities.StudentUpdateRequest{}
-		if err := h.studentUseCase.RegisterStudent(c.Request.Context(), user.ID, studentReq); err != nil {
-			logger.Error("Failed to create student profile", "error", err)
-			// Continue with registration even if student profile creation fails
-			// The user can create it later through the student profile endpoint
-		}
 	}
 
 	// Generate token

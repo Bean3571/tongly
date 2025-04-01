@@ -3,173 +3,259 @@ package usecases
 import (
 	"context"
 	"errors"
-	"fmt"
 	"tongly-backend/internal/entities"
-	"tongly-backend/internal/logger"
 	"tongly-backend/internal/repositories"
 )
 
-// StudentUseCase handles student-related business logic
+// StudentUseCase handles business logic for students
 type StudentUseCase struct {
-	StudentRepo repositories.StudentRepository
-	UserRepo    repositories.UserRepository
+	studentRepo *repositories.StudentRepository
+	userRepo    *repositories.UserRepository
+	lessonRepo  *repositories.LessonRepository
 }
 
-// NewStudentUseCase creates a new StudentUseCase instance
+// NewStudentUseCase creates a new StudentUseCase
 func NewStudentUseCase(
-	studentRepo repositories.StudentRepository,
-	userRepo repositories.UserRepository,
+	studentRepo *repositories.StudentRepository,
+	userRepo *repositories.UserRepository,
+	lessonRepo *repositories.LessonRepository,
 ) *StudentUseCase {
 	return &StudentUseCase{
-		StudentRepo: studentRepo,
-		UserRepo:    userRepo,
+		studentRepo: studentRepo,
+		userRepo:    userRepo,
+		lessonRepo:  lessonRepo,
 	}
 }
 
-// GetStudentProfile retrieves a student profile
-func (uc *StudentUseCase) GetStudentProfile(ctx context.Context, userID int) (*entities.StudentProfile, error) {
-	logger.Info("Getting student profile", "user_id", userID)
-
-	// Check if user exists
-	_, err := uc.UserRepo.GetUserByID(ctx, userID)
-	if err != nil {
-		logger.Error("Failed to get user", "error", err, "user_id", userID)
-		return nil, err
-	}
-
+// GetStudentProfile retrieves a student's profile with all related information
+func (uc *StudentUseCase) GetStudentProfile(ctx context.Context, studentID int) (*entities.StudentProfile, error) {
 	// Get student profile
-	profile, err := uc.StudentRepo.GetStudentProfileByUserID(ctx, userID)
+	studentProfile, err := uc.studentRepo.GetByUserID(ctx, studentID)
 	if err != nil {
-		logger.Error("Failed to get student profile", "error", err, "user_id", userID)
 		return nil, err
 	}
-
-	if profile == nil {
-		logger.Warn("Student profile not found", "user_id", userID)
+	if studentProfile == nil {
 		return nil, errors.New("student profile not found")
 	}
 
-	logger.Info("Successfully retrieved student profile", "user_id", userID)
-	return profile, nil
+	// Get student user information
+	user, err := uc.userRepo.GetByID(ctx, studentID)
+	if err != nil {
+		return nil, err
+	}
+	studentProfile.User = user
+
+	// Get student languages
+	languages, err := uc.studentRepo.GetLanguages(ctx, studentID)
+	if err != nil {
+		return nil, err
+	}
+	studentProfile.Languages = languages
+
+	// Get student interests
+	interests, err := uc.studentRepo.GetInterests(ctx, studentID)
+	if err != nil {
+		return nil, err
+	}
+	studentProfile.Interests = interests
+
+	// Get student goals
+	goals, err := uc.studentRepo.GetGoals(ctx, studentID)
+	if err != nil {
+		return nil, err
+	}
+	studentProfile.Goals = goals
+
+	return studentProfile, nil
 }
 
-// UpdateStudentProfile updates a student's profile
-func (uc *StudentUseCase) UpdateStudentProfile(ctx context.Context, userID int, req *entities.StudentUpdateRequest) error {
-	logger.Info("Updating student profile", "user_id", userID)
-
-	// Check if user exists
-	_, err := uc.UserRepo.GetUserByID(ctx, userID)
+// UpdateStudentProfile updates a student's profile information
+func (uc *StudentUseCase) UpdateStudentProfile(ctx context.Context, studentID int, req *entities.StudentUpdateRequest) error {
+	// Get existing profile
+	studentProfile, err := uc.studentRepo.GetByUserID(ctx, studentID)
 	if err != nil {
-		logger.Error("Failed to get user", "error", err, "user_id", userID)
+		return err
+	}
+	if studentProfile == nil {
+		return errors.New("student profile not found")
+	}
+
+	// Get user to update profile picture
+	user, err := uc.userRepo.GetByID(ctx, studentID)
+	if err != nil {
 		return err
 	}
 
-	// Get existing profile or create a new one
-	profile, err := uc.StudentRepo.GetStudentProfileByUserID(ctx, userID)
-	if err != nil {
-		logger.Error("Failed to get student profile", "error", err, "user_id", userID)
-		return err
-	}
-
-	if profile == nil {
-		// Create new profile
-		profile = &entities.StudentProfile{
-			UserID: userID,
+	// Update profile picture if provided
+	if req.ProfilePictureURL != nil {
+		user.ProfilePictureURL = req.ProfilePictureURL
+		if err := uc.userRepo.Update(ctx, user); err != nil {
+			return err
 		}
 	}
 
-	// Update fields if provided
-	if req.ProfilePictureURL != nil {
-		profile.ProfilePictureURL = req.ProfilePictureURL
+	// Update languages if provided
+	if len(req.Languages) > 0 {
+		// First get existing languages to determine what to add/remove
+		currentLangs, err := uc.studentRepo.GetLanguages(ctx, studentID)
+		if err != nil {
+			return err
+		}
+
+		// Map existing languages for easy lookup
+		existingLangs := make(map[int]bool)
+		for _, lang := range currentLangs {
+			existingLangs[lang.LanguageID] = true
+		}
+
+		// Process languages
+		for _, langUpdate := range req.Languages {
+			// Add or update language
+			if err := uc.studentRepo.AddLanguage(ctx, studentID, langUpdate.LanguageID, langUpdate.ProficiencyID); err != nil {
+				return err
+			}
+			// Remove from existing map to track what's been updated
+			delete(existingLangs, langUpdate.LanguageID)
+		}
+
+		// Remove languages that were not in the update
+		// This is optional - if you want to replace all languages
+		// for _, langID := range existingLangs {
+		//    uc.studentRepo.RemoveLanguage(ctx, studentID, langID)
+		// }
 	}
 
-	// Update the profile
-	err = uc.StudentRepo.UpdateStudentProfile(ctx, profile)
-	if err != nil {
-		logger.Error("Failed to update student profile", "error", err, "user_id", userID)
-		return fmt.Errorf("failed to update student profile: %w", err)
+	// Update interests if provided
+	if len(req.Interests) > 0 {
+		// First get existing interests
+		currentInterests, err := uc.studentRepo.GetInterests(ctx, studentID)
+		if err != nil {
+			return err
+		}
+
+		// Map existing interests for easy lookup
+		existingInterests := make(map[int]bool)
+		for _, interest := range currentInterests {
+			existingInterests[interest.InterestID] = true
+		}
+
+		// Add new interests
+		for _, interestID := range req.Interests {
+			if !existingInterests[interestID] {
+				if err := uc.studentRepo.AddInterest(ctx, studentID, interestID); err != nil {
+					return err
+				}
+			}
+			// Remove from existing map
+			delete(existingInterests, interestID)
+		}
+
+		// Remove interests that were not in the update
+		// This is optional
+		// for interestID := range existingInterests {
+		//    uc.studentRepo.RemoveInterest(ctx, studentID, interestID)
+		// }
 	}
 
-	logger.Info("Successfully updated student profile", "user_id", userID)
+	// Update goals if provided
+	if len(req.Goals) > 0 {
+		// First get existing goals
+		currentGoals, err := uc.studentRepo.GetGoals(ctx, studentID)
+		if err != nil {
+			return err
+		}
+
+		// Map existing goals for easy lookup
+		existingGoals := make(map[int]bool)
+		for _, goal := range currentGoals {
+			existingGoals[goal.GoalID] = true
+		}
+
+		// Add new goals
+		for _, goalID := range req.Goals {
+			if !existingGoals[goalID] {
+				if err := uc.studentRepo.AddGoal(ctx, studentID, goalID); err != nil {
+					return err
+				}
+			}
+			// Remove from existing map
+			delete(existingGoals, goalID)
+		}
+
+		// Remove goals that were not in the update
+		// This is optional
+		// for goalID := range existingGoals {
+		//    uc.studentRepo.RemoveGoal(ctx, studentID, goalID)
+		// }
+	}
+
 	return nil
 }
 
-// UpdateStudentStreak updates a student's streak information
-func (uc *StudentUseCase) UpdateStudentStreak(ctx context.Context, userID int, currentStreak, longestStreak int, lastGameDate string) error {
-	logger.Info("Updating student streak",
-		"user_id", userID,
-		"current_streak", currentStreak,
-		"longest_streak", longestStreak,
-		"last_game_date", lastGameDate)
-
-	// Check if user exists
-	_, err := uc.UserRepo.GetUserByID(ctx, userID)
+// UpdateStreak updates a student's streak information
+func (uc *StudentUseCase) UpdateStreak(ctx context.Context, studentID int, increment bool) error {
+	// Get existing profile
+	studentProfile, err := uc.studentRepo.GetByUserID(ctx, studentID)
 	if err != nil {
-		logger.Error("Failed to get user", "error", err, "user_id", userID)
 		return err
 	}
-
-	// Update streak
-	err = uc.StudentRepo.UpdateStudentStreak(ctx, userID, currentStreak, longestStreak, lastGameDate)
-	if err != nil {
-		logger.Error("Failed to update student streak", "error", err, "user_id", userID)
-		return fmt.Errorf("failed to update student streak: %w", err)
+	if studentProfile == nil {
+		return errors.New("student profile not found")
 	}
 
-	logger.Info("Successfully updated student streak", "user_id", userID)
-	return nil
+	if increment {
+		// Increment current streak
+		studentProfile.CurrentStreak++
+
+		// Update longest streak if needed
+		if studentProfile.CurrentStreak > studentProfile.LongestStreak {
+			studentProfile.LongestStreak = studentProfile.CurrentStreak
+		}
+	} else {
+		// Reset current streak
+		studentProfile.CurrentStreak = 0
+	}
+
+	// Save updated profile
+	return uc.studentRepo.Update(ctx, studentProfile)
 }
 
-// IncrementLessonsTaken increments the number of lessons taken by a student
-func (uc *StudentUseCase) IncrementLessonsTaken(ctx context.Context, userID int) error {
-	logger.Info("Incrementing lessons taken", "user_id", userID)
-
-	// Check if user exists
-	_, err := uc.UserRepo.GetUserByID(ctx, userID)
-	if err != nil {
-		logger.Error("Failed to get user", "error", err, "user_id", userID)
-		return err
-	}
-
-	// Increment lessons taken
-	err = uc.StudentRepo.IncrementLessonsTaken(ctx, userID)
-	if err != nil {
-		logger.Error("Failed to increment lessons taken", "error", err, "user_id", userID)
-		return fmt.Errorf("failed to increment lessons taken: %w", err)
-	}
-
-	logger.Info("Successfully incremented lessons taken", "user_id", userID)
-	return nil
+// GetUpcomingLessons retrieves upcoming lessons for a student
+func (uc *StudentUseCase) GetUpcomingLessons(ctx context.Context, studentID int) ([]entities.Lesson, error) {
+	return uc.lessonRepo.GetUpcomingLessons(ctx, studentID, true)
 }
 
-// RegisterStudent registers a new student
-func (uc *StudentUseCase) RegisterStudent(ctx context.Context, userID int, req *entities.StudentUpdateRequest) error {
-	logger.Info("Registering student", "user_id", userID)
+// GetPastLessons retrieves past lessons for a student
+func (uc *StudentUseCase) GetPastLessons(ctx context.Context, studentID int) ([]entities.Lesson, error) {
+	return uc.lessonRepo.GetPastLessons(ctx, studentID, true)
+}
 
-	// Check if user exists
-	_, err := uc.UserRepo.GetUserByID(ctx, userID)
-	if err != nil {
-		logger.Error("Failed to get user", "error", err, "user_id", userID)
-		return err
-	}
+// AddLanguage adds a language to a student's profile
+func (uc *StudentUseCase) AddLanguage(ctx context.Context, studentID int, languageID int, proficiencyID int) error {
+	return uc.studentRepo.AddLanguage(ctx, studentID, languageID, proficiencyID)
+}
 
-	// Create student profile
-	profile := &entities.StudentProfile{
-		UserID: userID,
-	}
+// RemoveLanguage removes a language from a student's profile
+func (uc *StudentUseCase) RemoveLanguage(ctx context.Context, studentID int, languageID int) error {
+	return uc.studentRepo.RemoveLanguage(ctx, studentID, languageID)
+}
 
-	// Apply profile picture if provided
-	if req.ProfilePictureURL != nil {
-		profile.ProfilePictureURL = req.ProfilePictureURL
-	}
+// AddInterest adds an interest to a student's profile
+func (uc *StudentUseCase) AddInterest(ctx context.Context, studentID int, interestID int) error {
+	return uc.studentRepo.AddInterest(ctx, studentID, interestID)
+}
 
-	// Create the profile
-	err = uc.StudentRepo.CreateStudentProfile(ctx, profile)
-	if err != nil {
-		logger.Error("Failed to create student profile", "error", err, "user_id", userID)
-		return fmt.Errorf("failed to create student profile: %w", err)
-	}
+// RemoveInterest removes an interest from a student's profile
+func (uc *StudentUseCase) RemoveInterest(ctx context.Context, studentID int, interestID int) error {
+	return uc.studentRepo.RemoveInterest(ctx, studentID, interestID)
+}
 
-	logger.Info("Successfully registered student", "user_id", userID)
-	return nil
+// AddGoal adds a goal to a student's profile
+func (uc *StudentUseCase) AddGoal(ctx context.Context, studentID int, goalID int) error {
+	return uc.studentRepo.AddGoal(ctx, studentID, goalID)
+}
+
+// RemoveGoal removes a goal from a student's profile
+func (uc *StudentUseCase) RemoveGoal(ctx context.Context, studentID int, goalID int) error {
+	return uc.studentRepo.RemoveGoal(ctx, studentID, goalID)
 }

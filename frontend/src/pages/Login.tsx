@@ -4,6 +4,7 @@ import * as Yup from 'yup';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/I18nContext';
+import { LoginRequest, UserRole } from '../types';
 
 export const Login = () => {
     const { login, user } = useAuth();
@@ -13,11 +14,7 @@ export const Login = () => {
 
     // Redirect if already logged in
     if (user) {
-        if (!user.credentials) {
-            // If user exists but credentials are missing, redirect to login
-            return <Navigate to="/login" />;
-        }
-        return <Navigate to={user.credentials.role === 'tutor' ? '/tutor/dashboard' : '/dashboard'} />;
+        return <Navigate to={user.role === UserRole.TUTOR ? '/tutor/dashboard' : '/dashboard'} />;
     }
 
     const formik = useFormik({
@@ -33,7 +30,13 @@ export const Login = () => {
             try {
                 setIsLoading(true);
                 setError(null);
-                await login(values.username, values.password);
+                
+                const loginRequest: LoginRequest = {
+                    username: values.username,
+                    password: values.password
+                };
+                
+                await login(loginRequest);
                 // The auth context will handle redirection after successful login
             } catch (error: any) {
                 console.error('Login failed:', error);

@@ -11,13 +11,12 @@ import (
 	"time"
 	"tongly-backend/internal/config"
 	"tongly-backend/internal/database"
-	"tongly-backend/internal/interfaces"
+	interfaces "tongly-backend/internal/handlers"
 	"tongly-backend/internal/logger"
 	"tongly-backend/internal/repositories"
+	"tongly-backend/internal/router"
 	"tongly-backend/internal/usecases"
-	"tongly-backend/pkg/middleware"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 )
@@ -66,63 +65,42 @@ func main() {
 
 	// Initialize repositories
 	userRepo := repositories.NewUserRepository(db)
+	studentRepo := repositories.NewStudentRepository(db)
 	tutorRepo := repositories.NewTutorRepository(db)
 	lessonRepo := repositories.NewLessonRepository(db)
-	studentRepo := repositories.NewStudentRepository(db)
+	langRepo := repositories.NewLanguageRepository(db)
+	interestRepo := repositories.NewInterestRepository(db)
+	goalRepo := repositories.NewGoalRepository(db)
 
-	// Initialize use cases
-	authUseCase := usecases.NewAuthUseCase(userRepo)
-	tutorUseCase := usecases.NewTutorUseCase(tutorRepo, userRepo)
+	// Initialize usecases
+	authUseCase := usecases.NewAuthUseCase(userRepo, studentRepo, tutorRepo)
+	studentUseCase := usecases.NewStudentUseCase(studentRepo, userRepo, lessonRepo)
+	tutorUseCase := usecases.NewTutorUseCase(tutorRepo, userRepo, studentRepo, lessonRepo)
+	lessonUseCase := usecases.NewLessonUseCase(lessonRepo, userRepo, tutorRepo, studentRepo, langRepo)
+	commonUseCase := usecases.NewCommonUseCase(langRepo, interestRepo, goalRepo)
 	userUseCase := usecases.NewUserUseCase(userRepo)
-	lessonUseCase := usecases.NewLessonUseCase(
-		lessonRepo,
-		tutorRepo,
-		userRepo,
-	)
-	studentUseCase := usecases.NewStudentUseCase(studentRepo, userRepo)
 
 	// Initialize handlers
-	authHandler := interfaces.NewAuthHandler(authUseCase, tutorUseCase, studentUseCase)
-	tutorHandler := interfaces.NewTutorHandler(tutorUseCase)
-	userHandler := interfaces.NewUserHandler(userUseCase)
-	lessonHandler := interfaces.NewLessonHandler(lessonUseCase)
+	authHandler := interfaces.NewAuthHandler(*authUseCase, tutorUseCase, studentUseCase)
 	studentHandler := interfaces.NewStudentHandler(studentUseCase)
+	tutorHandler := interfaces.NewTutorHandler(tutorUseCase)
+	lessonHandler := interfaces.NewLessonHandler(lessonUseCase)
+	commonHandler := interfaces.NewCommonHandler(commonUseCase)
+	userHandler := interfaces.NewUserHandler(userUseCase)
 
 	// Create a new Gin router with recommended production settings
 	gin.SetMode(gin.ReleaseMode)
-	r := gin.New()
-	r.Use(gin.Recovery())
-	r.Use(middleware.Logger(middleware.LoggerConfig{
-		SkipPaths: []string{"/health", "/metrics"},
-	}))
-
-	// CORS configuration
-	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:3000"}
-	config.AllowCredentials = true
-	config.AllowHeaders = append(config.AllowHeaders,
-		"Authorization",
+	r := router.NewRouter(
+		authHandler,
+		studentHandler,
+		tutorHandler,
+		lessonHandler,
+		commonHandler,
+		userHandler,
 	)
-	config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
-	r.Use(cors.New(config))
 
 	// Ensure uploads directories exist
 	os.MkdirAll("uploads/avatars", 0755)
-
-	// Register static file routes
-	r.Static("/uploads", "./uploads")
-
-	// Register health check route
-	r.GET("/api/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "ok"})
-	})
-
-	// Register all handler routes
-	authHandler.RegisterRoutes(r)
-	userHandler.RegisterRoutes(r)
-	tutorHandler.RegisterRoutes(r)
-	studentHandler.RegisterRoutes(r)
-	lessonHandler.RegisterRoutes(r)
 
 	// Start server with graceful shutdown
 	srv := &http.Server{

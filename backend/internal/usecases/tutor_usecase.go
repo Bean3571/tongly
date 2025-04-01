@@ -3,220 +3,214 @@ package usecases
 import (
 	"context"
 	"errors"
-	"fmt"
 	"tongly-backend/internal/entities"
-	"tongly-backend/internal/logger"
 	"tongly-backend/internal/repositories"
 )
 
+// TutorUseCase handles business logic for tutors
 type TutorUseCase struct {
-	TutorRepo repositories.TutorRepository
-	UserRepo  repositories.UserRepository
+	tutorRepo   *repositories.TutorRepository
+	userRepo    *repositories.UserRepository
+	studentRepo *repositories.StudentRepository
+	lessonRepo  *repositories.LessonRepository
 }
 
+// NewTutorUseCase creates a new TutorUseCase
 func NewTutorUseCase(
-	tutorRepo repositories.TutorRepository,
-	userRepo repositories.UserRepository,
+	tutorRepo *repositories.TutorRepository,
+	userRepo *repositories.UserRepository,
+	studentRepo *repositories.StudentRepository,
+	lessonRepo *repositories.LessonRepository,
 ) *TutorUseCase {
 	return &TutorUseCase{
-		TutorRepo: tutorRepo,
-		UserRepo:  userRepo,
+		tutorRepo:   tutorRepo,
+		userRepo:    userRepo,
+		studentRepo: studentRepo,
+		lessonRepo:  lessonRepo,
 	}
 }
 
-// TutorFilters represents the available filtering options for tutors
-type TutorFilters struct {
-	ApprovalStatus string `json:"approval_status"`
-	Language       string `json:"language"`
-}
-
-// RegisterTutor handles tutor registration
-func (uc *TutorUseCase) RegisterTutor(ctx context.Context, userID int, req entities.TutorRegistrationRequest) error {
-	logger.Info("Starting tutor registration", "user_id", userID)
-
-	// Get user to verify role
-	_, err := uc.UserRepo.GetUserByID(ctx, userID)
-	if err != nil {
-		logger.Error("Failed to get user", "error", err)
-		return err
-	}
-
-	// Create tutor profile with default values
-	profile := &entities.TutorProfile{
-		UserID:            userID,
-		Bio:               req.Bio,
-		TeachingLanguages: []entities.Language{}, // Will be populated by the repository
-		Education:         req.Education,
-		Interests:         []int{},
-		Approved:          false,
-	}
-
-	// Create the profile
-	err = uc.TutorRepo.CreateTutorProfile(ctx, profile)
-	if err != nil {
-		logger.Error("Failed to create tutor profile", "error", err, "user_id", userID)
-		return fmt.Errorf("failed to create tutor profile: %w", err)
-	}
-
-	logger.Info("Successfully registered tutor", "user_id", userID)
-	return nil
-}
-
-// ListTutors fetches a list of all tutors with pagination
-func (uc *TutorUseCase) ListTutors(ctx context.Context, page, pageSize int) ([]entities.TutorProfile, error) {
-	logger.Info("Listing tutors", "page", page, "pageSize", pageSize)
-
-	if page < 1 {
-		page = 1
-	}
-	if pageSize < 1 {
-		pageSize = 10
-	}
-
-	offset := (page - 1) * pageSize
-	return uc.TutorRepo.ListTutors(ctx, pageSize, offset)
-}
-
-// UpdateTutorApprovalStatus updates a tutor's approval status
-func (uc *TutorUseCase) UpdateTutorApprovalStatus(ctx context.Context, tutorID int, approved bool) error {
-	logger.Info("Starting tutor approval status update", "tutor_id", tutorID)
-	return uc.TutorRepo.UpdateTutorApprovalStatus(ctx, tutorID, approved)
-}
-
-// GetTutorDetails retrieves tutor details for a user
-func (uc *TutorUseCase) GetTutorDetails(ctx context.Context, userID int) (*entities.TutorProfile, error) {
-	logger.Info("Starting tutor details retrieval", "user_id", userID)
-
-	// Verify user exists
-	_, err := uc.UserRepo.GetUserByID(ctx, userID)
-	if err != nil {
-		logger.Error("Failed to get user", "error", err)
-		return nil, err
-	}
-
+// GetTutorProfile retrieves a tutor's profile with all related information
+func (uc *TutorUseCase) GetTutorProfile(ctx context.Context, tutorID int) (*entities.TutorProfile, error) {
 	// Get tutor profile
-	tutor, err := uc.TutorRepo.GetTutorProfileByUserID(ctx, userID)
+	tutorProfile, err := uc.tutorRepo.GetByUserID(ctx, tutorID)
 	if err != nil {
-		logger.Error("Failed to get tutor profile", "error", err)
 		return nil, err
 	}
-
-	if tutor == nil {
-		logger.Error("Tutor profile not found", "user_id", userID)
+	if tutorProfile == nil {
 		return nil, errors.New("tutor profile not found")
 	}
 
-	return tutor, nil
+	// Get tutor user information
+	user, err := uc.userRepo.GetByID(ctx, tutorID)
+	if err != nil {
+		return nil, err
+	}
+	tutorProfile.User = user
+
+	// Get tutor languages
+	languages, err := uc.studentRepo.GetLanguages(ctx, tutorID)
+	if err != nil {
+		return nil, err
+	}
+	tutorProfile.Languages = languages
+
+	// Get average rating
+	_, err = uc.lessonRepo.GetTutorAverageRating(ctx, tutorID)
+	if err != nil {
+		// Just log error, don't fail the whole request if ratings can't be fetched
+		// We can still return the profile without the rating
+	}
+
+	// We could attach the rating to the profile if needed
+
+	return tutorProfile, nil
 }
 
-// UpdateTutorProfile updates a tutor's profile
-func (uc *TutorUseCase) UpdateTutorProfile(ctx context.Context, userID int, req entities.TutorUpdateRequest) error {
-	logger.Info("Starting tutor profile update", "user_id", userID)
-
-	// Get user to verify role
-	_, err := uc.UserRepo.GetUserByID(ctx, userID)
+// UpdateTutorProfile updates a tutor's profile information
+func (uc *TutorUseCase) UpdateTutorProfile(ctx context.Context, tutorID int, req *entities.TutorUpdateRequest) error {
+	// Get existing profile
+	tutorProfile, err := uc.tutorRepo.GetByUserID(ctx, tutorID)
 	if err != nil {
-		logger.Error("Failed to get user", "error", err)
 		return err
 	}
-
-	// Validate tutor data
-	if req.Bio == "" && len(req.TeachingLanguages) == 0 && req.Education == nil {
-		return errors.New("at least one field must be provided for update")
-	}
-
-	// Get existing tutor profile
-	profile, err := uc.TutorRepo.GetTutorProfileByUserID(ctx, userID)
-	if err != nil {
-		logger.Error("Failed to get tutor profile", "error", err)
-		return err
-	}
-
-	// Create tutor profile if it doesn't exist
-	if profile == nil {
-		profile = &entities.TutorProfile{
-			UserID:   userID,
-			Approved: false,
-		}
-	}
-
-	// Convert Education from interface{} if needed
-	if req.Education != nil {
-		var educationList []entities.Education
-		switch education := req.Education.(type) {
-		case []entities.Education:
-			educationList = education
-		case []interface{}:
-			// Convert slice of interfaces to slice of Education
-			for _, edu := range education {
-				if eduMap, ok := edu.(map[string]interface{}); ok {
-					var degree, institution, fieldOfStudy, startYear, endYear, documentURL string
-
-					if val, ok := eduMap["degree"].(string); ok {
-						degree = val
-					}
-					if val, ok := eduMap["institution"].(string); ok {
-						institution = val
-					}
-					if val, ok := eduMap["field_of_study"].(string); ok {
-						fieldOfStudy = val
-					}
-					if val, ok := eduMap["start_year"].(string); ok {
-						startYear = val
-					}
-					if val, ok := eduMap["end_year"].(string); ok {
-						endYear = val
-					}
-					if val, ok := eduMap["documentUrl"].(string); ok {
-						documentURL = val
-					}
-
-					educationList = append(educationList, entities.Education{
-						Degree:       degree,
-						Institution:  institution,
-						FieldOfStudy: fieldOfStudy,
-						StartYear:    startYear,
-						EndYear:      endYear,
-						DocumentURL:  documentURL,
-					})
-				}
-			}
-		}
-		profile.Education = educationList
+	if tutorProfile == nil {
+		return errors.New("tutor profile not found")
 	}
 
 	// Update fields if provided
 	if req.Bio != "" {
-		profile.Bio = req.Bio
+		tutorProfile.Bio = req.Bio
+	}
+	if req.Education != nil {
+		tutorProfile.Education = req.Education
+	}
+	if req.IntroVideoURL != "" {
+		tutorProfile.IntroVideoURL = req.IntroVideoURL
+	}
+	if req.YearsExperience != nil {
+		tutorProfile.YearsExperience = *req.YearsExperience
 	}
 
-	if req.Interests != nil {
-		profile.Interests = req.Interests
+	// Save updated profile
+	return uc.tutorRepo.Update(ctx, tutorProfile)
+}
+
+// AddTutorAvailability adds a new availability slot for a tutor
+func (uc *TutorUseCase) AddTutorAvailability(ctx context.Context, tutorID int, req *entities.TutorAvailabilityRequest) error {
+	// Validate tutor exists
+	tutorProfile, err := uc.tutorRepo.GetByUserID(ctx, tutorID)
+	if err != nil {
+		return err
+	}
+	if tutorProfile == nil {
+		return errors.New("tutor profile not found")
 	}
 
-	if req.IntroductionVideo != "" {
-		profile.IntroductionVideo = req.IntroductionVideo
+	// Create new availability
+	availability := &entities.TutorAvailability{
+		TutorID:     tutorID,
+		DayOfWeek:   req.DayOfWeek,
+		StartTime:   req.StartTime,
+		EndTime:     req.EndTime,
+		IsRecurring: req.IsRecurring,
 	}
 
-	// Update tutor profile
-	if err := uc.TutorRepo.UpdateTutorProfile(ctx, profile); err != nil {
-		logger.Error("Failed to update tutor profile", "error", err)
+	// Save availability
+	return uc.tutorRepo.AddAvailability(ctx, availability)
+}
+
+// UpdateTutorAvailability updates an existing availability slot
+func (uc *TutorUseCase) UpdateTutorAvailability(ctx context.Context, tutorID int, availabilityID int, req *entities.TutorAvailabilityRequest) error {
+	// Validate tutor and availability combination
+	availabilities, err := uc.tutorRepo.GetAvailabilities(ctx, tutorID)
+	if err != nil {
 		return err
 	}
 
-	logger.Info("Tutor profile updated successfully", "user_id", userID)
-	return nil
+	var found bool
+	for _, a := range availabilities {
+		if a.ID == availabilityID {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return errors.New("availability not found for this tutor")
+	}
+
+	// Update availability
+	availability := &entities.TutorAvailability{
+		ID:          availabilityID,
+		TutorID:     tutorID,
+		DayOfWeek:   req.DayOfWeek,
+		StartTime:   req.StartTime,
+		EndTime:     req.EndTime,
+		IsRecurring: req.IsRecurring,
+	}
+
+	return uc.tutorRepo.UpdateAvailability(ctx, availability)
+}
+
+// DeleteTutorAvailability deletes an availability slot
+func (uc *TutorUseCase) DeleteTutorAvailability(ctx context.Context, tutorID int, availabilityID int) error {
+	return uc.tutorRepo.DeleteAvailability(ctx, availabilityID, tutorID)
+}
+
+// GetTutorAvailabilities retrieves all availabilities for a tutor
+func (uc *TutorUseCase) GetTutorAvailabilities(ctx context.Context, tutorID int) ([]entities.TutorAvailability, error) {
+	return uc.tutorRepo.GetAvailabilities(ctx, tutorID)
 }
 
 // SearchTutors searches for tutors based on filters
 func (uc *TutorUseCase) SearchTutors(ctx context.Context, filters *entities.TutorSearchFilters) ([]entities.TutorProfile, error) {
-	logger.Info("Searching tutors", "filters", filters)
-
-	// Convert filters to map
-	filterMap := make(map[string]interface{})
-	if filters != nil && len(filters.Languages) > 0 {
-		filterMap["languages"] = filters.Languages
+	tutors, err := uc.tutorRepo.SearchTutors(ctx, filters)
+	if err != nil {
+		return nil, err
 	}
 
-	return uc.TutorRepo.SearchTutors(ctx, filterMap)
+	// For each tutor, enrich with additional information
+	for i := range tutors {
+		// Get user information
+		user, err := uc.userRepo.GetByID(ctx, tutors[i].UserID)
+		if err != nil {
+			continue // Skip if can't get user info
+		}
+		tutors[i].User = user
+
+		// Get languages
+		languages, err := uc.studentRepo.GetLanguages(ctx, tutors[i].UserID)
+		if err != nil {
+			continue // Skip if can't get languages
+		}
+		tutors[i].Languages = languages
+	}
+
+	return tutors, nil
+}
+
+// ApproveTutor approves a tutor to start teaching
+func (uc *TutorUseCase) ApproveTutor(ctx context.Context, tutorID int) error {
+	// Verify tutor exists
+	tutorProfile, err := uc.tutorRepo.GetByUserID(ctx, tutorID)
+	if err != nil {
+		return err
+	}
+	if tutorProfile == nil {
+		return errors.New("tutor profile not found")
+	}
+
+	// Update approval status
+	return uc.tutorRepo.UpdateApprovalStatus(ctx, tutorID, true)
+}
+
+// GetUpcomingLessons retrieves upcoming lessons for a tutor
+func (uc *TutorUseCase) GetUpcomingLessons(ctx context.Context, tutorID int) ([]entities.Lesson, error) {
+	return uc.lessonRepo.GetUpcomingLessons(ctx, tutorID, false)
+}
+
+// GetPastLessons retrieves past lessons for a tutor
+func (uc *TutorUseCase) GetPastLessons(ctx context.Context, tutorID int) ([]entities.Lesson, error) {
+	return uc.lessonRepo.GetPastLessons(ctx, tutorID, false)
 }

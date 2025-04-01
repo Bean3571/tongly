@@ -5,43 +5,18 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { api } from '../api/client';
 import { useTranslation } from '../contexts/I18nContext';
+import { User, UserUpdateRequest } from '../types';
 
 const DEFAULT_AVATAR = 'https://secure.gravatar.com/avatar/default?s=200&d=mp';
 
-// Define a generic user settings type to handle both structure formats
-interface UserSettingsData {
-    first_name?: string | null;
-    last_name?: string | null;
-    profile_picture?: string | null;
-    age?: number | null | string;
-    sex?: string | null;
-}
-
 export const UserSettings = () => {
-    const { user, refreshUser, setUser } = useAuth();
+    const { user, refreshUser } = useAuth();
     const { showNotification } = useNotification();
     const { t } = useTranslation();
     const [isUpdatingPersonal, setIsUpdatingPersonal] = useState(false);
     const [isUpdatingSecurity, setIsUpdatingSecurity] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     
-    // Helper function to safely access user fields regardless of API response structure
-    const getUserField = (field: string, defaultValue: string = '') => {
-        if (!user) return defaultValue;
-        
-        // Try credentials first
-        if (user.credentials && user.credentials[field as keyof typeof user.credentials] !== undefined) {
-            return String(user.credentials[field as keyof typeof user.credentials] || defaultValue);
-        }
-        
-        // Try profile
-        if (user.profile && user.profile[field as keyof typeof user.profile] !== undefined) {
-            return String(user.profile[field as keyof typeof user.profile] || defaultValue);
-        }
-        
-        return defaultValue;
-    };
-
     // Initialize user info state
     const [userInfo, setUserInfo] = useState({
         firstName: '',
@@ -57,13 +32,13 @@ export const UserSettings = () => {
     useEffect(() => {
         if (user) {
             setUserInfo({
-                firstName: getUserField('first_name'),
-                lastName: getUserField('last_name'),
-                userPicture: getUserField('profile_picture'),
-                age: getUserField('age'),
-                sex: getUserField('sex'),
-                email: getUserField('email'),
-                username: getUserField('username'),
+                firstName: user.firstName || '',
+                lastName: user.lastName || '',
+                userPicture: user.profilePictureUrl || '',
+                age: user.age ? String(user.age) : '',
+                sex: user.sex || '',
+                email: user.email || '',
+                username: user.username || '',
             });
         }
     }, [user]);
@@ -88,13 +63,15 @@ export const UserSettings = () => {
             try {
                 setIsUpdatingPersonal(true);
                 
-                await api.user.updateProfile({
-                    first_name: values.firstName || null,
-                    last_name: values.lastName || null,
-                    profile_picture: values.userPicture || null,
-                    age: values.age ? parseInt(values.age) : null,
-                    sex: values.sex as 'male' | 'female' | 'not_set',
-                });
+                const updateData: UserUpdateRequest = {
+                    firstName: values.firstName || undefined,
+                    lastName: values.lastName || undefined,
+                    profilePictureUrl: values.userPicture || undefined,
+                    age: values.age ? parseInt(values.age) : undefined,
+                    sex: values.sex || undefined,
+                };
+                
+                await api.user.updateProfile(updateData);
                 await loadUserData();
                 showNotification('success', t('notifications.personal_info_updated'));
             } catch (error) {
@@ -130,8 +107,8 @@ export const UserSettings = () => {
                 let passwordUpdated = false;
                 
                 // Update email if changed and not empty
-                if (values.email && values.email !== (user?.credentials?.email || userInfo.email)) {
-                    console.log("Updating email from:", user?.credentials?.email || userInfo.email, "to:", values.email);
+                if (values.email && values.email !== userInfo.email) {
+                    console.log("Updating email from:", userInfo.email, "to:", values.email);
                     await api.user.updateProfile({ email: values.email });
                     emailUpdated = true;
                     hasUpdates = true;
@@ -141,6 +118,7 @@ export const UserSettings = () => {
                 if (values.currentPassword && values.newPassword) {
                     console.log("Attempting to update password");
                     try {
+                        // Note: Backend needs to be updated for password change
                         await api.user.updatePassword(
                             values.currentPassword,
                             values.newPassword
@@ -196,53 +174,22 @@ export const UserSettings = () => {
         try {
             setIsLoading(true);
             await refreshUser();
-            const profileData = await api.user.getProfile();
-            
-            // Extract email and username from credentials
-            const email = profileData.credentials?.email || '';
-            const username = profileData.credentials?.username || '';
-            
-            console.log('Received profile data:', profileData);
-            
-            // Update security form with email
-            securityFormik.setFieldValue('email', email);
-            
-            // Update user info state with latest data
-            setUserInfo(prev => ({
-                ...prev,
-                email,
-                username,
-            }));
-            
-            // Update the user context with the latest data
-            setUser(profileData);
         } catch (error) {
-            console.error('Error loading user data:', error);
-            showNotification('error', t('errors.failed_to_load_user_data'));
+            console.error('Failed to load user data:', error);
+            showNotification('error', t('errors.failed_to_load_profile'));
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Load user data when component mounts
     useEffect(() => {
         loadUserData();
     }, []);
 
-    // Update security form email when user email changes
-    useEffect(() => {
-        if (user?.credentials?.email) {
-            securityFormik.setFieldValue('email', user.credentials.email);
-        }
-    }, [user?.credentials?.email]);
-
-    // Helper to safely get user picture URL
     const getUserPictureUrl = () => {
-        if (!user) return DEFAULT_AVATAR;
-        return user.profile?.profile_picture || DEFAULT_AVATAR;
+        return userInfo.userPicture || DEFAULT_AVATAR;
     };
 
-    // Get formatted name for display
     const getDisplayName = () => {
         const firstName = userInfo.firstName;
         const lastName = userInfo.lastName;
@@ -254,7 +201,7 @@ export const UserSettings = () => {
         } else if (lastName) {
             return lastName;
         } else {
-            return userInfo.username || user?.credentials?.username || t('common.user');
+            return userInfo.username;
         }
     };
 
