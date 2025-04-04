@@ -2,6 +2,7 @@ import axios, { AxiosError } from 'axios';
 import { User, LoginRequest, UserRegistrationRequest, UserUpdateRequest, AuthResponse } from '../types';
 import { Language, LanguageProficiency, UserLanguage, UserLanguageUpdate } from '../types/language';
 import { Interest, UserInterest, Goal, UserGoal } from '../types/interest-goal';
+import { TutorProfile, TutorUpdateRequest } from '../types/tutor';
 
 // Helper function to extract error messages from different API error formats
 export const getErrorMessage = (error: any): string => {
@@ -303,10 +304,34 @@ export const goalService = {
     }
 };
 
+// Tutor Service
+export const tutorService = {
+    getTutorProfile: async (): Promise<TutorProfile> => {
+        try {
+            const response = await apiClient.get('/api/tutors/me/profile');
+            return response.data;
+        } catch (error) {
+            console.error('Get tutor profile error:', error);
+            throw error;
+        }
+    },
+
+    updateTutorProfile: async (data: TutorUpdateRequest): Promise<TutorProfile> => {
+        try {
+            const response = await apiClient.put('/api/tutors/me/profile', data);
+            return response.data;
+        } catch (error) {
+            console.error('Update tutor profile error:', error);
+            throw error;
+        }
+    }
+};
+
 export default {
     auth: authService,
     user: userService,
     language: languageService,
     interest: interestService,
-    goal: goalService
+    goal: goalService,
+    tutor: tutorService
 }; 

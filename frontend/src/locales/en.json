@@ -5,7 +5,9 @@
     "updating": "Updating...",
     "save": "Save",
     "user": "User",
-    "retry": "Try Again"
+    "retry": "Try Again",
+    "optional": "Optional",
+    "remove": "Remove"
   },
   "validation": {
     "required": "This field is required",
@@ -19,7 +21,9 @@
     "url_invalid": "Invalid URL",
     "age_min": "Age must be at least 13",
     "age_max": "Age must be less than 120",
-    "sex_invalid": "Invalid gender selection"
+    "sex_invalid": "Invalid gender selection",
+    "years_experience_min": "Experience cannot be negative",
+    "years_experience_max": "Experience must be less than 100 years"
   },
   "auth": {
     "register": "Register",
@@ -63,6 +67,26 @@
       "title": "User Settings",
       "personal_info": "Personal Information",
       "account_settings": "Account Security"
+    },
+    "user_settings": {
+      "title": "User Settings",
+      "personal_info": "Personal Information",
+      "account_settings": "Account Security",
+      "update_success": "Your profile has been updated successfully",
+      "personal_tab": "Personal Information",
+      "security_tab": "Security",
+      "profile_picture_placeholder": "Enter URL for your profile picture",
+      "not_set": "Not specified"
+    },
+    "tutor_settings": {
+      "title": "Tutor Profile Settings",
+      "update_success": "Your tutor profile has been updated successfully",
+      "not_tutor_message": "This page is only available for tutors. Please register as a tutor to access it.",
+      "bio_placeholder": "Write a brief introduction about yourself as a tutor...",
+      "video_url_placeholder": "Enter URL for your introduction video",
+      "document_url_placeholder": "Enter URL for your education document (diploma, certificate, etc.)",
+      "add_education": "Add Education",
+      "confirm_remove_education": "Are you sure you want to remove this education entry?"
     }
   },
   "userSettings": {
@@ -106,5 +130,23 @@
       "grow_title": "Track Progress",
       "grow_description": "Set goals, complete lessons, and track your language learning journey."
     }
+  },
+  "tutor": {
+    "bio": "Bio",
+    "years_experience": "Years of Teaching Experience",
+    "intro_video_url": "Introduction Video URL",
+    "education": "Education",
+    "education_degree": "Degree",
+    "education_institution": "Institution",
+    "education_field": "Field of Study",
+    "education_start_year": "Start Year",
+    "education_end_year": "End Year",
+    "education_document": "Document URL"
+  },
+  "navbar": {
+    "home": "Home",
+    "preferences": "Preferences",
+    "account_settings": "Account Settings",
+    "tutor_settings": "Tutor Profile"
   }
 }

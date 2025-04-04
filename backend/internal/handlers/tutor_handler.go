@@ -236,4 +236,12 @@ func (h *TutorHandler) RegisterRoutes(router *gin.Engine) {
 		tutor.GET("/lessons/upcoming", h.GetUpcomingLessons)
 		tutor.GET("/lessons/past", h.GetPastLessons)
 	}
+
+	// Additional routes to match the frontend API calls
+	tutors := router.Group("/api/tutors")
+	tutors.Use(middleware.AuthMiddleware())
+	{
+		tutors.GET("/me/profile", h.GetProfile)
+		tutors.PUT("/me/profile", h.UpdateProfile)
+	}
 }

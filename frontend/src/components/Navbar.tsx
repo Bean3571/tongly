@@ -76,6 +76,14 @@ export const Navbar = () => {
                                         >
                                             {t('navbar.account_settings')}
                                         </Link>
+                                        {user.role === 'tutor' && (
+                                            <Link
+                                                to="/tutor-settings"
+                                                className="block px-4 py-2 text-sm text-text-secondary hover:bg-overlay-light hover:text-text-primary w-full text-left"
+                                            >
+                                                {t('navbar.tutor_settings')}
+                                            </Link>
+                                        )}
                                         <button
                                             onClick={logout}
                                             className="block px-4 py-2 text-sm text-error hover:bg-overlay-light w-full text-left"

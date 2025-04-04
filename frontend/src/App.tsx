@@ -13,6 +13,7 @@ import { useAuth } from './contexts/AuthContext';
 import { Home } from './pages/Home';
 import { UserSettings } from './pages/UserSettings';
 import { UserPreferences } from './pages/UserPreferences';
+import { TutorSettings } from './pages/TutorSettings';
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,14 @@ const AppRoutes = () => {
                         element={
                             <PrivateRoute>
                                 <UserPreferences />
+                            </PrivateRoute>
+                        } 
+                    />
+                    <Route 
+                        path="/tutor-settings" 
+                        element={
+                            <PrivateRoute>
+                                <TutorSettings />
                             </PrivateRoute>
                         } 
                     />
