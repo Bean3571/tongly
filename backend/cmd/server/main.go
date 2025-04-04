@@ -71,6 +71,7 @@ func main() {
 	langRepo := repositories.NewLanguageRepository(db)
 	interestRepo := repositories.NewInterestRepository(db)
 	goalRepo := repositories.NewGoalRepository(db)
+	prefsRepo := repositories.NewUserPreferencesRepository(db)
 
 	// Initialize usecases
 	authUseCase := usecases.NewAuthUseCase(userRepo, studentRepo, tutorRepo)
@@ -79,6 +80,7 @@ func main() {
 	lessonUseCase := usecases.NewLessonUseCase(lessonRepo, userRepo, tutorRepo, studentRepo, langRepo)
 	commonUseCase := usecases.NewCommonUseCase(langRepo, interestRepo, goalRepo)
 	userUseCase := usecases.NewUserUseCase(userRepo)
+	prefsUseCase := usecases.NewUserPreferencesUseCase(prefsRepo, langRepo, interestRepo, goalRepo)
 
 	// Initialize handlers
 	authHandler := interfaces.NewAuthHandler(*authUseCase, tutorUseCase, studentUseCase)
@@ -87,6 +89,7 @@ func main() {
 	lessonHandler := interfaces.NewLessonHandler(lessonUseCase)
 	commonHandler := interfaces.NewCommonHandler(commonUseCase)
 	userHandler := interfaces.NewUserHandler(userUseCase)
+	preferencesHandler := interfaces.NewUserPreferencesHandler(prefsUseCase)
 
 	// Create a new Gin router with recommended production settings
 	gin.SetMode(gin.ReleaseMode)
@@ -97,6 +100,7 @@ func main() {
 		lessonHandler,
 		commonHandler,
 		userHandler,
+		preferencesHandler,
 	)
 
 	// Ensure uploads directories exist

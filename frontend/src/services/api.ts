@@ -162,30 +162,30 @@ export const languageService = {
     getAllLanguages: async (): Promise<Language[]> => {
         try {
             const response = await apiClient.get('/api/languages');
-            return response.data;
+            return response.data || [];
         } catch (error) {
             console.error('Get languages error:', error);
-            throw error;
+            return [];
         }
     },
 
     getAllProficiencies: async (): Promise<LanguageProficiency[]> => {
         try {
             const response = await apiClient.get('/api/language-proficiencies');
-            return response.data;
+            return response.data || [];
         } catch (error) {
             console.error('Get proficiencies error:', error);
-            throw error;
+            return [];
         }
     },
 
     getUserLanguages: async (): Promise<UserLanguage[]> => {
         try {
             const response = await apiClient.get('/api/users/me/languages');
-            return response.data;
+            return response.data || [];
         } catch (error) {
             console.error('Get user languages error:', error);
-            throw error;
+            return [];
         }
     },
 
@@ -224,20 +224,20 @@ export const interestService = {
     getAllInterests: async (): Promise<Interest[]> => {
         try {
             const response = await apiClient.get('/api/interests');
-            return response.data;
+            return response.data || [];
         } catch (error) {
             console.error('Get interests error:', error);
-            throw error;
+            return [];
         }
     },
 
     getUserInterests: async (): Promise<UserInterest[]> => {
         try {
             const response = await apiClient.get('/api/users/me/interests');
-            return response.data;
+            return response.data || [];
         } catch (error) {
             console.error('Get user interests error:', error);
-            throw error;
+            return [];
         }
     },
 
@@ -266,20 +266,20 @@ export const goalService = {
     getAllGoals: async (): Promise<Goal[]> => {
         try {
             const response = await apiClient.get('/api/goals');
-            return response.data;
+            return response.data || [];
         } catch (error) {
             console.error('Get goals error:', error);
-            throw error;
+            return [];
         }
     },
 
     getUserGoals: async (): Promise<UserGoal[]> => {
         try {
             const response = await apiClient.get('/api/users/me/goals');
-            return response.data;
+            return response.data || [];
         } catch (error) {
             console.error('Get user goals error:', error);
-            throw error;
+            return [];
         }
     },
 

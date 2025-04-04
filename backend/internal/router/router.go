@@ -18,6 +18,7 @@ func SetupRouter(
 	lessonHandler *interfaces.LessonHandler,
 	commonHandler *interfaces.CommonHandler,
 	userHandler *interfaces.UserHandler,
+	preferencesHandler *interfaces.UserPreferencesHandler,
 ) {
 	// Add CORS middleware first
 	r.Use(cors.New(cors.Config{
@@ -62,6 +63,7 @@ func SetupRouter(
 			tutorHandler.RegisterRoutes(r)
 			lessonHandler.RegisterRoutes(r)
 			userHandler.RegisterRoutes(r)
+			preferencesHandler.RegisterRoutes(r)
 		}
 	}
 
@@ -76,6 +78,7 @@ func NewRouter(
 	lessonHandler *interfaces.LessonHandler,
 	commonHandler *interfaces.CommonHandler,
 	userHandler *interfaces.UserHandler,
+	preferencesHandler *interfaces.UserPreferencesHandler,
 ) *gin.Engine {
 	router := gin.Default()
 
@@ -88,6 +91,7 @@ func NewRouter(
 		lessonHandler,
 		commonHandler,
 		userHandler,
+		preferencesHandler,
 	)
 
 	return router

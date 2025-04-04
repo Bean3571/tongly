@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"net/http"
+	"tongly-backend/internal/entities"
 	"tongly-backend/internal/usecases"
 
 	"github.com/gin-gonic/gin"
@@ -27,6 +28,11 @@ func (h *CommonHandler) GetAllLanguages(c *gin.Context) {
 		return
 	}
 
+	// Always return an array, even if empty
+	if languages == nil {
+		languages = []entities.Language{}
+	}
+
 	c.JSON(http.StatusOK, languages)
 }
 
@@ -36,6 +42,11 @@ func (h *CommonHandler) GetAllProficiencies(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve proficiencies"})
 		return
+	}
+
+	// Always return an array, even if empty
+	if proficiencies == nil {
+		proficiencies = []entities.LanguageProficiency{}
 	}
 
 	c.JSON(http.StatusOK, proficiencies)
@@ -49,6 +60,11 @@ func (h *CommonHandler) GetAllInterests(c *gin.Context) {
 		return
 	}
 
+	// Always return an array, even if empty
+	if interests == nil {
+		interests = []entities.Interest{}
+	}
+
 	c.JSON(http.StatusOK, interests)
 }
 
@@ -58,6 +74,11 @@ func (h *CommonHandler) GetAllGoals(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve goals"})
 		return
+	}
+
+	// Always return an array, even if empty
+	if goals == nil {
+		goals = []entities.Goal{}
 	}
 
 	c.JSON(http.StatusOK, goals)
@@ -70,7 +91,7 @@ func (h *CommonHandler) RegisterRoutes(router *gin.Engine) {
 	{
 		// Language routes
 		api.GET("/languages", h.GetAllLanguages)
-		api.GET("/languages/proficiencies", h.GetAllProficiencies)
+		api.GET("/language-proficiencies", h.GetAllProficiencies)
 
 		// Interest routes
 		api.GET("/interests", h.GetAllInterests)
