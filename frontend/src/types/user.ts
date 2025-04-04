@@ -26,8 +26,8 @@ export interface User extends BaseEntity {
 // User registration request
 export interface UserRegistrationRequest {
   username: string;
-  password: string; // Note: Changed from passwordHash for frontend use
   email: string;
+  password_hash: string; // Changed from password to match backend API
   role: UserRole;
 }
 
@@ -51,7 +51,7 @@ export interface AuthResponse {
 // Login request
 export interface LoginRequest {
   username: string;
-  password: string;
+  password: string; // The login endpoint uses 'password' not 'password_hash'
 }
 
 // User with token model for auth context

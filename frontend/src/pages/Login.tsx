@@ -1,21 +1,17 @@
 import React, { useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { Link, Navigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/I18nContext';
-import { LoginRequest, UserRole } from '../types';
+import { LoginRequest } from '../types';
+import { getErrorMessage } from '../services/api';
 
 export const Login = () => {
-    const { login, user } = useAuth();
+    const { login } = useAuth();
     const { t } = useTranslation();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
-    // Redirect if already logged in
-    if (user) {
-        return <Navigate to={user.role === UserRole.TUTOR ? '/tutor/dashboard' : '/dashboard'} />;
-    }
 
     const formik = useFormik({
         initialValues: {
@@ -40,7 +36,7 @@ export const Login = () => {
                 // The auth context will handle redirection after successful login
             } catch (error: any) {
                 console.error('Login failed:', error);
-                setError(error.message || t('auth.errors.invalidCredentials'));
+                setError(getErrorMessage(error));
             } finally {
                 setIsLoading(false);
             }

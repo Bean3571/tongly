@@ -13,26 +13,10 @@ export const Navbar = () => {
 
     const getNavLinks = () => {
         if (!user) return [];
-        if (!user.credentials) return [];
 
         const commonLinks = [
-            { to: '/lessons', label: t('navbar.lessons') }
+            { to: '/home', label: t('navbar.home') },
         ];
-
-        if (user.credentials.role === 'student') {
-            return [
-                { to: '/tutors', label: t('navbar.tutors') },
-                { to: '/student-settings', label: t('navbar.student_settings') },
-                ...commonLinks
-            ];
-        }
-
-        if (user.credentials.role === 'tutor') {
-            return [
-                { to: '/tutor-settings', label: t('navbar.tutor_settings') },
-                ...commonLinks
-            ];
-        }
 
         return commonLinks;
     };
@@ -72,8 +56,8 @@ export const Navbar = () => {
                                 <div className="relative group">
                                     <button className="flex items-center space-x-2 p-2 rounded-lg hover:bg-overlay-light transition-colors">
                                         <img
-                                            src={user.personal?.profile_picture || DEFAULT_AVATAR}
-                                            alt={user.credentials?.username}
+                                            src={user.profilePictureUrl || DEFAULT_AVATAR}
+                                            alt={user.username}
                                             className="h-8 w-8 rounded-full object-cover border-2 border-border"
                                             onError={(e) => {
                                                 const target = e.target as HTMLImageElement;
@@ -81,7 +65,7 @@ export const Navbar = () => {
                                             }}
                                         />
                                         <span className="text-text-primary font-medium">
-                                            {user.credentials?.username}
+                                            {user.username}
                                         </span>
                                     </button>
                                     <div className="absolute right-0 w-48 mt-2 py-2 bg-surface rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">

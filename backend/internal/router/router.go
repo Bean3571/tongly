@@ -53,9 +53,6 @@ func SetupRouter(
 			auth.POST("/refresh", middleware.AuthMiddleware(), authHandler.RefreshToken)
 		}
 
-		// Public tutor routes
-		api.GET("/tutors/search", tutorHandler.SearchTutors)
-
 		// Protected routes
 		protected := api.Group("/")
 		protected.Use(middleware.AuthMiddleware())

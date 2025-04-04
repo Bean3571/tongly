@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../api/client';
+import { authService, userService, getErrorMessage } from '../services/api';
 import { useNotification } from '../contexts/NotificationContext';
 import { logger } from '../services/logger';
 import { User, UserRole, UserRegistrationRequest, LoginRequest, AuthResponse } from '../types';
@@ -35,12 +35,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const navigate = useNavigate();
     const { showNotification } = useNotification();
 
+    // Initialize user from localStorage if available
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            try {
+                setUser(JSON.parse(storedUser));
+            } catch (error) {
+                logger.error('Failed to parse user from localStorage', { error });
+                localStorage.removeItem('user');
+            }
+        }
+    }, []);
+
+    // Check token validity and refresh user data
     useEffect(() => {
         if (token) {
             logger.info('Found existing token, attempting to refresh user data');
-            refreshUser().catch(() => {
-                logger.warn('Session expired or invalid token');
+            refreshUser().catch((error) => {
+                logger.warn('Session expired or invalid token', { error });
                 localStorage.removeItem('token');
+                localStorage.removeItem('user');
                 setUser(null);
                 setToken(null);
                 showNotification('error', 'Session expired. Please login again.');
@@ -52,76 +67,85 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const login = async (credentials: LoginRequest) => {
         try {
             logger.info('Attempting login', { username: credentials.username });
-            const response = await api.auth.login(credentials);
             
-            if (response && response.data) {
-                const authResponse = response.data;
+            const authResponse = await authService.login(credentials);
+            
+            if (authResponse.token && authResponse.user) {
+                localStorage.setItem('token', authResponse.token);
+                localStorage.setItem('user', JSON.stringify(authResponse.user));
+                setToken(authResponse.token);
+                setUser(authResponse.user);
                 
-                if (authResponse.token && authResponse.user) {
-                    localStorage.setItem('token', authResponse.token);
-                    setToken(authResponse.token);
-                    setUser(authResponse.user);
-                    
-                    logger.info('Login successful', { userId: authResponse.user.id });
-                    showNotification('success', 'Welcome back!');
-                    
-                    // Navigate based on role
-                    if (authResponse.user.role === UserRole.TUTOR) {
-                        navigate('/lessons');
-                    } else {
-                        navigate('/tutors');
-                    }
-                } else {
-                    throw new Error('Invalid response from server');
-                }
+                logger.info('Login successful', { userId: authResponse.user.id });
+                showNotification('success', 'Welcome back!');
+                
+            } else {
+                throw new Error('Invalid response from server');
             }
-        } catch (error) {
-            logger.error('Login failed', { username: credentials.username, error });
-            showNotification('error', 'Invalid username or password');
+        } catch (error: any) {
+            logger.error('Login failed', { 
+                username: credentials.username, 
+                error,
+                response: error.response?.data,
+                status: error.response?.status,
+                statusText: error.response?.statusText
+            });
+            showNotification('error', getErrorMessage(error));
             throw error;
         }
     };
 
     const register = async (data: UserRegistrationRequest) => {
         try {
-            logger.info('Attempting registration', { username: data.username, email: data.email, role: data.role });
-            const response = await api.auth.register(data);
+            logger.info('Attempting registration', { 
+                username: data.username, 
+                email: data.email, 
+                role: data.role 
+            });
             
-            if (response && response.data) {
-                const authResponse = response.data;
+            console.log('Registration payload:', { 
+                ...data, 
+                password: '[REDACTED]'
+            });
+            
+            const authResponse = await authService.register(data);
+            
+            if (authResponse.token && authResponse.user) {
+                localStorage.setItem('token', authResponse.token);
+                localStorage.setItem('user', JSON.stringify(authResponse.user));
+                setToken(authResponse.token);
+                setUser(authResponse.user);
                 
-                if (authResponse.token && authResponse.user) {
-                    localStorage.setItem('token', authResponse.token);
-                    setToken(authResponse.token);
-                    setUser(authResponse.user);
-                    
-                    logger.info('Registration successful', { username: data.username });
-                    showNotification('success', 'Registration successful! Welcome to Tongly.');
-                    
-                    // Redirect based on role
-                    if (data.role === UserRole.TUTOR) {
-                        navigate('/lessons');
-                    } else {
-                        navigate('/tutors');
-                    }
-                } else {
-                    throw new Error('Invalid response from server');
-                }
+                logger.info('Registration successful', { userId: authResponse.user.id });
+                showNotification('success', 'Registration successful!');
+                
+            } else {
+                throw new Error('Invalid response from server');
             }
         } catch (error: any) {
+            console.error('Registration API error:', {
+                message: error.message,
+                response: error.response?.data,
+                status: error.response?.status,
+                statusText: error.response?.statusText,
+                url: error.config?.url,
+                method: error.config?.method
+            });
+            
             logger.error('Registration failed', { 
                 error: error.message,
                 response: error.response?.data,
                 status: error.response?.status 
             });
-            showNotification('error', error.response?.data?.error || 'Registration failed. Please try again.');
+            
+            showNotification('error', getErrorMessage(error));
             throw error;
         }
     };
 
     const logout = () => {
         logger.info('User logging out', { userId: user?.id });
-        localStorage.removeItem('token');
+        authService.logout();
         setUser(null);
         setToken(null);
         showNotification('info', 'You have been logged out');
@@ -131,21 +155,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const refreshUser = async () => {
         try {
             logger.debug('Refreshing user data');
-            const response = await api.user.getProfile();
+            const userData = await userService.getProfile();
             
-            if (response && response.data) {
-                const userData = response.data;
-                setUser(userData);
-                
-                logger.debug('User data refreshed successfully', { 
-                    id: userData.id,
-                    username: userData.username
-                });
-            } else {
-                throw new Error('No user data received during refresh');
-            }
-        } catch (error) {
-            logger.error('Failed to refresh user data', { error });
+            localStorage.setItem('user', JSON.stringify(userData));
+            setUser(userData);
+            
+            logger.debug('User data refreshed successfully', { 
+                id: userData.id,
+                username: userData.username
+            });
+        } catch (error: any) {
+            logger.error('Failed to refresh user data', { 
+                error: error.message,
+                response: error.response?.data,
+                status: error.response?.status 
+            });
             throw error;
         }
     };

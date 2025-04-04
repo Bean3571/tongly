@@ -1,14 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { useTranslation } from '../contexts/I18nContext';
 import { UserRegistrationRequest, UserRole } from '../types';
+import { getErrorMessage } from '../services/api';
 
 export const Register = () => {
     const { register } = useAuth();
     const { t } = useTranslation();
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const formik = useFormik({
         initialValues: {
@@ -37,28 +40,30 @@ export const Register = () => {
         }),
         onSubmit: async (values) => {
             try {
+                setIsLoading(true);
+                setError(null);
+                
                 const registrationData: UserRegistrationRequest = {
                     username: values.username,
                     email: values.email,
-                    password: values.password,
+                    password_hash: values.password,
                     role: values.role as UserRole,
                 };
                 
-                console.log('Submitting registration data:', {
+                console.log('Submitting registration request with data:', {
                     ...registrationData,
                     password: '[REDACTED]'
                 });
                 
                 await register(registrationData);
-                
                 // The AuthContext will handle redirecting to the appropriate dashboard
             } catch (error: any) {
-                console.error('Registration failed:', {
-                    message: error.message,
-                    response: error.response?.data,
-                    status: error.response?.status,
-                    details: error.response?.data?.error
-                });
+                console.error('Registration component error:', error);
+                const errorMessage = getErrorMessage(error);
+                
+                setError(errorMessage);
+            } finally {
+                setIsLoading(false);
             }
         },
     });
@@ -71,6 +76,13 @@ export const Register = () => {
                         {t('pages.register.title')}
                     </h2>
                 </div>
+                
+                {error && (
+                    <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-4 text-sm text-red-600">
+                        {error}
+                    </div>
+                )}
+                
                 <form className="mt-8 space-y-6" onSubmit={formik.handleSubmit}>
                     <div className="rounded-md shadow-sm space-y-4">
                         <div>
@@ -158,9 +170,10 @@ export const Register = () => {
                     <div>
                         <button
                             type="submit"
-                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                            disabled={!formik.isValid || formik.isSubmitting || isLoading}
+                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {t('pages.register.register_button')}
+                            {isLoading ? t('common.loading') : t('pages.register.register_button')}
                         </button>
                     </div>
 

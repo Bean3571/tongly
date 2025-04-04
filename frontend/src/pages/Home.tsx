@@ -1,10 +1,7 @@
-import React from 'react';
-import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/I18nContext';
 import { Link } from 'react-router-dom';
 
 export const Home = () => {
-    const { user } = useAuth();
     const { t } = useTranslation();
 
     return (
@@ -18,48 +15,22 @@ export const Home = () => {
                     {t('home.description')}
                 </p>
                 <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
-                    {!user ? (
-                        <>
-                            <div className="rounded-md shadow">
-                                <Link
-                                    to="/register"
-                                    className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-accent-primary hover:bg-accent-primary-hover md:py-4 md:text-lg md:px-10"
-                                >
-                                    {t('auth.register')}
-                                </Link>
-                            </div>
-                            <div className="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
-                                <Link
-                                    to="/login"
-                                    className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-accent-primary bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10"
-                                >
-                                    {t('auth.login')}
-                                </Link>
-                            </div>
-                        </>
-                    ) : (
-                        <>
-                            {user.credentials?.role === 'student' ? (
-                                <div className="rounded-md shadow">
-                                    <Link
-                                        to="/tutors"
-                                        className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-accent-primary hover:bg-accent-primary-hover md:py-4 md:text-lg md:px-10"
-                                    >
-                                        {t('home.find_tutors')}
-                                    </Link>
-                                </div>
-                            ) : (
-                                <div className="rounded-md shadow">
-                                    <Link
-                                        to="/lessons"
-                                        className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-accent-primary hover:bg-accent-primary-hover md:py-4 md:text-lg md:px-10"
-                                    >
-                                        {t('home.my_lessons')}
-                                    </Link>
-                                </div>
-                            )}
-                        </>
-                    )}
+                        <div className="rounded-md shadow">
+                            <Link
+                                to="/register"
+                                className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-accent-primary hover:bg-accent-primary-hover md:py-4 md:text-lg md:px-10"
+                            >
+                                {t('auth.register')}
+                            </Link>
+                        </div>
+                        <div className="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
+                            <Link
+                                to="/login"
+                                className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-accent-primary bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10"
+                            >
+                                {t('auth.login')}
+                            </Link>
+                        </div>
                 </div>
             </div>
 
