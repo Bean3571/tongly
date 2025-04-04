@@ -12,8 +12,8 @@ export interface Interest extends BaseEntity {
 
 // User interest
 export interface UserInterest extends BaseEntity {
-  userId: number;
-  interestId: number;
+  user_id: number;
+  interest_id: number;
   interest?: Interest;
 }
 
@@ -25,7 +25,7 @@ export interface Goal extends BaseEntity {
 
 // User goal
 export interface UserGoal extends BaseEntity {
-  userId: number;
-  goalId: number;
+  user_id: number;
+  goal_id: number;
   goal?: Goal;
 } 

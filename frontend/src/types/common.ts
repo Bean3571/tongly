@@ -4,8 +4,8 @@
 
 // Base interface for all entities with timestamps
 export interface BaseEntity {
-  createdAt: string;
-  updatedAt?: string;
+  created_at: string;
+  updated_at?: string;
 }
 
 // Error response from API

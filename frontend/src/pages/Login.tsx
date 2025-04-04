@@ -29,7 +29,7 @@ export const Login = () => {
                 
                 const loginRequest: LoginRequest = {
                     username: values.username,
-                    password: values.password
+                    password_hash: values.password
                 };
                 
                 await login(loginRequest);

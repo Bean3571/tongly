@@ -17,8 +17,8 @@ type AuthHandler struct {
 }
 
 type LoginCredentials struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Username     string `json:"username" binding:"required"`
+	PasswordHash string `json:"password_hash" binding:"required"`
 }
 
 type RegisterRequest struct {
@@ -85,7 +85,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	user, err := h.authUseCase.Authenticate(c.Request.Context(), credentials.Username, credentials.Password)
+	user, err := h.authUseCase.Authenticate(c.Request.Context(), credentials.Username, credentials.PasswordHash)
 	if err != nil {
 		logger.Error("Authentication failed", "username", credentials.Username, "error", err)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})

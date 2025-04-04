@@ -15,19 +15,20 @@ export interface User extends BaseEntity {
   id: number;
   username: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  profilePictureUrl?: string;
+  first_name: string;
+  last_name: string;
+  profile_picture_url?: string;
   sex?: string;
   age?: number;
   role: UserRole;
+  password_hash?: string;
 }
 
 // User registration request
 export interface UserRegistrationRequest {
   username: string;
   email: string;
-  password_hash: string; // Changed from password to match backend API
+  password_hash: string;
   role: UserRole;
 }
 
@@ -35,9 +36,9 @@ export interface UserRegistrationRequest {
 export interface UserUpdateRequest {
   username?: string;
   email?: string;
-  firstName?: string;
-  lastName?: string;
-  profilePictureUrl?: string;
+  first_name?: string;
+  last_name?: string;
+  profile_picture_url?: string;
   sex?: string;
   age?: number;
 }
@@ -51,7 +52,7 @@ export interface AuthResponse {
 // Login request
 export interface LoginRequest {
   username: string;
-  password: string; // The login endpoint uses 'password' not 'password_hash'
+  password_hash: string;
 }
 
 // User with token model for auth context

@@ -10,9 +10,9 @@ import { UserLanguage, UserLanguageUpdate } from './language';
 
 // Student profile
 export interface StudentProfile extends BaseEntity {
-  userId: number;
-  currentStreak: number;
-  longestStreak: number;
+  user_id: number;
+  current_streak: number;
+  longest_streak: number;
   user?: User;
   languages?: UserLanguage[];
   interests?: UserInterest[];
@@ -22,7 +22,7 @@ export interface StudentProfile extends BaseEntity {
 // Student registration
 export interface StudentRegistrationRequest {
   username: string;
-  password: string; // Changed from passwordHash for frontend
+  password: string; // For frontend usability
   email: string;
   languages?: UserLanguageUpdate[];
   interests?: number[];
@@ -31,7 +31,7 @@ export interface StudentRegistrationRequest {
 
 // Student update request
 export interface StudentUpdateRequest {
-  profilePictureUrl?: string;
+  profile_picture_url?: string;
   languages?: UserLanguageUpdate[];
   interests?: number[];
   goals?: number[];

@@ -10,20 +10,20 @@ import { UserLanguage, UserLanguageUpdate } from './language';
 export interface Education {
   degree: string;
   institution: string;
-  fieldOfStudy: string;
-  startYear: string;
-  endYear: string;
+  field_of_study: string;
+  start_year: string;
+  end_year: string;
   documentUrl?: string;
 }
 
 // Tutor profile
 export interface TutorProfile extends BaseEntity {
-  userId: number;
+  user_id: number;
   bio: string;
   education: Education[];
-  introVideoUrl?: string;
+  intro_video_url?: string;
   approved: boolean;
-  yearsExperience: number;
+  years_experience: number;
   user?: User;
   languages?: UserLanguage[];
 }
@@ -31,39 +31,39 @@ export interface TutorProfile extends BaseEntity {
 // Tutor availability
 export interface TutorAvailability extends BaseEntity {
   id: number;
-  tutorId: number;
-  dayOfWeek: number;
-  startTime: string;
-  endTime: string;
-  isRecurring: boolean;
+  tutor_id: number;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  is_recurring: boolean;
 }
 
 // Tutor registration
 export interface TutorRegistrationRequest {
   username: string;
-  password: string; // Changed from passwordHash for frontend
+  password: string;
   email: string;
   bio: string;
   education: Education[];
-  introVideoUrl?: string;
-  yearsExperience: number;
+  intro_video_url?: string;
+  years_experience: number;
   languages: UserLanguageUpdate[];
 }
 
 // Tutor availability request
 export interface TutorAvailabilityRequest {
-  dayOfWeek: number;
-  startTime: string;
-  endTime: string;
-  isRecurring: boolean;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  is_recurring: boolean;
 }
 
 // Tutor update request
 export interface TutorUpdateRequest {
   bio?: string;
   education?: Education[];
-  introVideoUrl?: string;
-  yearsExperience?: number;
+  intro_video_url?: string;
+  years_experience?: number;
 }
 
 // Tutor search filters

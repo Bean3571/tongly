@@ -17,8 +17,8 @@ export enum LessonStatus {
 // Review model
 export interface Review extends BaseEntity {
   id: number;
-  lessonId: number;
-  reviewerId: number;
+  lesson_id: number;
+  reviewer_id: number;
   rating: number;
   reviewer?: User;
 }
@@ -26,13 +26,13 @@ export interface Review extends BaseEntity {
 // Lesson model
 export interface Lesson extends BaseEntity {
   id: number;
-  studentId: number;
-  tutorId: number;
-  languageId: number;
-  startTime: string;
-  endTime: string;
-  cancelledBy?: number;
-  cancelledAt?: string;
+  student_id: number;
+  tutor_id: number;
+  language_id: number;
+  start_time: string;
+  end_time: string;
+  cancelled_by?: number;
+  cancelled_at?: string;
   notes?: string;
   
   // Related entities
@@ -47,10 +47,10 @@ export interface Lesson extends BaseEntity {
 
 // Lesson booking request
 export interface LessonBookingRequest {
-  tutorId: number;
-  languageId: number;
-  startTime: string;
-  endTime: string;
+  tutor_id: number;
+  language_id: number;
+  start_time: string;
+  end_time: string;
   notes?: string;
 }
 

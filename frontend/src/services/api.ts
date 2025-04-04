@@ -156,23 +156,6 @@ export const userService = {
     }
 };
 
-export interface RoomParticipant {
-    id: number;
-    lessonId: number;
-    userId: number;
-    username: string;
-    firstName?: string;
-    lastName?: string;
-    avatarUrl?: string;
-    joinedAt: string;
-    leftAt?: string;
-}
-
-export interface RoomInfo {
-    roomId: string;
-    token: string;
-    participants: RoomParticipant[];
-}
 
 export default {
     auth: authService,

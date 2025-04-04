@@ -18,15 +18,15 @@ export interface LanguageProficiency extends BaseEntity {
 
 // User's language proficiency 
 export interface UserLanguage extends BaseEntity {
-  userId: number;
-  languageId: number;
-  proficiencyId: number;
+  user_id: number;
+  language_id: number;
+  proficiency_id: number;
   language?: Language;
   proficiency?: LanguageProficiency;
 }
 
 // Language update for user profile
 export interface UserLanguageUpdate {
-  languageId: number;
-  proficiencyId: number;
+  language_id: number;
+  proficiency_id: number;
 } 

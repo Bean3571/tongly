@@ -56,7 +56,7 @@ export const Navbar = () => {
                                 <div className="relative group">
                                     <button className="flex items-center space-x-2 p-2 rounded-lg hover:bg-overlay-light transition-colors">
                                         <img
-                                            src={user.profilePictureUrl || DEFAULT_AVATAR}
+                                            src={user.profile_picture_url || DEFAULT_AVATAR}
                                             alt={user.username}
                                             className="h-8 w-8 rounded-full object-cover border-2 border-border"
                                             onError={(e) => {
