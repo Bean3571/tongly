@@ -204,7 +204,76 @@ func (h *TutorHandler) SearchTutors(c *gin.Context) {
 		filters.Languages = languages
 	}
 
-	// Add more filters here as needed
+	// Get proficiency filter
+	proficiencyStr := c.Query("proficiency_id")
+	if proficiencyStr != "" {
+		proficiencyID, err := strconv.Atoi(proficiencyStr)
+		if err == nil && proficiencyID > 0 {
+			filters.ProficiencyID = proficiencyID
+		}
+	}
+
+	// Get interests filter
+	interests := c.QueryArray("interest")
+	if len(interests) > 0 {
+		interestIDs := make([]int, 0, len(interests))
+		for _, idStr := range interests {
+			id, err := strconv.Atoi(idStr)
+			if err == nil && id > 0 {
+				interestIDs = append(interestIDs, id)
+			}
+		}
+		if len(interestIDs) > 0 {
+			filters.Interests = interestIDs
+		}
+	}
+
+	// Get goals filter
+	goals := c.QueryArray("goal")
+	if len(goals) > 0 {
+		goalIDs := make([]int, 0, len(goals))
+		for _, idStr := range goals {
+			id, err := strconv.Atoi(idStr)
+			if err == nil && id > 0 {
+				goalIDs = append(goalIDs, id)
+			}
+		}
+		if len(goalIDs) > 0 {
+			filters.Goals = goalIDs
+		}
+	}
+
+	// Get years experience filter
+	yearsExpStr := c.Query("years_experience")
+	if yearsExpStr != "" {
+		yearsExp, err := strconv.Atoi(yearsExpStr)
+		if err == nil && yearsExp >= 0 {
+			filters.YearsExperience = yearsExp
+		}
+	}
+
+	// Get age range filter
+	minAgeStr := c.Query("min_age")
+	if minAgeStr != "" {
+		minAge, err := strconv.Atoi(minAgeStr)
+		if err == nil && minAge > 0 {
+			filters.MinAge = minAge
+		}
+	}
+
+	maxAgeStr := c.Query("max_age")
+	if maxAgeStr != "" {
+		maxAge, err := strconv.Atoi(maxAgeStr)
+		if err == nil && maxAge > 0 {
+			filters.MaxAge = maxAge
+		}
+	}
+
+	// Get sex filter
+	sex := c.Query("sex")
+	if sex == "male" || sex == "female" {
+		filters.Sex = sex
+	}
 
 	tutors, err := h.tutorUseCase.SearchTutors(c.Request.Context(), &filters)
 	if err != nil {

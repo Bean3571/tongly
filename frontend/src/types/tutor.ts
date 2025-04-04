@@ -69,4 +69,11 @@ export interface TutorUpdateRequest {
 // Tutor search filters
 export interface TutorSearchFilters {
   languages?: string[];
+  proficiency_id?: number;       // Filter by minimum proficiency level
+  interests?: number[];          // Filter by interests IDs
+  goals?: number[];              // Filter by goals IDs
+  years_experience?: number;     // Filter by minimum years of experience
+  min_age?: number;              // Filter by minimum age
+  max_age?: number;              // Filter by maximum age
+  sex?: string;                  // Filter by sex (male, female)
 } 

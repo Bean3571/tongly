@@ -14,12 +14,16 @@ export const Navbar = () => {
     const getNavLinks = () => {
         if (!user) return [];
 
-        const commonLinks = [
-            { to: '/home', label: t('navbar.home') },
-            { to: '/preferences', label: t('navbar.preferences') },
+        const navItems = [
+            { to: '/home', label: t('navbar.home'), visibleTo: 'all' },
+            { to: '/search-tutors', label: t('pages.search_tutor.title'), visibleTo: 'student' },
+            { to: '/preferences', label: t('navbar.preferences'), visibleTo: 'all' },
         ];
 
-        return commonLinks;
+        return navItems.filter(item => 
+            item.visibleTo === 'all' || 
+            (user.role === item.visibleTo)
+        );
     };
 
     const isActive = (path: string) => {

@@ -14,12 +14,16 @@ import { Home } from './pages/Home';
 import { UserSettings } from './pages/UserSettings';
 import { UserPreferences } from './pages/UserPreferences';
 import { TutorSettings } from './pages/TutorSettings';
+import { SearchTutor } from './pages/SearchTutor';
+import { ScheduleLesson } from './pages/ScheduleLesson';
+import { UserRole } from './types/user';
 
 const queryClient = new QueryClient();
 
 const PrivateRoute = ({ children, role }: { children: React.ReactNode, role?: string }) => {
     const { user } = useAuth();
-    if (!user) return <Navigate to="/home" />;
+    if (!user) return <Navigate to="/login" />;
+    if (role && user.role !== role) return <Navigate to="/home" />;
     return <>{children}</>;
 };
 
@@ -59,6 +63,24 @@ const AppRoutes = () => {
                         element={
                             <PrivateRoute>
                                 <TutorSettings />
+                            </PrivateRoute>
+                        } 
+                    />
+                    
+                    {/* Student-only Routes */}
+                    <Route 
+                        path="/search-tutors" 
+                        element={
+                            <PrivateRoute role={UserRole.STUDENT}>
+                                <SearchTutor />
+                            </PrivateRoute>
+                        } 
+                    />
+                    <Route 
+                        path="/schedule-lesson/:tutorId" 
+                        element={
+                            <PrivateRoute role={UserRole.STUDENT}>
+                                <ScheduleLesson />
                             </PrivateRoute>
                         } 
                     />

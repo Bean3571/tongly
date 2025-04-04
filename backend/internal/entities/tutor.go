@@ -73,5 +73,12 @@ type Education struct {
 
 // TutorSearchFilters represents filters for searching tutors
 type TutorSearchFilters struct {
-	Languages []string `json:"languages"`
+	Languages       []string `json:"languages"`
+	ProficiencyID   int      `json:"proficiency_id"`    // Filter by minimum proficiency level
+	Interests       []int    `json:"interests"`         // Filter by interests IDs
+	Goals           []int    `json:"goals"`             // Filter by goals IDs
+	YearsExperience int      `json:"years_experience"`  // Filter by minimum years of experience
+	MinAge          int      `json:"min_age,omitempty"` // Filter by minimum age
+	MaxAge          int      `json:"max_age,omitempty"` // Filter by maximum age
+	Sex             string   `json:"sex,omitempty"`     // Filter by sex (male, female)
 }

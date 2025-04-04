@@ -7,7 +7,10 @@
     "user": "User",
     "retry": "Try Again",
     "optional": "Optional",
-    "remove": "Remove"
+    "remove": "Remove",
+    "all": "All",
+    "male": "Male",
+    "female": "Female"
   },
   "validation": {
     "required": "This field is required",
@@ -87,6 +90,31 @@
       "document_url_placeholder": "Enter URL for your education document (diploma, certificate, etc.)",
       "add_education": "Add Education",
       "confirm_remove_education": "Are you sure you want to remove this education entry?"
+    },
+    "home": {
+      "title": "Welcome to Tongly",
+      "description": "Start learning languages with native speakers today!"
+    },
+    "search_tutor": {
+      "title": "Find Tutors",
+      "filters": "Filters",
+      "language": "Languages",
+      "min_proficiency": "Minimum Proficiency",
+      "interests": "Interests",
+      "goals": "Goals",
+      "min_experience": "Min. Years Experience",
+      "min_age": "Min. Age",
+      "max_age": "Max. Age",
+      "gender": "Gender",
+      "apply_filters": "Search",
+      "reset_filters": "Reset Filters",
+      "results": "Results",
+      "no_results": "No tutors found matching your criteria."
+    },
+    "schedule_lesson": {
+      "title": "Schedule Lesson",
+      "tutor_id": "Tutor ID",
+      "coming_soon": "Lesson scheduling is coming soon!"
     }
   },
   "userSettings": {

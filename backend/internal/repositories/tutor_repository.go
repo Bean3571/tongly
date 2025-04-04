@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"tongly-backend/internal/entities"
 )
 
@@ -235,38 +236,127 @@ func (r *TutorRepository) SearchTutors(ctx context.Context, filters *entities.Tu
 		       tp.years_experience, tp.created_at, tp.updated_at
 		FROM tutor_profiles tp
 		JOIN users u ON tp.user_id = u.id
-		WHERE tp.approved = true
 	`
 
-	// Add language filter if needed
-	var additionalQuery string
+	// Build WHERE clauses and arguments
+	var whereConditions []string
 	var args []interface{}
+	paramCounter := 1 // For parameter placeholders
 
-	if filters != nil && len(filters.Languages) > 0 {
-		additionalQuery = `
-			AND tp.user_id IN (
+	// Handle language and proficiency filter together if both are present
+	if filters != nil && len(filters.Languages) > 0 && filters.ProficiencyID > 0 {
+		whereConditions = append(whereConditions, fmt.Sprintf(`
+			tp.user_id IN (
 				SELECT DISTINCT ul.user_id
 				FROM user_languages ul
 				JOIN languages l ON ul.language_id = l.id
-				WHERE l.name = ANY($1)
-			)
-		`
-		args = append(args, filters.Languages)
+				WHERE l.name = ANY($%d) AND ul.proficiency_id >= $%d
+			)`, paramCounter, paramCounter+1))
+		args = append(args, filters.Languages, filters.ProficiencyID)
+		paramCounter += 2
+	} else {
+		// Handle language filter if only languages are specified
+		if filters != nil && len(filters.Languages) > 0 {
+			whereConditions = append(whereConditions, fmt.Sprintf(`
+				tp.user_id IN (
+					SELECT DISTINCT ul.user_id
+					FROM user_languages ul
+					JOIN languages l ON ul.language_id = l.id
+					WHERE l.name = ANY($%d)
+				)`, paramCounter))
+			args = append(args, filters.Languages)
+			paramCounter++
+		}
+
+		// Handle proficiency filter if only proficiency is specified
+		if filters != nil && filters.ProficiencyID > 0 {
+			whereConditions = append(whereConditions, fmt.Sprintf(`
+				tp.user_id IN (
+					SELECT DISTINCT ul.user_id
+					FROM user_languages ul
+					WHERE ul.proficiency_id >= $%d
+				)`, paramCounter))
+			args = append(args, filters.ProficiencyID)
+			paramCounter++
+		}
 	}
 
-	// Combine queries
-	query := baseQuery + additionalQuery
+	// Add interests filter
+	if filters != nil && len(filters.Interests) > 0 {
+		whereConditions = append(whereConditions, fmt.Sprintf(`
+			tp.user_id IN (
+				SELECT DISTINCT ui.user_id
+				FROM user_interests ui
+				WHERE ui.interest_id = ANY($%d)
+			)`, paramCounter))
+		args = append(args, filters.Interests)
+		paramCounter++
+	}
 
-	// If no arguments, query without args
+	// Add goals filter
+	if filters != nil && len(filters.Goals) > 0 {
+		whereConditions = append(whereConditions, fmt.Sprintf(`
+			tp.user_id IN (
+				SELECT DISTINCT ug.user_id
+				FROM user_goals ug
+				WHERE ug.goal_id = ANY($%d)
+			)`, paramCounter))
+		args = append(args, filters.Goals)
+		paramCounter++
+	}
+
+	// Add years of experience filter
+	if filters != nil && filters.YearsExperience > 0 {
+		whereConditions = append(whereConditions, fmt.Sprintf(`tp.years_experience >= $%d`, paramCounter))
+		args = append(args, filters.YearsExperience)
+		paramCounter++
+	}
+
+	// Add age filter
+	if filters != nil && filters.MinAge > 0 {
+		whereConditions = append(whereConditions, fmt.Sprintf(`u.age >= $%d`, paramCounter))
+		args = append(args, filters.MinAge)
+		paramCounter++
+	}
+
+	if filters != nil && filters.MaxAge > 0 {
+		whereConditions = append(whereConditions, fmt.Sprintf(`u.age <= $%d`, paramCounter))
+		args = append(args, filters.MaxAge)
+		paramCounter++
+	}
+
+	// Add sex filter
+	if filters != nil && filters.Sex != "" {
+		whereConditions = append(whereConditions, fmt.Sprintf(`u.sex = $%d`, paramCounter))
+		args = append(args, filters.Sex)
+		paramCounter++
+	}
+
+	// Combine query
+	finalQuery := baseQuery
+	for i, condition := range whereConditions {
+		if i == 0 {
+			finalQuery += " AND " + condition
+		} else {
+			finalQuery += " AND " + condition
+		}
+	}
+
+	// Log the query for debugging
+	fmt.Printf("Final query: %s\n", finalQuery)
+	fmt.Printf("Args: %v\n", args)
+
+	// Execute query
 	var rows *sql.Rows
 	var err error
 	if len(args) == 0 {
-		rows, err = r.db.QueryContext(ctx, query)
+		rows, err = r.db.QueryContext(ctx, finalQuery)
 	} else {
-		rows, err = r.db.QueryContext(ctx, query, args...)
+		rows, err = r.db.QueryContext(ctx, finalQuery, args...)
 	}
 
 	if err != nil {
+		fmt.Printf("Query error: %v\n", err)
 		return nil, err
 	}
 	defer rows.Close()

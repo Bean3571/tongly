@@ -2,7 +2,7 @@ import axios, { AxiosError } from 'axios';
 import { User, LoginRequest, UserRegistrationRequest, UserUpdateRequest, AuthResponse } from '../types';
 import { Language, LanguageProficiency, UserLanguage, UserLanguageUpdate } from '../types/language';
 import { Interest, UserInterest, Goal, UserGoal } from '../types/interest-goal';
-import { TutorProfile, TutorUpdateRequest } from '../types/tutor';
+import { TutorProfile, TutorUpdateRequest, TutorSearchFilters } from '../types/tutor';
 
 // Helper function to extract error messages from different API error formats
 export const getErrorMessage = (error: any): string => {
@@ -322,6 +322,56 @@ export const tutorService = {
             return response.data;
         } catch (error) {
             console.error('Update tutor profile error:', error);
+            throw error;
+        }
+    },
+
+    searchTutors: async (filters: TutorSearchFilters = {}): Promise<TutorProfile[]> => {
+        try {
+            // Convert filters to query parameters
+            const params = new URLSearchParams();
+            
+            if (filters.languages && filters.languages.length > 0) {
+                filters.languages.forEach(lang => params.append('language', lang));
+            }
+            
+            if (filters.proficiency_id) {
+                params.append('proficiency_id', filters.proficiency_id.toString());
+            }
+            
+            if (filters.interests && filters.interests.length > 0) {
+                filters.interests.forEach(id => params.append('interest', id.toString()));
+            }
+            
+            if (filters.goals && filters.goals.length > 0) {
+                filters.goals.forEach(id => params.append('goal', id.toString()));
+            }
+            
+            if (filters.years_experience) {
+                params.append('years_experience', filters.years_experience.toString());
+            }
+            
+            if (filters.min_age) {
+                params.append('min_age', filters.min_age.toString());
+            }
+            
+            if (filters.max_age) {
+                params.append('max_age', filters.max_age.toString());
+            }
+            
+            if (filters.sex) {
+                params.append('sex', filters.sex);
+            }
+            
+            const url = `/api/tutors/search?${params.toString()}`;
+            console.log('Search URL:', url);
+            
+            const response = await apiClient.get(url);
+            return response.data || [];
+        } catch (error) {
+            console.error('Search tutors error:', error);
+            // Instead of silently returning an empty array, throw the error so it can be handled
+            // by the component's error handling logic
             throw error;
         }
     }
