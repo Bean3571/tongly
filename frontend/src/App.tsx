@@ -11,6 +11,8 @@ import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { useAuth } from './contexts/AuthContext';
 import { Home } from './pages/Home';
+import { UserSettings } from './pages/UserSettings';
+import { UserPreferences } from './pages/UserPreferences';
 
 const queryClient = new QueryClient();
 
@@ -34,6 +36,23 @@ const AppRoutes = () => {
                     <Route path="/register" element={<Register />} />
                     <Route path="/home" element={<Home />} />
 
+                    {/* Private Routes */}
+                    <Route 
+                        path="/settings" 
+                        element={
+                            <PrivateRoute>
+                                <UserSettings />
+                            </PrivateRoute>
+                        } 
+                    />
+                    <Route 
+                        path="/preferences" 
+                        element={
+                            <PrivateRoute>
+                                <UserPreferences />
+                            </PrivateRoute>
+                        } 
+                    />
 
                     {/* Default Route */}
                     <Route path="/" element={<Navigate to={defaultRoute} replace />} />

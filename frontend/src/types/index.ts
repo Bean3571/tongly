@@ -20,7 +20,3 @@ export * from './tutor';
 
 // Lesson types
 export * from './lesson';
-
-// Legacy types - keep for backward compatibility
-export * from './notification';
-export * from './translationKeys'; 

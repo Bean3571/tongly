@@ -16,6 +16,7 @@ export const Navbar = () => {
 
         const commonLinks = [
             { to: '/home', label: t('navbar.home') },
+            { to: '/preferences', label: t('navbar.preferences') },
         ];
 
         return commonLinks;

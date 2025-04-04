@@ -5,6 +5,8 @@ import (
 	"tongly-backend/internal/usecases"
 	"tongly-backend/pkg/middleware"
 
+	"tongly-backend/internal/entities"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -52,17 +54,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	// Only allow updating specific fields
-	var req struct {
-		FirstName         string  `json:"first_name"`
-		LastName          string  `json:"last_name"`
-		Email             string  `json:"email"`
-		Username          string  `json:"username"`
-		ProfilePictureURL *string `json:"profile_picture_url"`
-		Sex               *string `json:"sex"`
-		Age               *int    `json:"age"`
-	}
-
+	var req entities.UserUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
@@ -89,11 +81,8 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	if req.Email != "" {
 		user.Email = req.Email
 	}
-	if req.Username != "" {
-		user.Username = req.Username
-	}
-	if req.Sex != nil {
-		user.Sex = req.Sex
+	if req.Sex != "" {
+		user.Sex = &req.Sex
 	}
 	if req.Age != nil {
 		user.Age = req.Age
@@ -107,7 +96,9 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Profile updated successfully"})
+	// Return the updated user profile to match frontend expectations
+	user.PasswordHash = ""
+	c.JSON(http.StatusOK, user)
 }
 
 // UpdatePassword handles the request to update a user's password
@@ -118,11 +109,7 @@ func (h *UserHandler) UpdatePassword(c *gin.Context) {
 		return
 	}
 
-	var req struct {
-		CurrentPassword string `json:"current_password" binding:"required"`
-		NewPassword     string `json:"new_password" binding:"required"`
-	}
-
+	var req entities.PasswordUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return

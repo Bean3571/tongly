@@ -1,6 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import { User, LoginRequest, UserRegistrationRequest, UserUpdateRequest, AuthResponse } from '../types';
-import { Lesson } from '../types/lesson';
+import { Language, LanguageProficiency, UserLanguage, UserLanguageUpdate } from '../types/language';
+import { Interest, UserInterest, Goal, UserGoal } from '../types/interest-goal';
 
 // Helper function to extract error messages from different API error formats
 export const getErrorMessage = (error: any): string => {
@@ -125,7 +126,7 @@ export const authService = {
 export const userService = {
     getProfile: async (): Promise<User> => {
         try {
-            const response = await apiClient.get('/api/users/me');
+            const response = await apiClient.get('/api/user/profile');
             return response.data;
         } catch (error) {
             console.error('Get profile error:', error);
@@ -135,7 +136,7 @@ export const userService = {
 
     updateProfile: async (data: UserUpdateRequest): Promise<User> => {
         try {
-            const response = await apiClient.put('/api/users/me', data);
+            const response = await apiClient.put('/api/user/profile', data);
             return response.data;
         } catch (error) {
             console.error('Update profile error:', error);
@@ -143,11 +144,11 @@ export const userService = {
         }
     },
 
-    updatePassword: async (oldPassword: string, newPassword: string): Promise<void> => {
+    updatePassword: async (currentPassword: string, newPassword: string): Promise<void> => {
         try {
-            await apiClient.put('/api/users/me/password', { 
-                currentPassword: oldPassword, 
-                newPassword: newPassword 
+            await apiClient.put('/api/user/password', { 
+                current_password: currentPassword, 
+                new_password: newPassword 
             });
         } catch (error) {
             console.error('Update password error:', error);
@@ -156,8 +157,156 @@ export const userService = {
     }
 };
 
+// Language Service
+export const languageService = {
+    getAllLanguages: async (): Promise<Language[]> => {
+        try {
+            const response = await apiClient.get('/api/languages');
+            return response.data;
+        } catch (error) {
+            console.error('Get languages error:', error);
+            throw error;
+        }
+    },
+
+    getAllProficiencies: async (): Promise<LanguageProficiency[]> => {
+        try {
+            const response = await apiClient.get('/api/language-proficiencies');
+            return response.data;
+        } catch (error) {
+            console.error('Get proficiencies error:', error);
+            throw error;
+        }
+    },
+
+    getUserLanguages: async (): Promise<UserLanguage[]> => {
+        try {
+            const response = await apiClient.get('/api/users/me/languages');
+            return response.data;
+        } catch (error) {
+            console.error('Get user languages error:', error);
+            throw error;
+        }
+    },
+
+    addUserLanguage: async (data: UserLanguageUpdate): Promise<UserLanguage> => {
+        try {
+            const response = await apiClient.post('/api/users/me/languages', data);
+            return response.data;
+        } catch (error) {
+            console.error('Add user language error:', error);
+            throw error;
+        }
+    },
+
+    updateUserLanguage: async (languageId: number, data: UserLanguageUpdate): Promise<UserLanguage> => {
+        try {
+            const response = await apiClient.put(`/api/users/me/languages/${languageId}`, data);
+            return response.data;
+        } catch (error) {
+            console.error('Update user language error:', error);
+            throw error;
+        }
+    },
+
+    deleteUserLanguage: async (languageId: number): Promise<void> => {
+        try {
+            await apiClient.delete(`/api/users/me/languages/${languageId}`);
+        } catch (error) {
+            console.error('Delete user language error:', error);
+            throw error;
+        }
+    }
+};
+
+// Interest Service
+export const interestService = {
+    getAllInterests: async (): Promise<Interest[]> => {
+        try {
+            const response = await apiClient.get('/api/interests');
+            return response.data;
+        } catch (error) {
+            console.error('Get interests error:', error);
+            throw error;
+        }
+    },
+
+    getUserInterests: async (): Promise<UserInterest[]> => {
+        try {
+            const response = await apiClient.get('/api/users/me/interests');
+            return response.data;
+        } catch (error) {
+            console.error('Get user interests error:', error);
+            throw error;
+        }
+    },
+
+    addUserInterest: async (interestId: number): Promise<UserInterest> => {
+        try {
+            const response = await apiClient.post('/api/users/me/interests', { interest_id: interestId });
+            return response.data;
+        } catch (error) {
+            console.error('Add user interest error:', error);
+            throw error;
+        }
+    },
+
+    deleteUserInterest: async (interestId: number): Promise<void> => {
+        try {
+            await apiClient.delete(`/api/users/me/interests/${interestId}`);
+        } catch (error) {
+            console.error('Delete user interest error:', error);
+            throw error;
+        }
+    }
+};
+
+// Goal Service
+export const goalService = {
+    getAllGoals: async (): Promise<Goal[]> => {
+        try {
+            const response = await apiClient.get('/api/goals');
+            return response.data;
+        } catch (error) {
+            console.error('Get goals error:', error);
+            throw error;
+        }
+    },
+
+    getUserGoals: async (): Promise<UserGoal[]> => {
+        try {
+            const response = await apiClient.get('/api/users/me/goals');
+            return response.data;
+        } catch (error) {
+            console.error('Get user goals error:', error);
+            throw error;
+        }
+    },
+
+    addUserGoal: async (goalId: number): Promise<UserGoal> => {
+        try {
+            const response = await apiClient.post('/api/users/me/goals', { goal_id: goalId });
+            return response.data;
+        } catch (error) {
+            console.error('Add user goal error:', error);
+            throw error;
+        }
+    },
+
+    deleteUserGoal: async (goalId: number): Promise<void> => {
+        try {
+            await apiClient.delete(`/api/users/me/goals/${goalId}`);
+        } catch (error) {
+            console.error('Delete user goal error:', error);
+            throw error;
+        }
+    }
+};
 
 export default {
     auth: authService,
     user: userService,
+    language: languageService,
+    interest: interestService,
+    goal: goalService
 }; 
