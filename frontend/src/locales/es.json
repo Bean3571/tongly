@@ -4,6 +4,11 @@
     "saving": "Guardando...",
     "updating": "Actualizando...",
     "save": "Guardar",
+    "add": "Añadir",
+    "update": "Actualizar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
     "user": "Usuario",
     "retry": "Intentar de nuevo",
     "optional": "Opcional",
@@ -11,7 +16,20 @@
     "all": "Todos",
     "male": "Masculino",
     "female": "Femenino",
-    "not_specified": "No especificado"
+    "not_specified": "No especificado",
+    "days": {
+      "monday": "Lunes",
+      "tuesday": "Martes",
+      "wednesday": "Miércoles",
+      "thursday": "Jueves",
+      "friday": "Viernes",
+      "saturday": "Sábado",
+      "sunday": "Domingo"
+    },
+    "error": {
+      "required": "Este campo es obligatorio"
+    },
+    "update_success": "Actualizado con éxito"
   },
   "validation": {
     "required": "Este campo es obligatorio",
@@ -25,7 +43,9 @@
     "url_invalid": "URL inválida",
     "age_min": "La edad debe ser al menos 13 años",
     "age_max": "La edad debe ser menor de 120 años",
-    "sex_invalid": "Selección de género inválida"
+    "sex_invalid": "Selección de género inválida",
+    "years_experience_min": "La experiencia no puede ser negativa",
+    "years_experience_max": "La experiencia debe ser menor de 100 años"
   },
   "auth": {
     "register": "Registrarse",
@@ -65,10 +85,106 @@
       "role_tutor": "Enseñar un idioma (Tutor)",
       "confirm_password": "Confirmar Contraseña"
     },
+    "tutor_schedule": {
+      "title": "Gestionar Tu Horario",
+      "description": "Establece tu disponibilidad para sesiones de tutoría. Los estudiantes podrán reservar lecciones durante estos horarios.",
+      "add_availability": "Añadir Disponibilidad",
+      "edit_availability": "Editar Disponibilidad",
+      "recurring": "Semanal Recurrente",
+      "specific_date": "Fecha Específica",
+      "day_of_week": "Día de la Semana",
+      "start_time": "Hora de Inicio",
+      "end_time": "Hora de Fin",
+      "recurring_availabilities": "Horario Semanal Recurrente",
+      "specific_date_availabilities": "Disponibilidad de Una Vez",
+      "no_recurring_availabilities": "Aún no has establecido ninguna disponibilidad semanal recurrente.",
+      "no_specific_availabilities": "Aún no has establecido ninguna fecha de disponibilidad única.",
+      "add_success": "Disponibilidad añadida con éxito",
+      "update_success": "Disponibilidad actualizada con éxito",
+      "delete_success": "Disponibilidad eliminada con éxito",
+      "confirm_delete": "¿Estás seguro de que quieres eliminar este espacio de disponibilidad?",
+      "not_tutor_message": "Esta página solo está disponible para tutores."
+    },
     "userSettings": {
       "title": "Configuración de Usuario",
       "personal_info": "Información Personal",
       "account_settings": "Seguridad de la Cuenta"
+    },
+    "user_settings": {
+      "title": "Configuración de Usuario",
+      "personal_info": "Información Personal",
+      "account_settings": "Seguridad de la Cuenta",
+      "update_success": "Tu perfil ha sido actualizado con éxito",
+      "personal_tab": "Información Personal",
+      "security_tab": "Seguridad",
+      "profile_picture_placeholder": "Ingresa URL para tu foto de perfil",
+      "not_set": "No especificado",
+      "change_password": "Cambiar Contraseña",
+      "current_password": "Contraseña Actual",
+      "new_password": "Nueva Contraseña",
+      "confirm_password": "Confirmar Contraseña",
+      "username_not_editable": "El nombre de usuario no se puede cambiar después de crear la cuenta"
+    },
+    "tutor_settings": {
+      "title": "Configuración de Perfil de Tutor",
+      "update_success": "Tu perfil de tutor ha sido actualizado con éxito",
+      "not_tutor_message": "Esta página solo está disponible para tutores. Por favor, regístrate como tutor para acceder.",
+      "bio_placeholder": "Escribe una breve introducción sobre ti como tutor...",
+      "video_url_placeholder": "Ingresa URL para tu video de introducción",
+      "document_url_placeholder": "Ingresa URL para tu documento de educación (diploma, certificado, etc.)",
+      "add_education": "Añadir Educación",
+      "confirm_remove_education": "¿Estás seguro de que quieres eliminar esta entrada de educación?"
+    },
+    "home": {
+      "title": "Bienvenido a Tongly",
+      "description": "¡Comienza a aprender idiomas con hablantes nativos hoy!"
+    },
+    "search_tutor": {
+      "title": "Encontrar Tutores",
+      "filters": "Filtros",
+      "language": "Idiomas",
+      "min_proficiency": "Competencia Mínima",
+      "interests": "Intereses",
+      "goals": "Objetivos",
+      "min_experience": "Experiencia Mín. (años)",
+      "min_age": "Edad Mín.",
+      "max_age": "Edad Máx.",
+      "gender": "Género",
+      "apply_filters": "Buscar",
+      "reset_filters": "Restablecer Filtros",
+      "results": "Resultados",
+      "no_results": "No se encontraron tutores que coincidan con tus criterios."
+    },
+    "schedule_lesson": {
+      "title": "Programar Lección",
+      "tutor_id": "ID del Tutor",
+      "coming_soon": "¡La programación de lecciones estará disponible próximamente!"
+    },
+    "user_preferences": {
+      "title": "Preferencias de Usuario",
+      "update_success": "Sus preferencias se han actualizado con éxito",
+      "languages_tab": "Idiomas",
+      "interests_tab": "Intereses",
+      "goals_tab": "Objetivos",
+      "languages_title": "Preferencias de Idiomas",
+      "interests_title": "Preferencias de Intereses",
+      "goals_title": "Objetivos de Aprendizaje",
+      "my_languages": "Mis Idiomas",
+      "my_interests": "Mis Intereses",
+      "my_goals": "Mis Objetivos",
+      "no_languages": "Aún no ha añadido ningún idioma.",
+      "no_interests": "Aún no ha añadido ningún interés.",
+      "no_goals": "Aún no ha añadido ningún objetivo de aprendizaje.",
+      "add_language": "Añadir un Idioma",
+      "add_interest": "Añadir un Interés",
+      "add_goal": "Añadir un Objetivo de Aprendizaje",
+      "no_more_languages": "Ha añadido todos los idiomas disponibles.",
+      "no_more_interests": "Ha añadido todos los intereses disponibles.",
+      "no_more_goals": "Ha añadido todos los objetivos de aprendizaje disponibles.",
+      "language": "Idioma",
+      "proficiency": "Competencia",
+      "interest": "Interés",
+      "goal": "Objetivo de Aprendizaje"
     }
   },
   "userSettings": {
@@ -131,11 +247,29 @@
     "education_format": "{{degree}} en {{field}} en {{institution}}",
     "language_format": "{{language}} ({{proficiency}})",
     "age": "{{age}} años",
+    "no_reviews": "Sin reseñas",
     "gender": {
       "male": "Masculino",
       "female": "Femenino",
       "not_set": "No especificado"
     },
     "schedule_lesson": "Programar lección"
+  },
+  "navbar": {
+    "home": "Inicio",
+    "preferences": "Preferencias",
+    "account_settings": "Configuración de Cuenta",
+    "tutor_settings": "Perfil de Tutor"
+  },
+  "user": {
+    "first_name": "Nombre",
+    "last_name": "Apellido",
+    "email": "Correo electrónico",
+    "username": "Nombre de usuario",
+    "profile_picture": "Imagen de perfil",
+    "change_password": "Cambiar contraseña",
+    "current_password": "Contraseña actual",
+    "new_password": "Nueva contraseña",
+    "confirm_password": "Confirmar contraseña"
   }
 } 

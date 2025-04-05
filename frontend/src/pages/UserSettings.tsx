@@ -238,16 +238,16 @@ export const UserSettings = () => {
               
               <div>
                 <label htmlFor="sex" className="block text-sm font-medium text-gray-700">
-                  {t('user.sex')}
+                  {t('userSettings.fields.gender')}
                 </label>
                 <select
                   id="sex"
                   {...personalInfoFormik.getFieldProps('sex')}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
                 >
-                  <option value="not_set">{t('common.not_set')}</option>
-                  <option value="male">{t('user.sex_male')}</option>
-                  <option value="female">{t('user.sex_female')}</option>
+                  <option value="not_set">{t('common.not_specified')}</option>
+                  <option value="male">{t('common.male')}</option>
+                  <option value="female">{t('common.female')}</option>
                 </select>
                 {personalInfoFormik.touched.sex && personalInfoFormik.errors.sex && (
                   <p className="mt-1 text-sm text-red-600">{personalInfoFormik.errors.sex}</p>
@@ -256,7 +256,7 @@ export const UserSettings = () => {
               
               <div>
                 <label htmlFor="age" className="block text-sm font-medium text-gray-700">
-                  {t('user.age')}
+                  {t('userSettings.fields.age')}
                 </label>
                 <input
                   id="age"
@@ -302,7 +302,7 @@ export const UserSettings = () => {
                       className="block w-full bg-gray-100 rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
                     />
                   </div>
-                  <p className="mt-1 text-sm text-gray-500">{t('pages.user_settings.username_not_editable')}</p>
+                  <p className="mt-1 text-sm text-gray-500">{t('userSettings.username_note')}</p>
                 </div>
                 
                 <div className="md:col-span-2">
@@ -322,11 +322,11 @@ export const UserSettings = () => {
               </div>
               
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-3">{t('pages.user_settings.change_password')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-3">{t('user.change_password')}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="md:col-span-2">
                     <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700">
-                      {t('pages.user_settings.current_password')}
+                      {t('user.current_password')}
                     </label>
                     <input
                       id="currentPassword"
@@ -341,7 +341,7 @@ export const UserSettings = () => {
                   
                   <div>
                     <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
-                      {t('pages.user_settings.new_password')}
+                      {t('user.new_password')}
                     </label>
                     <input
                       id="newPassword"
@@ -356,7 +356,7 @@ export const UserSettings = () => {
                   
                   <div>
                     <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                      {t('pages.user_settings.confirm_password')}
+                      {t('user.confirm_password')}
                     </label>
                     <input
                       id="confirmPassword"

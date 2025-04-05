@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '../contexts/I18nContext';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
@@ -241,7 +241,6 @@ export const TutorSchedule: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">{t('pages.tutor_schedule.title')}</h1>
-      <p className="text-gray-600 mb-8">{t('pages.tutor_schedule.description')}</p>
 
       <div className="grid md:grid-cols-2 gap-8">
         {/* Form section */}

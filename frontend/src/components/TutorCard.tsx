@@ -123,7 +123,7 @@ export const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
                   )}
                 </svg>
                 <span className="text-gray-700">
-                  {t(`tutor.gender.${tutor.user.sex}`)}
+                  {t(`common.${tutor.user.sex}`)}
                 </span>
               </div>
             )}

@@ -28,7 +28,8 @@
     },
     "error": {
       "required": "This field is required"
-    }
+    },
+    "update_success": "Updated successfully"
   },
   "validation": {
     "required": "This field is required",
@@ -118,7 +119,12 @@
       "personal_tab": "Personal Information",
       "security_tab": "Security",
       "profile_picture_placeholder": "Enter URL for your profile picture",
-      "not_set": "Not specified"
+      "not_set": "Not specified",
+      "change_password": "Change Password",
+      "current_password": "Current Password",
+      "new_password": "New Password",
+      "confirm_password": "Confirm Password",
+      "username_not_editable": "Username cannot be changed after account creation"
     },
     "tutor_settings": {
       "title": "Tutor Profile Settings",
@@ -154,6 +160,32 @@
       "title": "Schedule Lesson",
       "tutor_id": "Tutor ID",
       "coming_soon": "Lesson scheduling is coming soon!"
+    },
+    "user_preferences": {
+      "title": "User Preferences",
+      "update_success": "Your preferences have been updated successfully",
+      "languages_tab": "Languages",
+      "interests_tab": "Interests",
+      "goals_tab": "Goals",
+      "languages_title": "Language Preferences",
+      "interests_title": "Interest Preferences",
+      "goals_title": "Learning Goals",
+      "my_languages": "My Languages",
+      "my_interests": "My Interests",
+      "my_goals": "My Goals",
+      "no_languages": "You haven't added any languages yet.",
+      "no_interests": "You haven't added any interests yet.",
+      "no_goals": "You haven't added any learning goals yet.",
+      "add_language": "Add a Language",
+      "add_interest": "Add an Interest",
+      "add_goal": "Add a Learning Goal",
+      "no_more_languages": "You've added all available languages.",
+      "no_more_interests": "You've added all available interests.",
+      "no_more_goals": "You've added all available learning goals.",
+      "language": "Language",
+      "proficiency": "Proficiency",
+      "interest": "Interest",
+      "goal": "Learning Goal"
     }
   },
   "userSettings": {
@@ -228,5 +260,16 @@
     "preferences": "Preferences",
     "account_settings": "Account Settings",
     "tutor_settings": "Tutor Profile"
+  },
+  "user": {
+    "first_name": "First Name",
+    "last_name": "Last Name",
+    "email": "Email",
+    "username": "Username",
+    "profile_picture": "Profile Picture",
+    "change_password": "Change Password",
+    "current_password": "Current Password",
+    "new_password": "New Password",
+    "confirm_password": "Confirm Password"
   }
 }
