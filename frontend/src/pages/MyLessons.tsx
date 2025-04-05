@@ -57,7 +57,13 @@ const MyLessons: React.FC = () => {
           fetchedLessons = await getUserLessons();
       }
 
-      console.log(`Received ${fetchedLessons.length} lessons for filter: ${filter}`);
+      // Ensure fetchedLessons is not null or undefined
+      if (!fetchedLessons) {
+        console.log(`No lessons found for filter: ${filter}`);
+        fetchedLessons = [];
+      } else {
+        console.log(`Received ${fetchedLessons.length} lessons for filter: ${filter}`);
+      }
 
       // Add virtual status property to each lesson
       const processedLessons = fetchedLessons.map(lesson => {

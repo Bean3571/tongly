@@ -17,11 +17,11 @@ interface LessonCardProps {
 const LessonCard: React.FC<LessonCardProps> = ({ lesson, currentUserId, onCancelSuccess }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  
+
   // Determine if the current user is the student or tutor
   const isStudent = lesson.student_id === currentUserId;
   const otherParticipant = isStudent ? lesson.tutor : lesson.student;
-  
+
   // Parse dates
   const startTime = new Date(lesson.start_time);
   const endTime = new Date(lesson.end_time);
@@ -30,7 +30,7 @@ const LessonCard: React.FC<LessonCardProps> = ({ lesson, currentUserId, onCancel
   const dateStr = format(startTime, 'MMM d, yyyy');
   const startTimeStr = format(startTime, 'HH:mm');
   const endTimeStr = format(endTime, 'HH:mm');
-
+  
   // Check if the lesson can be joined (only between start and end time)
   const now = new Date();
   const canJoin = now >= new Date(startTime.getTime() - 5 * 60 * 1000) && now <= endTime;
@@ -43,7 +43,7 @@ const LessonCard: React.FC<LessonCardProps> = ({ lesson, currentUserId, onCancel
   const handleJoinLesson = () => {
     navigate(`/lessons/room/${lesson.id}`);
   };
-  
+
   const handleCancelLesson = async () => {
     try {
       if (!window.confirm(t('components.lesson_card.cancel_confirm'))) {
@@ -87,7 +87,23 @@ const LessonCard: React.FC<LessonCardProps> = ({ lesson, currentUserId, onCancel
   };
 
   const statusStyle = getStatusStyle();
-  
+
+  // Get status translation
+  const getStatusTranslation = () => {
+    switch (lesson.status) {
+      case LessonStatus.SCHEDULED:
+        return t('components.lesson_card.status.scheduled');
+      case LessonStatus.IN_PROGRESS:
+        return t('components.lesson_card.status.in_progress');
+      case LessonStatus.COMPLETED:
+        return t('components.lesson_card.status.completed');
+      case LessonStatus.CANCELLED:
+        return t('components.lesson_card.status.cancelled');
+      default:
+        return t('components.lesson_card.status.scheduled');
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-gray-200">
       <div className="p-5">
@@ -117,7 +133,7 @@ const LessonCard: React.FC<LessonCardProps> = ({ lesson, currentUserId, onCancel
                 color: statusStyle.text
               }}
             >
-              {lesson.status?.toUpperCase()}
+              {getStatusTranslation()}
             </div>
           </div>
         </div>
@@ -147,7 +163,7 @@ const LessonCard: React.FC<LessonCardProps> = ({ lesson, currentUserId, onCancel
         
         <div className="flex justify-end space-x-2 mt-4">
           {canCancel && (
-            <button
+            <button 
               onClick={handleCancelLesson}
               className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
             >

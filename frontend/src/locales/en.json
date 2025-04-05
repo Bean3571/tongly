@@ -381,7 +381,14 @@
       "cancel_lesson": "Cancel Lesson",
       "cancel_confirm": "Are you sure you want to cancel this lesson?",
       "cancel_success": "Lesson cancelled successfully",
-      "cancel_error": "Failed to cancel lesson"
+      "cancel_error": "Failed to cancel lesson",
+      "view_details": "View Details",
+      "status": {
+        "scheduled": "SCHEDULED",
+        "in_progress": "IN PROGRESS",
+        "completed": "COMPLETED",
+        "cancelled": "CANCELLED"
+      }
     }
   }
 }

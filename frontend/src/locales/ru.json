@@ -216,6 +216,34 @@
       "proficiency": "Уровень владения",
       "interest": "Интерес",
       "goal": "Цель обучения"
+    },
+    "my_lessons": {
+      "title": "Мои уроки",
+      "filters": {
+        "scheduled": "Запланированные",
+        "past": "Прошедшие",
+        "cancelled": "Отмененные"
+      },
+      "empty_state": {
+        "no_lessons": "Уроки не найдены",
+        "no_scheduled_student": "У вас нет запланированных уроков с преподавателями.",
+        "no_scheduled_tutor": "У вас нет запланированных уроков с учениками.",
+        "no_past": "У вас нет прошедших уроков.",
+        "no_cancelled": "У вас нет отмененных уроков.",
+        "find_tutor": "Найти преподавателя"
+      },
+      "loading": "Загрузка уроков..."
+    },
+    "lesson_room": {
+      "title": "Урок с",
+      "language": "Язык",
+      "notes": "Заметки",
+      "placeholder": {
+        "title": "Комната урока",
+        "description": "Это временный заполнитель для реальной функциональности комнаты урока.",
+        "future_features": "Будущая реализация будет включать видеоконференции, чат и общие учебные инструменты."
+      },
+      "back_to_lessons": "Вернуться к урокам"
     }
   },
   "userSettings": {
@@ -302,5 +330,24 @@
     "current_password": "Текущий пароль",
     "new_password": "Новый пароль",
     "confirm_password": "Подтвердите пароль"
+  },
+  "components": {
+    "lesson_card": {
+      "unknown_participant": "Неизвестный участник",
+      "unknown_language": "Неизвестный язык",
+      "notes": "Заметки",
+      "join_lesson": "Присоединиться к уроку",
+      "cancel_lesson": "Отменить урок",
+      "cancel_confirm": "Вы уверены, что хотите отменить этот урок?",
+      "cancel_success": "Урок успешно отменен",
+      "cancel_error": "Не удалось отменить урок",
+      "view_details": "Просмотреть детали",
+      "status": {
+        "scheduled": "ЗАПЛАНИРОВАН",
+        "in_progress": "В ПРОЦЕССЕ",
+        "completed": "ЗАВЕРШЕН",
+        "cancelled": "ОТМЕНЕН"
+      }
+    }
   }
 }

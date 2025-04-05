@@ -215,6 +215,34 @@
       "proficiency": "Competencia",
       "interest": "Interés",
       "goal": "Objetivo de Aprendizaje"
+    },
+    "my_lessons": {
+      "title": "Mis Lecciones",
+      "filters": {
+        "scheduled": "Programadas",
+        "past": "Pasadas",
+        "cancelled": "Canceladas"
+      },
+      "empty_state": {
+        "no_lessons": "No se encontraron lecciones",
+        "no_scheduled_student": "No tienes ninguna lección próxima programada con tutores.",
+        "no_scheduled_tutor": "No tienes ninguna lección próxima programada con estudiantes.",
+        "no_past": "No tienes ninguna lección pasada.",
+        "no_cancelled": "No tienes ninguna lección cancelada.",
+        "find_tutor": "Encontrar un Tutor"
+      },
+      "loading": "Cargando lecciones..."
+    },
+    "lesson_room": {
+      "title": "Lección con",
+      "language": "Idioma",
+      "notes": "Notas",
+      "placeholder": {
+        "title": "Sala de Lección",
+        "description": "Este es un marcador de posición para la funcionalidad real de la sala de lecciones.",
+        "future_features": "La implementación futura incluirá videoconferencia, chat y herramientas de aprendizaje compartidas."
+      },
+      "back_to_lessons": "Volver a Lecciones"
     }
   },
   "userSettings": {
@@ -301,5 +329,24 @@
     "current_password": "Contraseña actual",
     "new_password": "Nueva contraseña",
     "confirm_password": "Confirmar contraseña"
+  },
+  "components": {
+    "lesson_card": {
+      "unknown_participant": "Participante Desconocido",
+      "unknown_language": "Idioma Desconocido",
+      "notes": "Notas",
+      "join_lesson": "Unirse a la Lección",
+      "cancel_lesson": "Cancelar Lección",
+      "cancel_confirm": "¿Estás seguro de que quieres cancelar esta lección?",
+      "cancel_success": "Lección cancelada con éxito",
+      "cancel_error": "Error al cancelar la lección",
+      "view_details": "Ver Detalles",
+      "status": {
+        "scheduled": "PROGRAMADA",
+        "in_progress": "EN PROGRESO",
+        "completed": "COMPLETADA",
+        "cancelled": "CANCELADA"
+      }
+    }
   }
 } 
