@@ -231,42 +231,42 @@ export const SearchTutor = () => {
       <div className="flex flex-wrap gap-2 mt-3">
         {filters.languages && filters.languages.length > 0 && (
           <FilterBadge 
-            label={`Languages: ${filters.languages.join(', ')}`} 
+            label={t('pages.search_tutor.filter_languages', { languages: filters.languages.join(', ') })} 
             onClear={() => handleFilterChange('languages', [])} 
           />
         )}
         
         {filters.proficiency_id && (
           <FilterBadge 
-            label={`Min. Proficiency: ${proficiencies.find(p => p.id === filters.proficiency_id)?.name || filters.proficiency_id}`} 
+            label={t('pages.search_tutor.filter_proficiency', { proficiency: proficiencies.find(p => p.id === filters.proficiency_id)?.name || filters.proficiency_id })} 
             onClear={() => handleFilterChange('proficiency_id', undefined)} 
           />
         )}
         
         {filters.interests && filters.interests.length > 0 && (
           <FilterBadge 
-            label={`${filters.interests.length} interests`} 
+            label={t('pages.search_tutor.filter_interests', { count: filters.interests.length })} 
             onClear={() => handleFilterChange('interests', [])} 
           />
         )}
         
         {filters.goals && filters.goals.length > 0 && (
           <FilterBadge 
-            label={`${filters.goals.length} goals`} 
+            label={t('pages.search_tutor.filter_goals', { count: filters.goals.length })} 
             onClear={() => handleFilterChange('goals', [])} 
           />
         )}
         
         {filters.years_experience && (
           <FilterBadge 
-            label={`${filters.years_experience}+ years exp.`} 
+            label={t('pages.search_tutor.filter_experience', { years: filters.years_experience })} 
             onClear={() => handleFilterChange('years_experience', undefined)} 
           />
         )}
         
         {(filters.min_age || filters.max_age) && (
           <FilterBadge 
-            label={`Age: ${filters.min_age || 'Any'}-${filters.max_age || 'Any'}`} 
+            label={t('pages.search_tutor.filter_age', { min: filters.min_age || t('pages.search_tutor.any'), max: filters.max_age || t('pages.search_tutor.any') })} 
             onClear={() => {
               handleFilterChange('min_age', undefined);
               handleFilterChange('max_age', undefined);
@@ -276,7 +276,7 @@ export const SearchTutor = () => {
         
         {filters.sex && (
           <FilterBadge 
-            label={`Gender: ${filters.sex.charAt(0).toUpperCase() + filters.sex.slice(1)}`} 
+            label={t('pages.search_tutor.filter_gender', { gender: filters.sex })} 
             onClear={() => handleFilterChange('sex', '')} 
           />
         )}
@@ -286,7 +286,7 @@ export const SearchTutor = () => {
             onClick={handleResetFilters} 
             className="text-xs text-gray-600 hover:text-gray-800 underline flex items-center ml-2"
           >
-            Clear all
+            {t('pages.search_tutor.clear_all')}
           </button>
         )}
       </div>
@@ -300,7 +300,6 @@ export const SearchTutor = () => {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-800">{t('pages.search_tutor.title')}</h1>
-            <p className="text-gray-600 mt-1">Find the perfect language tutor that matches your learning preferences</p>
           </div>
           
           {isMobile && (
@@ -350,7 +349,7 @@ export const SearchTutor = () => {
                   onClick={handleResetFilters}
                   className="text-sm text-gray-500 hover:text-gray-700"
                 >
-                  Reset
+                  {t('pages.search_tutor.reset_filters')}
                 </button>
               </div>
               
@@ -365,7 +364,7 @@ export const SearchTutor = () => {
                 </label>
                 <div className="max-h-40 overflow-y-auto border border-gray-300 rounded-lg p-2">
                   {languages.length === 0 ? (
-                    <div className="text-gray-500 text-sm py-1">Loading languages...</div>
+                    <div className="text-gray-500 text-sm py-1">{t('pages.search_tutor.loading_languages')}</div>
                   ) : (
                     languages.map(language => (
                       <div key={language.id} className="flex items-center mb-1 last:mb-0">
@@ -407,7 +406,7 @@ export const SearchTutor = () => {
               {/* Collapsible Advanced Filters */}
               <details className="group [&_summary::-webkit-details-marker]:hidden">
                 <summary className="flex cursor-pointer list-none items-center justify-between font-medium text-gray-700 text-sm border-t border-b border-gray-100 py-3 -mx-5 px-5">
-                  <span>Advanced Filters</span>
+                  <span>{t('pages.search_tutor.advanced_filters')}</span>
                   <svg className="h-5 w-5 text-gray-500 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                   </svg>
@@ -430,12 +429,12 @@ export const SearchTutor = () => {
                         onChange={(e) => handleFilterChange('years_experience', e.target.value ? parseInt(e.target.value) : undefined)}
                       />
                       <div className="flex justify-between text-xs text-gray-600 px-1 mt-1">
-                        <span>Any</span>
-                        <span>10+ years</span>
-                        <span>20+ years</span>
+                        <span>{t('pages.search_tutor.any')}</span>
+                        <span>{t('pages.search_tutor.ten_plus_years')}</span>
+                        <span>{t('pages.search_tutor.twenty_plus_years')}</span>
                       </div>
                       <div className="text-center font-medium text-sm text-orange-600 mt-2">
-                        {filters.years_experience ? `${filters.years_experience}+ years` : 'Any experience'}
+                        {filters.years_experience ? t('pages.search_tutor.years_experience_value', { count: filters.years_experience }) : t('pages.search_tutor.any_experience')}
                       </div>
                     </div>
                   </div>
@@ -447,7 +446,7 @@ export const SearchTutor = () => {
                     </label>
                     <div className="max-h-40 overflow-y-auto border border-gray-300 rounded-lg p-2">
                       {interests.length === 0 ? (
-                        <div className="text-gray-500 text-sm py-1">Loading interests...</div>
+                        <div className="text-gray-500 text-sm py-1">{t('pages.search_tutor.loading_interests')}</div>
                       ) : (
                         interests.map(interest => (
                           <div key={interest.id} className="flex items-center mb-1 last:mb-0">
@@ -474,7 +473,7 @@ export const SearchTutor = () => {
                     </label>
                     <div className="max-h-40 overflow-y-auto border border-gray-300 rounded-lg p-2">
                       {goals.length === 0 ? (
-                        <div className="text-gray-500 text-sm py-1">Loading goals...</div>
+                        <div className="text-gray-500 text-sm py-1">{t('pages.search_tutor.loading_goals')}</div>
                       ) : (
                         goals.map(goal => (
                           <div key={goal.id} className="flex items-center mb-1 last:mb-0">
@@ -498,13 +497,13 @@ export const SearchTutor = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="filter-group">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Age Range
+                        {t('pages.search_tutor.age_range')}
                       </label>
                       <div className="grid grid-cols-2 gap-2">
                         <input 
                           type="number"
                           min="16"
-                          placeholder="Min"
+                          placeholder={t('pages.search_tutor.min')}
                           className="w-full rounded-lg border border-gray-300 py-1.5 px-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all shadow-sm"
                           value={filters.min_age || ''}
                           onChange={(e) => handleFilterChange('min_age', e.target.value ? parseInt(e.target.value) : undefined)}
@@ -512,14 +511,14 @@ export const SearchTutor = () => {
                         <input 
                           type="number"
                           min="16"
-                          placeholder="Max"
+                          placeholder={t('pages.search_tutor.max')}
                           className="w-full rounded-lg border border-gray-300 py-1.5 px-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all shadow-sm"
                           value={filters.max_age || ''}
                           onChange={(e) => handleFilterChange('max_age', e.target.value ? parseInt(e.target.value) : undefined)}
                         />
                       </div>
                     </div>
-                    
+                    <div></div>
                     {/* Gender Filter */}
                     <div className="filter-group">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -547,7 +546,7 @@ export const SearchTutor = () => {
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                Find Tutors
+                {t('pages.search_tutor.find_tutors')}
               </button>
             </div>
           </div>
@@ -563,21 +562,21 @@ export const SearchTutor = () => {
               </h2>
               {tutors.length > 0 && (
                 <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-                  {tutors.length} {tutors.length === 1 ? 'tutor' : 'tutors'} found
+                  {t('pages.search_tutor.tutors_found', { count: tutors.length })}
                 </span>
               )}
             </div>
             
             {tutors.length > 0 && (
               <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-600">Sort by:</label>
+                <label className="text-sm text-gray-600">{t('pages.search_tutor.sort_by')}:</label>
                 <select 
                   value={sortBy}
                   onChange={handleSortChange}
                   className="text-sm rounded-md border-gray-300 py-1 pl-2 pr-7 focus:ring-orange-500 focus:border-orange-500"
                 >
-                  <option value="experience">Experience</option>
-                  <option value="rating">Rating</option>
+                  <option value="experience">{t('pages.search_tutor.experience')}</option>
+                  <option value="rating">{t('pages.search_tutor.rating')}</option>
                 </select>
               </div>
             )}
@@ -600,7 +599,7 @@ export const SearchTutor = () => {
             <div className="bg-white rounded-xl shadow-md p-8 text-center">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500 mb-4"></div>
               <p className="text-lg text-gray-600">{t('common.loading')}</p>
-              <p className="text-sm text-gray-500 mt-2">Finding tutors that match your criteria...</p>
+              <p className="text-sm text-gray-500 mt-2">{t('pages.search_tutor.finding_tutors')}</p>
             </div>
           ) : tutors.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
@@ -619,7 +618,7 @@ export const SearchTutor = () => {
               <h3 className="text-xl font-bold text-gray-800 mb-2">{t('pages.search_tutor.no_results')}</h3>
               
               <p className="text-gray-600 max-w-md mx-auto mb-6">
-                We couldn't find any tutors matching your criteria. Try adjusting your filters or broadening your search.
+                {t('pages.search_tutor.no_results_message')}
               </p>
               
               <div className="flex flex-wrap justify-center gap-3">
@@ -627,7 +626,7 @@ export const SearchTutor = () => {
                   onClick={handleResetFilters}
                   className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-5 rounded-lg transition-colors"
                 >
-                  Clear All Filters
+                  {t('pages.search_tutor.clear_all_filters')}
                 </button>
                 
                 {isMobile && (
@@ -635,7 +634,7 @@ export const SearchTutor = () => {
                     onClick={() => setFiltersVisible(true)}
                     className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-5 rounded-lg transition-colors"
                   >
-                    Adjust Filters
+                    {t('pages.search_tutor.adjust_filters')}
                   </button>
                 )}
               </div>
