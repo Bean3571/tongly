@@ -22,14 +22,15 @@ type TutorProfile struct {
 
 // TutorAvailability represents a tutor's available time slot
 type TutorAvailability struct {
-	ID          int       `json:"id"`
-	TutorID     int       `json:"tutor_id"`
-	DayOfWeek   int       `json:"day_of_week"`
-	StartTime   string    `json:"start_time"`
-	EndTime     string    `json:"end_time"`
-	IsRecurring bool      `json:"is_recurring"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID           int       `json:"id"`
+	TutorID      int       `json:"tutor_id"`
+	DayOfWeek    int       `json:"day_of_week"`
+	StartTime    string    `json:"start_time"`
+	EndTime      string    `json:"end_time"`
+	IsRecurring  bool      `json:"is_recurring"`
+	SpecificDate *string   `json:"specific_date,omitempty"` // Format: "YYYY-MM-DD"
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
 }
 
 // TutorRegistrationRequest represents the data needed to register as a tutor
@@ -49,10 +50,11 @@ type TutorRegistrationRequest struct {
 
 // TutorAvailabilityRequest represents the request to add a tutor's availability
 type TutorAvailabilityRequest struct {
-	DayOfWeek   int    `json:"day_of_week"`
-	StartTime   string `json:"start_time"`
-	EndTime     string `json:"end_time"`
-	IsRecurring bool   `json:"is_recurring"`
+	DayOfWeek    int     `json:"day_of_week"`
+	StartTime    string  `json:"start_time"`
+	EndTime      string  `json:"end_time"`
+	IsRecurring  bool    `json:"is_recurring"`
+	SpecificDate *string `json:"specific_date,omitempty"` // Format: "YYYY-MM-DD"
 }
 
 // TutorUpdateRequest represents the data needed to update a tutor's profile

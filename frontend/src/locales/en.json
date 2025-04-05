@@ -4,6 +4,11 @@
     "saving": "Saving...",
     "updating": "Updating...",
     "save": "Save",
+    "add": "Add",
+    "update": "Update",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
     "user": "User",
     "retry": "Try Again",
     "optional": "Optional",
@@ -11,7 +16,19 @@
     "all": "All",
     "male": "Male",
     "female": "Female",
-    "not_specified": "Not specified"
+    "not_specified": "Not specified",
+    "days": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
+    },
+    "error": {
+      "required": "This field is required"
+    }
   },
   "validation": {
     "required": "This field is required",
@@ -66,6 +83,27 @@
       "role_student": "Learn a language (Student)",
       "role_tutor": "Teach a language (Tutor)",
       "confirm_password": "Confirm Password"
+    },
+    "tutor_schedule": {
+      "title": "Manage Your Schedule",
+      "description": "Set your availability for tutoring sessions. Students will be able to book lessons during these time slots.",
+      "add_availability": "Add Availability",
+      "edit_availability": "Edit Availability",
+      "recurring": "Weekly Recurring",
+      "specific_date": "Specific Date",
+      "day_of_week": "Day of Week",
+      "specific_date": "Date",
+      "start_time": "Start Time",
+      "end_time": "End Time",
+      "recurring_availabilities": "Weekly Recurring Schedule",
+      "specific_date_availabilities": "One-time Availability",
+      "no_recurring_availabilities": "You haven't set any weekly recurring availability yet.",
+      "no_specific_availabilities": "You haven't set any one-time availability dates yet.",
+      "add_success": "Availability added successfully",
+      "update_success": "Availability updated successfully",
+      "delete_success": "Availability deleted successfully",
+      "confirm_delete": "Are you sure you want to delete this availability slot?",
+      "not_tutor_message": "This page is only available for tutors."
     },
     "userSettings": {
       "title": "User Settings",

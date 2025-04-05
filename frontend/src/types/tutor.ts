@@ -38,6 +38,7 @@ export interface TutorAvailability extends BaseEntity {
   start_time: string;
   end_time: string;
   is_recurring: boolean;
+  specific_date?: string; // Format: "YYYY-MM-DD"
 }
 
 // Tutor registration
@@ -58,6 +59,7 @@ export interface TutorAvailabilityRequest {
   start_time: string;
   end_time: string;
   is_recurring: boolean;
+  specific_date?: string; // Format: "YYYY-MM-DD"
 }
 
 // Tutor update request

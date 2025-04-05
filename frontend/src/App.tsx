@@ -14,6 +14,7 @@ import { Home } from './pages/Home';
 import { UserSettings } from './pages/UserSettings';
 import { UserPreferences } from './pages/UserPreferences';
 import { TutorSettings } from './pages/TutorSettings';
+import { TutorSchedule } from './pages/TutorSchedule';
 import { SearchTutor } from './pages/SearchTutor';
 import { ScheduleLesson } from './pages/ScheduleLesson';
 import { UserRole } from './types/user';
@@ -63,6 +64,16 @@ const AppRoutes = () => {
                         element={
                             <PrivateRoute>
                                 <TutorSettings />
+                            </PrivateRoute>
+                        } 
+                    />
+                    
+                    {/* Tutor-only Routes */}
+                    <Route 
+                        path="/tutor-schedule" 
+                        element={
+                            <PrivateRoute role={UserRole.TUTOR}>
+                                <TutorSchedule />
                             </PrivateRoute>
                         } 
                     />

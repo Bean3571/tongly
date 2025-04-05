@@ -16,8 +16,9 @@ const getEnvVar = (key: string, defaultValue: string = ''): string => {
   
   // Then try standard Vite env variables
   try {
-    if (typeof import.meta === 'object' && import.meta.env) {
-      const envValue = import.meta.env[key];
+    // Using process.env for Create React App environment
+    if (typeof process !== 'undefined' && process.env && process.env[`REACT_APP_${key}`]) {
+      const envValue = process.env[`REACT_APP_${key}`];
       return envValue !== undefined ? String(envValue) : defaultValue;
     }
     return defaultValue;
@@ -45,28 +46,28 @@ const parseBoolean = (value: string): boolean => {
 // Environment configuration with default values
 export const envConfig = {
   // API Configuration
-  apiUrl: getEnvVar('VITE_API_URL', 'http://localhost:8080/api'),
-  wsUrl: getEnvVar('VITE_WS_URL', 'ws://localhost:8080'),
-  environment: getEnvVar('VITE_ENVIRONMENT', 'development'),
+  apiUrl: getEnvVar('API_URL', 'http://localhost:8080/api'),
+  wsUrl: getEnvVar('WS_URL', 'ws://localhost:8080'),
+  environment: getEnvVar('ENVIRONMENT', 'development'),
   
   // WebRTC Configuration
   iceServers: parseJSON<Array<{ urls: string }>>(
-    getEnvVar('VITE_ICE_SERVERS'), 
+    getEnvVar('ICE_SERVERS'), 
     [{ urls: 'stun:stun.l.google.com:19302' }]
   ),
-  turnServerUrl: getEnvVar('VITE_TURN_SERVER_URL', ''),
-  turnUsername: getEnvVar('VITE_TURN_USERNAME', ''),
-  turnCredential: getEnvVar('VITE_TURN_CREDENTIAL', ''),
+  turnServerUrl: getEnvVar('TURN_SERVER_URL', ''),
+  turnUsername: getEnvVar('TURN_USERNAME', ''),
+  turnCredential: getEnvVar('TURN_CREDENTIAL', ''),
   
   // Feature Flags
-  enableScreenShare: parseBoolean(getEnvVar('VITE_ENABLE_SCREEN_SHARE', 'false')),
-  enableChat: parseBoolean(getEnvVar('VITE_ENABLE_CHAT', 'true')),
-  enableRecording: parseBoolean(getEnvVar('VITE_ENABLE_RECORDING', 'false')),
+  enableScreenShare: parseBoolean(getEnvVar('ENABLE_SCREEN_SHARE', 'false')),
+  enableChat: parseBoolean(getEnvVar('ENABLE_CHAT', 'true')),
+  enableRecording: parseBoolean(getEnvVar('ENABLE_RECORDING', 'false')),
   
   // UI Configuration
-  maxVideoParticipants: parseInt(getEnvVar('VITE_MAX_VIDEO_PARTICIPANTS', '4'), 10),
-  defaultVideoQuality: getEnvVar('VITE_DEFAULT_VIDEO_QUALITY', '720p'),
-  enableVirtualBackground: parseBoolean(getEnvVar('VITE_ENABLE_VIRTUAL_BACKGROUND', 'false')),
+  maxVideoParticipants: parseInt(getEnvVar('MAX_VIDEO_PARTICIPANTS', '4'), 10),
+  defaultVideoQuality: getEnvVar('DEFAULT_VIDEO_QUALITY', '720p'),
+  enableVirtualBackground: parseBoolean(getEnvVar('ENABLE_VIRTUAL_BACKGROUND', 'false')),
 };
 
 // Global type declaration for runtime config

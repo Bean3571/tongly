@@ -80,12 +80,14 @@ func (h *TutorHandler) AddAvailability(c *gin.Context) {
 	}
 
 	tutorID := userID.(int)
-	if err := h.tutorUseCase.AddTutorAvailability(c.Request.Context(), tutorID, &req); err != nil {
+	availability, err := h.tutorUseCase.AddTutorAvailability(c.Request.Context(), tutorID, &req)
+	if err != nil {
+		logger.Error("Failed to add availability", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add availability"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Availability added successfully"})
+	c.JSON(http.StatusOK, availability)
 }
 
 // UpdateAvailability handles the request to update an availability slot
@@ -110,12 +112,14 @@ func (h *TutorHandler) UpdateAvailability(c *gin.Context) {
 	}
 
 	tutorID := userID.(int)
-	if err := h.tutorUseCase.UpdateTutorAvailability(c.Request.Context(), tutorID, availabilityID, &req); err != nil {
+	availability, err := h.tutorUseCase.UpdateTutorAvailability(c.Request.Context(), tutorID, availabilityID, &req)
+	if err != nil {
+		logger.Error("Failed to update availability", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update availability"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Availability updated successfully"})
+	c.JSON(http.StatusOK, availability)
 }
 
 // DeleteAvailability handles the request to delete an availability slot
@@ -153,9 +157,18 @@ func (h *TutorHandler) GetAvailabilities(c *gin.Context) {
 	tutorID := userID.(int)
 	availabilities, err := h.tutorUseCase.GetTutorAvailabilities(c.Request.Context(), tutorID)
 	if err != nil {
+		logger.Error("Failed to retrieve availabilities", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve availabilities"})
 		return
 	}
+
+	// Return an empty array if there are no availabilities to ensure consistent response format
+	if availabilities == nil {
+		availabilities = []entities.TutorAvailability{}
+	}
+
+	// Log the response for debugging
+	logger.Info("Returning availabilities", "count", len(availabilities))
 
 	c.JSON(http.StatusOK, availabilities)
 }

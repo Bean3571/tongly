@@ -140,7 +140,7 @@ func (r *TutorRepository) Delete(ctx context.Context, userID int) error {
 // GetAvailabilities retrieves all availabilities for a tutor
 func (r *TutorRepository) GetAvailabilities(ctx context.Context, tutorID int) ([]entities.TutorAvailability, error) {
 	query := `
-		SELECT id, tutor_id, day_of_week, start_time, end_time, is_recurring, created_at, updated_at
+		SELECT id, tutor_id, day_of_week, start_time, end_time, is_recurring, specific_date, created_at, updated_at
 		FROM tutor_availability
 		WHERE tutor_id = $1
 	`
@@ -155,6 +155,7 @@ func (r *TutorRepository) GetAvailabilities(ctx context.Context, tutorID int) ([
 	for rows.Next() {
 		var availability entities.TutorAvailability
 		var startTime, endTime string
+		var specificDate sql.NullString
 
 		err := rows.Scan(
 			&availability.ID,
@@ -163,6 +164,7 @@ func (r *TutorRepository) GetAvailabilities(ctx context.Context, tutorID int) ([
 			&startTime,
 			&endTime,
 			&availability.IsRecurring,
+			&specificDate,
 			&availability.CreatedAt,
 			&availability.UpdatedAt,
 		)
@@ -172,6 +174,9 @@ func (r *TutorRepository) GetAvailabilities(ctx context.Context, tutorID int) ([
 
 		availability.StartTime = startTime
 		availability.EndTime = endTime
+		if specificDate.Valid {
+			availability.SpecificDate = &specificDate.String
+		}
 		availabilities = append(availabilities, availability)
 	}
 
@@ -186,8 +191,8 @@ func (r *TutorRepository) GetAvailabilities(ctx context.Context, tutorID int) ([
 func (r *TutorRepository) AddAvailability(ctx context.Context, availability *entities.TutorAvailability) error {
 	query := `
 		INSERT INTO tutor_availability 
-		(tutor_id, day_of_week, start_time, end_time, is_recurring)
-		VALUES ($1, $2, $3, $4, $5)
+		(tutor_id, day_of_week, start_time, end_time, is_recurring, specific_date)
+		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING id, created_at, updated_at
 	`
 
@@ -199,6 +204,7 @@ func (r *TutorRepository) AddAvailability(ctx context.Context, availability *ent
 		availability.StartTime,
 		availability.EndTime,
 		availability.IsRecurring,
+		availability.SpecificDate,
 	).Scan(&availability.ID, &availability.CreatedAt, &availability.UpdatedAt)
 }
 
@@ -206,8 +212,8 @@ func (r *TutorRepository) AddAvailability(ctx context.Context, availability *ent
 func (r *TutorRepository) UpdateAvailability(ctx context.Context, availability *entities.TutorAvailability) error {
 	query := `
 		UPDATE tutor_availability
-		SET day_of_week = $1, start_time = $2, end_time = $3, is_recurring = $4
-		WHERE id = $5 AND tutor_id = $6
+		SET day_of_week = $1, start_time = $2, end_time = $3, is_recurring = $4, specific_date = $5
+		WHERE id = $6 AND tutor_id = $7
 		RETURNING updated_at
 	`
 
@@ -218,6 +224,7 @@ func (r *TutorRepository) UpdateAvailability(ctx context.Context, availability *
 		availability.StartTime,
 		availability.EndTime,
 		availability.IsRecurring,
+		availability.SpecificDate,
 		availability.ID,
 		availability.TutorID,
 	).Scan(&availability.UpdatedAt)

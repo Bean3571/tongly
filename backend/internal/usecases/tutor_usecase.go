@@ -100,35 +100,41 @@ func (uc *TutorUseCase) UpdateTutorProfile(ctx context.Context, tutorID int, req
 }
 
 // AddTutorAvailability adds a new availability slot for a tutor
-func (uc *TutorUseCase) AddTutorAvailability(ctx context.Context, tutorID int, req *entities.TutorAvailabilityRequest) error {
+func (uc *TutorUseCase) AddTutorAvailability(ctx context.Context, tutorID int, req *entities.TutorAvailabilityRequest) (*entities.TutorAvailability, error) {
 	// Validate tutor exists
 	tutorProfile, err := uc.tutorRepo.GetByUserID(ctx, tutorID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if tutorProfile == nil {
-		return errors.New("tutor profile not found")
+		return nil, errors.New("tutor profile not found")
 	}
 
 	// Create new availability
 	availability := &entities.TutorAvailability{
-		TutorID:     tutorID,
-		DayOfWeek:   req.DayOfWeek,
-		StartTime:   req.StartTime,
-		EndTime:     req.EndTime,
-		IsRecurring: req.IsRecurring,
+		TutorID:      tutorID,
+		DayOfWeek:    req.DayOfWeek,
+		StartTime:    req.StartTime,
+		EndTime:      req.EndTime,
+		IsRecurring:  req.IsRecurring,
+		SpecificDate: req.SpecificDate,
 	}
 
 	// Save availability
-	return uc.tutorRepo.AddAvailability(ctx, availability)
+	err = uc.tutorRepo.AddAvailability(ctx, availability)
+	if err != nil {
+		return nil, err
+	}
+
+	return availability, nil
 }
 
 // UpdateTutorAvailability updates an existing availability slot
-func (uc *TutorUseCase) UpdateTutorAvailability(ctx context.Context, tutorID int, availabilityID int, req *entities.TutorAvailabilityRequest) error {
+func (uc *TutorUseCase) UpdateTutorAvailability(ctx context.Context, tutorID int, availabilityID int, req *entities.TutorAvailabilityRequest) (*entities.TutorAvailability, error) {
 	// Validate tutor and availability combination
 	availabilities, err := uc.tutorRepo.GetAvailabilities(ctx, tutorID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var found bool
@@ -140,20 +146,26 @@ func (uc *TutorUseCase) UpdateTutorAvailability(ctx context.Context, tutorID int
 	}
 
 	if !found {
-		return errors.New("availability not found for this tutor")
+		return nil, errors.New("availability not found for this tutor")
 	}
 
 	// Update availability
 	availability := &entities.TutorAvailability{
-		ID:          availabilityID,
-		TutorID:     tutorID,
-		DayOfWeek:   req.DayOfWeek,
-		StartTime:   req.StartTime,
-		EndTime:     req.EndTime,
-		IsRecurring: req.IsRecurring,
+		ID:           availabilityID,
+		TutorID:      tutorID,
+		DayOfWeek:    req.DayOfWeek,
+		StartTime:    req.StartTime,
+		EndTime:      req.EndTime,
+		IsRecurring:  req.IsRecurring,
+		SpecificDate: req.SpecificDate,
 	}
 
-	return uc.tutorRepo.UpdateAvailability(ctx, availability)
+	err = uc.tutorRepo.UpdateAvailability(ctx, availability)
+	if err != nil {
+		return nil, err
+	}
+
+	return availability, nil
 }
 
 // DeleteTutorAvailability deletes an availability slot

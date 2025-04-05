@@ -2,7 +2,7 @@ import axios, { AxiosError } from 'axios';
 import { User, LoginRequest, UserRegistrationRequest, UserUpdateRequest, AuthResponse } from '../types';
 import { Language, LanguageProficiency, UserLanguage, UserLanguageUpdate } from '../types/language';
 import { Interest, UserInterest, Goal, UserGoal } from '../types/interest-goal';
-import { TutorProfile, TutorUpdateRequest, TutorSearchFilters } from '../types/tutor';
+import { TutorProfile, TutorUpdateRequest, TutorSearchFilters, TutorAvailability, TutorAvailabilityRequest } from '../types/tutor';
 
 // Helper function to extract error messages from different API error formats
 export const getErrorMessage = (error: any): string => {
@@ -322,6 +322,49 @@ export const tutorService = {
             return response.data;
         } catch (error) {
             console.error('Update tutor profile error:', error);
+            throw error;
+        }
+    },
+
+    getTutorAvailabilities: async (): Promise<TutorAvailability[]> => {
+        try {
+            const response = await apiClient.get('/api/tutor/availabilities');
+            console.log('Raw API response:', response);
+            // Check if the response data is an array, otherwise extract it from the response structure
+            const availabilities = Array.isArray(response.data) ? response.data : [];
+            console.log('Processed availabilities:', availabilities);
+            return availabilities;
+        } catch (error) {
+            console.error('Get tutor availabilities error:', error);
+            throw error;
+        }
+    },
+
+    addTutorAvailability: async (data: TutorAvailabilityRequest): Promise<TutorAvailability> => {
+        try {
+            const response = await apiClient.post('/api/tutor/availabilities', data);
+            return response.data;
+        } catch (error) {
+            console.error('Add tutor availability error:', error);
+            throw error;
+        }
+    },
+
+    updateTutorAvailability: async (id: number, data: TutorAvailabilityRequest): Promise<TutorAvailability> => {
+        try {
+            const response = await apiClient.put(`/api/tutor/availabilities/${id}`, data);
+            return response.data;
+        } catch (error) {
+            console.error('Update tutor availability error:', error);
+            throw error;
+        }
+    },
+
+    deleteTutorAvailability: async (id: number): Promise<void> => {
+        try {
+            await apiClient.delete(`/api/tutor/availabilities/${id}`);
+        } catch (error) {
+            console.error('Delete tutor availability error:', error);
             throw error;
         }
     },
