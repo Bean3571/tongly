@@ -1,8 +1,10 @@
 import { useTranslation } from '../contexts/I18nContext';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 export const Home = () => {
     const { t } = useTranslation();
+    const { user } = useAuth();
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -14,7 +16,8 @@ export const Home = () => {
                 <p className="mt-3 max-w-md mx-auto text-base text-gray-500 dark:text-gray-400 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
                     {t('home.description')}
                 </p>
-                <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
+                {!user && (
+                    <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
                         <div className="rounded-md shadow">
                             <Link
                                 to="/register"
@@ -31,7 +34,8 @@ export const Home = () => {
                                 {t('auth.login')}
                             </Link>
                         </div>
-                </div>
+                    </div>
+                )}
             </div>
 
             <div className="mt-16">
