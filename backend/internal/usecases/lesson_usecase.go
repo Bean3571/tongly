@@ -93,7 +93,7 @@ func (uc *LessonUseCase) BookLesson(ctx context.Context, studentID int, req *ent
 	return lesson, nil
 }
 
-// GetLessonByID retrieves a lesson by ID with all related information
+// GetLessonByID retrieves a lesson by ID
 func (uc *LessonUseCase) GetLessonByID(ctx context.Context, lessonID int) (*entities.Lesson, error) {
 	// Get lesson
 	lesson, err := uc.lessonRepo.GetByID(ctx, lessonID)
@@ -104,26 +104,10 @@ func (uc *LessonUseCase) GetLessonByID(ctx context.Context, lessonID int) (*enti
 		return nil, errors.New("lesson not found")
 	}
 
-	// Get student info
-	student, err := uc.userRepo.GetByID(ctx, lesson.StudentID)
-	if err != nil {
+	// Populate related entities
+	if err := uc.populateLessonRelations(ctx, lesson); err != nil {
 		return nil, err
 	}
-	lesson.Student = student
-
-	// Get tutor info
-	tutor, err := uc.userRepo.GetByID(ctx, lesson.TutorID)
-	if err != nil {
-		return nil, err
-	}
-	lesson.Tutor = tutor
-
-	// Get language info
-	language, err := uc.langRepo.GetLanguageByID(ctx, lesson.LanguageID)
-	if err != nil {
-		return nil, err
-	}
-	lesson.Language = language
 
 	// Get reviews
 	reviews, err := uc.lessonRepo.GetReviewsByLessonID(ctx, lessonID)
@@ -239,10 +223,94 @@ func (uc *LessonUseCase) GetLessonsByTutor(ctx context.Context, tutorID int) ([]
 
 // GetUpcomingLessonsByUser retrieves upcoming lessons for a user (either student or tutor)
 func (uc *LessonUseCase) GetUpcomingLessonsByUser(ctx context.Context, userID int, isStudent bool) ([]entities.Lesson, error) {
-	return uc.lessonRepo.GetUpcomingLessons(ctx, userID, isStudent)
+	lessons, err := uc.lessonRepo.GetUpcomingLessons(ctx, userID, isStudent)
+	if err != nil {
+		return nil, err
+	}
+
+	// Populate related entities for each lesson
+	for i := range lessons {
+		uc.populateLessonRelations(ctx, &lessons[i])
+	}
+
+	return lessons, nil
 }
 
 // GetPastLessonsByUser retrieves past lessons for a user (either student or tutor)
 func (uc *LessonUseCase) GetPastLessonsByUser(ctx context.Context, userID int, isStudent bool) ([]entities.Lesson, error) {
-	return uc.lessonRepo.GetPastLessons(ctx, userID, isStudent)
+	lessons, err := uc.lessonRepo.GetPastLessons(ctx, userID, isStudent)
+	if err != nil {
+		return nil, err
+	}
+
+	// Populate related entities for each lesson
+	for i := range lessons {
+		uc.populateLessonRelations(ctx, &lessons[i])
+	}
+
+	return lessons, nil
+}
+
+// GetAllLessonsByUser retrieves all lessons for a user (either student or tutor)
+func (uc *LessonUseCase) GetAllLessonsByUser(ctx context.Context, userID int, isStudent bool) ([]entities.Lesson, error) {
+	var lessons []entities.Lesson
+	var err error
+
+	if isStudent {
+		lessons, err = uc.lessonRepo.GetByStudentID(ctx, userID)
+	} else {
+		lessons, err = uc.lessonRepo.GetByTutorID(ctx, userID)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Populate related entities for each lesson
+	for i := range lessons {
+		uc.populateLessonRelations(ctx, &lessons[i])
+	}
+
+	return lessons, nil
+}
+
+// GetCancelledLessonsByUser retrieves cancelled lessons for a user
+func (uc *LessonUseCase) GetCancelledLessonsByUser(ctx context.Context, userID int, isStudent bool) ([]entities.Lesson, error) {
+	lessons, err := uc.lessonRepo.GetCancelledLessons(ctx, userID, isStudent)
+	if err != nil {
+		return nil, err
+	}
+
+	// Populate related entities for each lesson
+	for i := range lessons {
+		uc.populateLessonRelations(ctx, &lessons[i])
+	}
+
+	return lessons, nil
+}
+
+// Helper method to populate lesson relations
+func (uc *LessonUseCase) populateLessonRelations(ctx context.Context, lesson *entities.Lesson) error {
+	// Get student info
+	student, err := uc.userRepo.GetByID(ctx, lesson.StudentID)
+	if err != nil {
+		return err
+	}
+	lesson.Student = student
+
+	// Get tutor info
+	tutor, err := uc.userRepo.GetByID(ctx, lesson.TutorID)
+	if err != nil {
+		return err
+	}
+	lesson.Tutor = tutor
+
+	// Get language info
+	language, err := uc.langRepo.GetLanguageByID(ctx, lesson.LanguageID)
+	if err != nil {
+		return err
+	}
+	lesson.Language = language
+
+	return nil
 }

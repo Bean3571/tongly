@@ -176,12 +176,112 @@ func (h *LessonHandler) AddReview(c *gin.Context) {
 	c.JSON(http.StatusCreated, review)
 }
 
+// GetUserLessons handles the request to retrieve all lessons for the current user
+func (h *LessonHandler) GetUserLessons(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// Get user lessons based on their role (student or tutor)
+	isStudent := true // Default to student role
+	userRole, exists := c.Get("user_role")
+	if exists && userRole.(string) == "tutor" {
+		isStudent = false
+	}
+
+	lessons, err := h.lessonUseCase.GetAllLessonsByUser(c.Request.Context(), userID.(int), isStudent)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve lessons"})
+		return
+	}
+
+	c.JSON(http.StatusOK, lessons)
+}
+
+// GetUserScheduledLessons handles the request to retrieve scheduled lessons for the current user
+func (h *LessonHandler) GetUserScheduledLessons(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// Get user role
+	isStudent := true
+	userRole, exists := c.Get("user_role")
+	if exists && userRole.(string) == "tutor" {
+		isStudent = false
+	}
+
+	lessons, err := h.lessonUseCase.GetUpcomingLessonsByUser(c.Request.Context(), userID.(int), isStudent)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve scheduled lessons"})
+		return
+	}
+
+	c.JSON(http.StatusOK, lessons)
+}
+
+// GetUserPastLessons handles the request to retrieve past lessons for the current user
+func (h *LessonHandler) GetUserPastLessons(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// Get user role
+	isStudent := true
+	userRole, exists := c.Get("user_role")
+	if exists && userRole.(string) == "tutor" {
+		isStudent = false
+	}
+
+	lessons, err := h.lessonUseCase.GetPastLessonsByUser(c.Request.Context(), userID.(int), isStudent)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve past lessons"})
+		return
+	}
+
+	c.JSON(http.StatusOK, lessons)
+}
+
+// GetUserCancelledLessons handles the request to retrieve cancelled lessons for the current user
+func (h *LessonHandler) GetUserCancelledLessons(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// Get user role
+	isStudent := true
+	userRole, exists := c.Get("user_role")
+	if exists && userRole.(string) == "tutor" {
+		isStudent = false
+	}
+
+	lessons, err := h.lessonUseCase.GetCancelledLessonsByUser(c.Request.Context(), userID.(int), isStudent)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve cancelled lessons"})
+		return
+	}
+
+	c.JSON(http.StatusOK, lessons)
+}
+
 // RegisterRoutes registers the lesson routes
 func (h *LessonHandler) RegisterRoutes(router *gin.Engine) {
 	lessons := router.Group("/api/lessons")
 	lessons.Use(middleware.AuthMiddleware())
 	{
 		lessons.POST("", h.BookLesson)
+		lessons.GET("/user", h.GetUserLessons)
+		lessons.GET("/user/scheduled", h.GetUserScheduledLessons)
+		lessons.GET("/user/past", h.GetUserPastLessons)
+		lessons.GET("/user/cancelled", h.GetUserCancelledLessons)
 		lessons.GET("/:lessonId", h.GetLesson)
 		lessons.POST("/:lessonId/cancel", h.CancelLesson)
 		lessons.PUT("/:lessonId/notes", h.UpdateLessonNotes)

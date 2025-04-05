@@ -258,6 +258,34 @@
       "proficiency": "Proficiency",
       "interest": "Interest",
       "goal": "Learning Goal"
+    },
+    "my_lessons": {
+      "title": "My Lessons",
+      "filters": {
+        "scheduled": "Scheduled",
+        "past": "Past",
+        "cancelled": "Cancelled"
+      },
+      "empty_state": {
+        "no_lessons": "No lessons found",
+        "no_scheduled_student": "You don't have any upcoming lessons scheduled with tutors.",
+        "no_scheduled_tutor": "You don't have any upcoming lessons scheduled with students.",
+        "no_past": "You don't have any past lessons.",
+        "no_cancelled": "You don't have any cancelled lessons.",
+        "find_tutor": "Find a Tutor"
+      },
+      "loading": "Loading lessons..."
+    },
+    "lesson_room": {
+      "title": "Lesson with",
+      "language": "Language",
+      "notes": "Notes",
+      "placeholder": {
+        "title": "Lesson Room",
+        "description": "This is a placeholder for the actual lesson room functionality.",
+        "future_features": "Future implementation will include video conferencing, chat, and shared learning tools."
+      },
+      "back_to_lessons": "Back to Lessons"
     }
   },
   "userSettings": {
@@ -343,5 +371,17 @@
     "current_password": "Current Password",
     "new_password": "New Password",
     "confirm_password": "Confirm Password"
+  },
+  "components": {
+    "lesson_card": {
+      "unknown_participant": "Unknown Participant",
+      "unknown_language": "Unknown Language",
+      "notes": "Notes",
+      "join_lesson": "Join Lesson",
+      "cancel_lesson": "Cancel Lesson",
+      "cancel_confirm": "Are you sure you want to cancel this lesson?",
+      "cancel_success": "Lesson cancelled successfully",
+      "cancel_error": "Failed to cancel lesson"
+    }
   }
 }

@@ -135,7 +135,7 @@ func (r *LessonRepository) GetPastLessons(ctx context.Context, userID int, isStu
 			SELECT id, student_id, tutor_id, language_id, start_time, end_time, 
 				   cancelled_by, cancelled_at, notes, created_at, updated_at
 			FROM lessons
-			WHERE student_id = $1 AND (end_time < NOW() OR cancelled_by IS NOT NULL)
+			WHERE student_id = $1 AND end_time < NOW() AND cancelled_by IS NULL
 			ORDER BY start_time DESC
 		`
 	} else {
@@ -143,7 +143,31 @@ func (r *LessonRepository) GetPastLessons(ctx context.Context, userID int, isStu
 			SELECT id, student_id, tutor_id, language_id, start_time, end_time, 
 				   cancelled_by, cancelled_at, notes, created_at, updated_at
 			FROM lessons
-			WHERE tutor_id = $1 AND (end_time < NOW() OR cancelled_by IS NOT NULL)
+			WHERE tutor_id = $1 AND end_time < NOW() AND cancelled_by IS NULL
+			ORDER BY start_time DESC
+		`
+	}
+
+	return r.getLessonsByQuery(ctx, query, userID)
+}
+
+// GetCancelledLessons retrieves cancelled lessons for a user (either student or tutor)
+func (r *LessonRepository) GetCancelledLessons(ctx context.Context, userID int, isStudent bool) ([]entities.Lesson, error) {
+	var query string
+	if isStudent {
+		query = `
+			SELECT id, student_id, tutor_id, language_id, start_time, end_time, 
+				   cancelled_by, cancelled_at, notes, created_at, updated_at
+			FROM lessons
+			WHERE student_id = $1 AND cancelled_by IS NOT NULL
+			ORDER BY start_time DESC
+		`
+	} else {
+		query = `
+			SELECT id, student_id, tutor_id, language_id, start_time, end_time, 
+				   cancelled_by, cancelled_at, notes, created_at, updated_at
+			FROM lessons
+			WHERE tutor_id = $1 AND cancelled_by IS NOT NULL
 			ORDER BY start_time DESC
 		`
 	}
