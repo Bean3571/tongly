@@ -26,6 +26,8 @@ export interface TutorProfile extends BaseEntity {
   years_experience: number;
   user?: User;
   languages?: UserLanguage[];
+  rating?: number;
+  reviews_count?: number;
 }
 
 // Tutor availability

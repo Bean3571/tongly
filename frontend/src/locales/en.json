@@ -10,7 +10,8 @@
     "remove": "Remove",
     "all": "All",
     "male": "Male",
-    "female": "Female"
+    "female": "Female",
+    "not_specified": "Not specified"
   },
   "validation": {
     "required": "This field is required",
@@ -161,7 +162,7 @@
   },
   "tutor": {
     "bio": "Bio",
-    "years_experience": "Years of Teaching Experience",
+    "years_experience": "{{count}} {{count, plural, one {year} other {years}}} experience",
     "intro_video_url": "Introduction Video URL",
     "education": "Education",
     "education_degree": "Degree",
@@ -169,7 +170,20 @@
     "education_field": "Field of Study",
     "education_start_year": "Start Year",
     "education_end_year": "End Year",
-    "education_document": "Document URL"
+    "education_document": "Document URL",
+    "profile_picture_alt": "{{name}}'s profile picture",
+    "rating_placeholder": "4.5 (TODO: Real ratings)",
+    "languages_label": "Languages",
+    "education_label": "Education",
+    "education_format": "{{degree}} in {{field}} at {{institution}}",
+    "language_format": "{{language}} ({{proficiency}})",
+    "age": "{{age}} years old",
+    "gender": {
+      "male": "Male",
+      "female": "Female",
+      "not_set": "Not specified"
+    },
+    "schedule_lesson": "Schedule Lesson"
   },
   "navbar": {
     "home": "Home",

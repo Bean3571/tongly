@@ -1,9 +1,11 @@
 package interfaces
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"tongly-backend/internal/entities"
+	"tongly-backend/internal/logger"
 	"tongly-backend/internal/usecases"
 	"tongly-backend/pkg/middleware"
 
@@ -275,9 +277,13 @@ func (h *TutorHandler) SearchTutors(c *gin.Context) {
 		filters.Sex = sex
 	}
 
+	// Log filter information for debugging
+	logger.Info("SearchTutors called with filters: %+v", filters)
+
 	tutors, err := h.tutorUseCase.SearchTutors(c.Request.Context(), &filters)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to search tutors"})
+		logger.Error("Error in SearchTutors: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to search tutors: %v", err)})
 		return
 	}
 

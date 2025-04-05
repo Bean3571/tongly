@@ -14,8 +14,10 @@ type TutorProfile struct {
 	UpdatedAt       time.Time   `json:"updated_at"`
 
 	// Related entities (not in the database)
-	User      *User          `json:"user,omitempty"`
-	Languages []UserLanguage `json:"languages,omitempty"`
+	User         *User          `json:"user,omitempty"`
+	Languages    []UserLanguage `json:"languages,omitempty"`
+	Rating       float64        `json:"rating,omitempty"`
+	ReviewsCount int            `json:"reviews_count,omitempty"`
 }
 
 // TutorAvailability represents a tutor's available time slot

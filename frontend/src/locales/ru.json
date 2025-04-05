@@ -5,7 +5,13 @@
     "updating": "Обновление...",
     "save": "Сохранить",
     "user": "Пользователь",
-    "retry": "Повторить"
+    "retry": "Повторить",
+    "optional": "Опционально",
+    "remove": "Удалить",
+    "all": "Все",
+    "male": "Мужской",
+    "female": "Женский",
+    "not_specified": "Не указано"
   },
   "validation": {
     "required": "Это поле обязательно",
@@ -106,5 +112,31 @@
       "grow_title": "Отслеживайте прогресс",
       "grow_description": "Ставьте цели, проходите уроки и следите за своим процессом изучения языка."
     }
+  },
+  "tutor": {
+    "bio": "Биография",
+    "years_experience": "Лет опыта: {{count}} ",
+    "intro_video_url": "Ссылка на вводное видео",
+    "education": "Образование",
+    "education_degree": "Степень",
+    "education_institution": "Учебное заведение",
+    "education_field": "Область обучения",
+    "education_start_year": "Год начала",
+    "education_end_year": "Год окончания",
+    "education_document": "Ссылка на документ",
+    "profile_picture_alt": "Фото профиля {{name}}",
+    "rating_placeholder": "4.5 (TODO: Реальные рейтинги)",
+    "languages_label": "Языки",
+    "education_label": "Образование",
+    "education_format": "{{degree}} по {{field}} в {{institution}}",
+    "language_format": "{{language}} ({{proficiency}})",
+    "age": "Возраст: {{age}}",
+    "no_reviews": "Нет отзывов",
+    "gender": {
+      "male": "Мужской",
+      "female": "Женский",
+      "not_set": "Не указано"
+    },
+    "schedule_lesson": "Запланировать урок"
   }
 }

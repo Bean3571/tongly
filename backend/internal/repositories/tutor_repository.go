@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"tongly-backend/internal/entities"
+
+	"github.com/lib/pq"
 )
 
 // TutorRepository handles database operations for tutor profiles
@@ -252,7 +254,7 @@ func (r *TutorRepository) SearchTutors(ctx context.Context, filters *entities.Tu
 				JOIN languages l ON ul.language_id = l.id
 				WHERE l.name = ANY($%d) AND ul.proficiency_id >= $%d
 			)`, paramCounter, paramCounter+1))
-		args = append(args, filters.Languages, filters.ProficiencyID)
+		args = append(args, pq.Array(filters.Languages), filters.ProficiencyID)
 		paramCounter += 2
 	} else {
 		// Handle language filter if only languages are specified
@@ -264,7 +266,7 @@ func (r *TutorRepository) SearchTutors(ctx context.Context, filters *entities.Tu
 					JOIN languages l ON ul.language_id = l.id
 					WHERE l.name = ANY($%d)
 				)`, paramCounter))
-			args = append(args, filters.Languages)
+			args = append(args, pq.Array(filters.Languages))
 			paramCounter++
 		}
 
@@ -289,7 +291,7 @@ func (r *TutorRepository) SearchTutors(ctx context.Context, filters *entities.Tu
 				FROM user_interests ui
 				WHERE ui.interest_id = ANY($%d)
 			)`, paramCounter))
-		args = append(args, filters.Interests)
+		args = append(args, pq.Array(filters.Interests))
 		paramCounter++
 	}
 
@@ -301,7 +303,7 @@ func (r *TutorRepository) SearchTutors(ctx context.Context, filters *entities.Tu
 				FROM user_goals ug
 				WHERE ug.goal_id = ANY($%d)
 			)`, paramCounter))
-		args = append(args, filters.Goals)
+		args = append(args, pq.Array(filters.Goals))
 		paramCounter++
 	}
 
@@ -334,16 +336,16 @@ func (r *TutorRepository) SearchTutors(ctx context.Context, filters *entities.Tu
 
 	// Combine query
 	finalQuery := baseQuery
-	for i, condition := range whereConditions {
-		if i == 0 {
-			finalQuery += " AND " + condition
-		} else {
-			finalQuery += " AND " + condition
+	if len(whereConditions) > 0 {
+		finalQuery += " WHERE " + whereConditions[0]
+
+		for i := 1; i < len(whereConditions); i++ {
+			finalQuery += " AND " + whereConditions[i]
 		}
 	}
 
 	// Log the query for debugging
-	fmt.Printf("Final query: %s\n", finalQuery)
+	fmt.Printf("Final query: \n%s\n", finalQuery)
 	fmt.Printf("Args: %v\n", args)
 
 	// Execute query
@@ -357,7 +359,7 @@ func (r *TutorRepository) SearchTutors(ctx context.Context, filters *entities.Tu
 
 	if err != nil {
 		fmt.Printf("Query error: %v\n", err)
-		return nil, err
+		return nil, fmt.Errorf("database query error: %w", err)
 	}
 	defer rows.Close()
 

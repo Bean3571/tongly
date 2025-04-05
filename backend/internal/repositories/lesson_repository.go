@@ -290,3 +290,21 @@ func (r *LessonRepository) GetTutorAverageRating(ctx context.Context, tutorID in
 
 	return avgRating.Float64, nil
 }
+
+// GetTutorReviewsCount counts the number of reviews for a tutor
+func (r *LessonRepository) GetTutorReviewsCount(ctx context.Context, tutorID int) (int, error) {
+	query := `
+		SELECT COUNT(r.id)
+		FROM reviews r
+		JOIN lessons l ON r.lesson_id = l.id
+		WHERE l.tutor_id = $1
+	`
+
+	var count int
+	err := r.db.QueryRowContext(ctx, query, tutorID).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}

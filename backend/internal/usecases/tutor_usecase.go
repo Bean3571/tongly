@@ -56,13 +56,16 @@ func (uc *TutorUseCase) GetTutorProfile(ctx context.Context, tutorID int) (*enti
 	tutorProfile.Languages = languages
 
 	// Get average rating
-	_, err = uc.lessonRepo.GetTutorAverageRating(ctx, tutorID)
-	if err != nil {
-		// Just log error, don't fail the whole request if ratings can't be fetched
-		// We can still return the profile without the rating
+	rating, err := uc.lessonRepo.GetTutorAverageRating(ctx, tutorID)
+	if err == nil {
+		tutorProfile.Rating = rating
 	}
 
-	// We could attach the rating to the profile if needed
+	// Get reviews count
+	reviewsCount, err := uc.lessonRepo.GetTutorReviewsCount(ctx, tutorID)
+	if err == nil {
+		tutorProfile.ReviewsCount = reviewsCount
+	}
 
 	return tutorProfile, nil
 }
@@ -185,6 +188,18 @@ func (uc *TutorUseCase) SearchTutors(ctx context.Context, filters *entities.Tuto
 			continue // Skip if can't get languages
 		}
 		tutors[i].Languages = languages
+
+		// Get rating
+		rating, err := uc.lessonRepo.GetTutorAverageRating(ctx, tutors[i].UserID)
+		if err == nil {
+			tutors[i].Rating = rating
+		}
+
+		// Get reviews count
+		reviewsCount, err := uc.lessonRepo.GetTutorReviewsCount(ctx, tutors[i].UserID)
+		if err == nil {
+			tutors[i].ReviewsCount = reviewsCount
+		}
 	}
 
 	return tutors, nil

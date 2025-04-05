@@ -365,11 +365,13 @@ export const tutorService = {
             
             const url = `/api/tutors/search?${params.toString()}`;
             console.log('Search URL:', url);
+            console.log('Applied filters:', JSON.stringify(filters, null, 2));
             
             const response = await apiClient.get(url);
             return response.data || [];
         } catch (error) {
             console.error('Search tutors error:', error);
+            console.error('Filter data that caused error:', JSON.stringify(filters, null, 2));
             // Instead of silently returning an empty array, throw the error so it can be handled
             // by the component's error handling logic
             throw error;

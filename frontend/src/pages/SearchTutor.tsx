@@ -105,7 +105,11 @@ export const SearchTutor = () => {
     setFiltersApplied(true);
     
     try {
+      // Log filters for debugging
+      console.log('Submitting search with filters:', JSON.stringify(filters, null, 2));
+      
       const tutorsData = await tutorService.searchTutors(filters);
+      console.log('Received tutors:', tutorsData.length);
       setTutors(tutorsData);
       
       // Close filters on mobile after search
@@ -118,6 +122,7 @@ export const SearchTutor = () => {
         document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
       }
     } catch (error) {
+      console.error('Search error:', error);
       setError(getErrorMessage(error));
     } finally {
       setIsLoading(false);
@@ -571,7 +576,6 @@ export const SearchTutor = () => {
                   onChange={handleSortChange}
                   className="text-sm rounded-md border-gray-300 py-1 pl-2 pr-7 focus:ring-orange-500 focus:border-orange-500"
                 >
-                  <option value="relevance">Relevance</option>
                   <option value="experience">Experience</option>
                   <option value="rating">Rating</option>
                 </select>

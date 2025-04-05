@@ -5,7 +5,13 @@
     "updating": "Actualizando...",
     "save": "Guardar",
     "user": "Usuario",
-    "retry": "Intentar de nuevo"
+    "retry": "Intentar de nuevo",
+    "optional": "Opcional",
+    "remove": "Eliminar",
+    "all": "Todos",
+    "male": "Masculino",
+    "female": "Femenino",
+    "not_specified": "No especificado"
   },
   "validation": {
     "required": "Este campo es obligatorio",
@@ -106,5 +112,30 @@
       "grow_title": "Sigue tu Progreso",
       "grow_description": "Establece metas, completa lecciones y sigue tu camino de aprendizaje de idiomas."
     }
+  },
+  "tutor": {
+    "bio": "Biografía",
+    "years_experience": "{{count}} {{count, plural, one {año} other {años}}} de experiencia",
+    "intro_video_url": "URL del video de introducción",
+    "education": "Educación",
+    "education_degree": "Título",
+    "education_institution": "Institución",
+    "education_field": "Campo de estudio",
+    "education_start_year": "Año de inicio",
+    "education_end_year": "Año de finalización",
+    "education_document": "URL del documento",
+    "profile_picture_alt": "Foto de perfil de {{name}}",
+    "rating_placeholder": "4.5 (TODO: Calificaciones reales)",
+    "languages_label": "Idiomas",
+    "education_label": "Educación",
+    "education_format": "{{degree}} en {{field}} en {{institution}}",
+    "language_format": "{{language}} ({{proficiency}})",
+    "age": "{{age}} años",
+    "gender": {
+      "male": "Masculino",
+      "female": "Femenino",
+      "not_set": "No especificado"
+    },
+    "schedule_lesson": "Programar lección"
   }
 } 
