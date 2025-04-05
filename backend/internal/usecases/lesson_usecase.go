@@ -58,9 +58,6 @@ func (uc *LessonUseCase) BookLesson(ctx context.Context, studentID int, req *ent
 	if tutorProfile == nil {
 		return nil, errors.New("tutor not found")
 	}
-	if !tutorProfile.Approved {
-		return nil, errors.New("tutor is not approved to teach")
-	}
 
 	// Check if language exists
 	language, err := uc.langRepo.GetLanguageByID(ctx, req.LanguageID)

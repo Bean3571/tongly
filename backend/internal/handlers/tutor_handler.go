@@ -303,12 +303,56 @@ func (h *TutorHandler) SearchTutors(c *gin.Context) {
 	c.JSON(http.StatusOK, tutors)
 }
 
+// GetTutorByID handles the request to retrieve a tutor's profile by ID
+func (h *TutorHandler) GetTutorByID(c *gin.Context) {
+	tutorIDStr := c.Param("tutorId")
+	tutorID, err := strconv.Atoi(tutorIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid tutor ID"})
+		return
+	}
+
+	profile, err := h.tutorUseCase.GetTutorProfile(c.Request.Context(), tutorID)
+	if err != nil {
+		logger.Error("Failed to retrieve tutor profile", "error", err, "tutorID", tutorID)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve tutor profile"})
+		return
+	}
+
+	c.JSON(http.StatusOK, profile)
+}
+
+// GetTutorAvailabilitiesByID handles the request to retrieve availabilities for a tutor by ID
+func (h *TutorHandler) GetTutorAvailabilitiesByID(c *gin.Context) {
+	tutorIDStr := c.Param("tutorId")
+	tutorID, err := strconv.Atoi(tutorIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid tutor ID"})
+		return
+	}
+
+	availabilities, err := h.tutorUseCase.GetTutorAvailabilities(c.Request.Context(), tutorID)
+	if err != nil {
+		logger.Error("Failed to retrieve availabilities", "error", err, "tutorID", tutorID)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve availabilities"})
+		return
+	}
+
+	if availabilities == nil {
+		availabilities = []entities.TutorAvailability{}
+	}
+
+	c.JSON(http.StatusOK, availabilities)
+}
+
 // RegisterRoutes registers the tutor routes
 func (h *TutorHandler) RegisterRoutes(router *gin.Engine) {
 	// Public routes (no authentication required)
 	public := router.Group("/api/tutors")
 	{
 		public.GET("/search", h.SearchTutors)
+		public.GET("/:tutorId", h.GetTutorByID)
+		public.GET("/:tutorId/availabilities", h.GetTutorAvailabilitiesByID)
 	}
 
 	// Protected routes (authentication required)

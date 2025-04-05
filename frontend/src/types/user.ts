@@ -11,7 +11,7 @@ export enum UserRole {
 }
 
 // User model
-export interface User extends BaseEntity {
+export interface User {
   id: number;
   username: string;
   email: string;
@@ -20,8 +20,9 @@ export interface User extends BaseEntity {
   profile_picture_url?: string;
   sex?: string;
   age?: number;
-  role: UserRole;
-  password_hash?: string;
+  role: string;
+  created_at: string;
+  updated_at: string;
 }
 
 // User registration request

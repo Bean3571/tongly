@@ -24,6 +24,8 @@ export interface TutorProfile extends BaseEntity {
   intro_video_url?: string;
   approved: boolean;
   years_experience: number;
+  created_at: string;
+  updated_at: string;
   user?: User;
   languages?: UserLanguage[];
   rating?: number;
@@ -39,6 +41,8 @@ export interface TutorAvailability extends BaseEntity {
   end_time: string;
   is_recurring: boolean;
   specific_date?: string; // Format: "YYYY-MM-DD"
+  created_at: string;
+  updated_at: string;
 }
 
 // Tutor registration
@@ -80,4 +84,10 @@ export interface TutorSearchFilters {
   min_age?: number;              // Filter by minimum age
   max_age?: number;              // Filter by maximum age
   sex?: string;                  // Filter by sex (male, female)
+}
+
+export interface AvailableTimeSlot {
+  id: number; // Related to availability ID
+  start: Date;
+  end: Date;
 } 

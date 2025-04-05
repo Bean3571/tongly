@@ -5,24 +5,27 @@ import { BaseEntity } from './common';
  */
 
 // Language model
-export interface Language extends BaseEntity {
+export interface Language {
   id: number;
   name: string;
+  created_at: string;
 }
 
 // Language proficiency level
-export interface LanguageProficiency extends BaseEntity {
+export interface LanguageProficiency {
   id: number;
   name: string;
+  created_at: string;
 }
 
 // User's language proficiency 
-export interface UserLanguage extends BaseEntity {
+export interface UserLanguage {
   user_id: number;
   language_id: number;
   proficiency_id: number;
   language?: Language;
   proficiency?: LanguageProficiency;
+  created_at: string;
 }
 
 // Language update for user profile
