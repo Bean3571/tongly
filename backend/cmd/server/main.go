@@ -92,6 +92,7 @@ func main() {
 	userHandler := interfaces.NewUserHandler(userUseCase)
 	preferencesHandler := interfaces.NewUserPreferencesHandler(prefsUseCase)
 	videoCallHandler := interfaces.NewVideoCallHandler(videoCallUseCase)
+	webSocketHandler := interfaces.NewWebSocketHandler(authUseCase, videoCallUseCase)
 
 	// Create a new Gin router with recommended production settings
 	gin.SetMode(gin.ReleaseMode)
@@ -104,6 +105,7 @@ func main() {
 		userHandler,
 		preferencesHandler,
 		videoCallHandler,
+		webSocketHandler,
 	)
 
 	// Ensure uploads directories exist
@@ -115,9 +117,39 @@ func main() {
 		Handler: r,
 	}
 
+	// Check if SSL is enabled in configuration
+	useSSL := cfg.UseSSL
+
 	go func() {
-		logger.Info("Server started", "port", cfg.ServerPort)
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		var err error
+		if useSSL {
+			// Use absolute path to certificates
+			workDir, _ := os.Getwd()
+			certsDir := filepath.Join(workDir, "..", "certs")
+			certFile := filepath.Join(certsDir, "localhost+2.pem")
+			keyFile := filepath.Join(certsDir, "localhost+2-key.pem")
+
+			// Check if cert files exist
+			if _, certErr := os.Stat(certFile); certErr != nil {
+				logger.Error("Certificate file not found", "path", certFile, "error", certErr)
+			} else {
+				logger.Info("Found certificate file", "path", certFile)
+			}
+
+			if _, keyErr := os.Stat(keyFile); keyErr != nil {
+				logger.Error("Key file not found", "path", keyFile, "error", keyErr)
+			} else {
+				logger.Info("Found key file", "path", keyFile)
+			}
+
+			logger.Info("Server started with HTTPS", "port", cfg.ServerPort, "certsDir", certsDir)
+			err = srv.ListenAndServeTLS(certFile, keyFile)
+		} else {
+			logger.Info("Server started with HTTP", "port", cfg.ServerPort)
+			err = srv.ListenAndServe()
+		}
+
+		if err != nil && err != http.ErrServerClosed {
 			logger.Error("Failed to start server", "error", err)
 		}
 	}()

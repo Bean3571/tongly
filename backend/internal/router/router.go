@@ -20,13 +20,23 @@ func SetupRouter(
 	userHandler *interfaces.UserHandler,
 	preferencesHandler *interfaces.UserPreferencesHandler,
 	videoCallHandler *interfaces.VideoCallHandler,
+	webSocketHandler *interfaces.WebSocketHandler,
 ) {
 	// Add CORS middleware first
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000", "http://192.168.0.106:3000", "http://192.168.0.108:3000"},
+		AllowOrigins: []string{
+			"https://localhost:3000",
+			"http://localhost:3000",
+			"https://192.168.0.106:3000",
+			"http://192.168.0.106:3000",
+			"https://192.168.0.108:3000",
+			"http://192.168.0.108:3000",
+			"https://192.168.17.17:3000",
+			"http://192.168.17.17:3000",
+		},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Upgrade", "Connection", "Sec-WebSocket-Protocol", "Sec-WebSocket-Key", "Sec-WebSocket-Version", "Sec-WebSocket-Extensions"},
+		ExposeHeaders:    []string{"Content-Length", "Upgrade", "Connection", "Sec-WebSocket-Protocol", "Sec-WebSocket-Key", "Sec-WebSocket-Version", "Sec-WebSocket-Extensions"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
@@ -69,6 +79,9 @@ func SetupRouter(
 		}
 	}
 
+	// Register WebSocket routes
+	webSocketHandler.RegisterRoutes(r)
+
 	// Setup static file serving
 	r.Static("/uploads", "./uploads")
 }
@@ -82,6 +95,7 @@ func NewRouter(
 	userHandler *interfaces.UserHandler,
 	preferencesHandler *interfaces.UserPreferencesHandler,
 	videoCallHandler *interfaces.VideoCallHandler,
+	webSocketHandler *interfaces.WebSocketHandler,
 ) *gin.Engine {
 	router := gin.Default()
 
@@ -96,6 +110,7 @@ func NewRouter(
 		userHandler,
 		preferencesHandler,
 		videoCallHandler,
+		webSocketHandler,
 	)
 
 	return router

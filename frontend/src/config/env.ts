@@ -46,8 +46,8 @@ const parseBoolean = (value: string): boolean => {
 // Environment configuration with default values
 export const envConfig = {
   // API Configuration
-  apiUrl: getEnvVar('API_URL', 'http://192.168.0.106:8080'),
-  wsUrl: getEnvVar('WS_URL', 'ws://192.168.0.106:8080'),
+  apiUrl: getEnvVar('API_URL', 'https://192.168.0.106:8080'),
+  wsUrl: getEnvVar('WS_URL', 'https://192.168.0.106:8080'),
   environment: getEnvVar('ENVIRONMENT', 'development'),
   
   // WebRTC Configuration

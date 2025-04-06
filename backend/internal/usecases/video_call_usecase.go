@@ -114,24 +114,27 @@ func (uc *VideoCallUseCase) LogEvent(lessonID, userID int, eventType string, eve
 }
 
 // ValidateToken validates if a token is valid for a lesson
-func (uc *VideoCallUseCase) ValidateToken(lessonID int, token string) (bool, int, error) {
+func (uc *VideoCallUseCase) ValidateToken(lessonID int, token string) (*entities.Lesson, error) {
+	// Get the lesson
 	lesson, err := uc.repository.GetByID(context.Background(), lessonID)
 	if err != nil {
-		return false, 0, err
+		return nil, err
 	}
 
 	if lesson == nil {
-		return false, 0, entities.ErrNotFound
+		return nil, entities.ErrNotFound
 	}
 
-	// Check if the token matches student or tutor token
-	if lesson.JoinTokenStudent != nil && *lesson.JoinTokenStudent == token {
-		return true, lesson.StudentID, nil
+	// Check if the lesson has a session ID
+	if lesson.SessionID == nil {
+		return nil, errors.New("lesson has no active video session")
 	}
 
-	if lesson.JoinTokenTutor != nil && *lesson.JoinTokenTutor == token {
-		return true, lesson.TutorID, nil
+	// Validate the token
+	if (lesson.JoinTokenStudent != nil && token == *lesson.JoinTokenStudent) ||
+		(lesson.JoinTokenTutor != nil && token == *lesson.JoinTokenTutor) {
+		return lesson, nil
 	}
 
-	return false, 0, nil
+	return nil, errors.New("invalid token")
 }

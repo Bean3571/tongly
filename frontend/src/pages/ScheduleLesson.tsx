@@ -936,15 +936,7 @@ export const ScheduleLesson: React.FC = () => {
                     : t('pages.schedule_lesson.schedule_button')}
                 </button>
               </div>
-              
-              {/* Step indicators */}
-              <div className="flex justify-between pt-4">
-                <div className={`text-xs ${selectedLanguage ? 'text-orange-500' : 'text-gray-400'}`}>1. {t('pages.schedule_lesson.select_language')}</div>
-                <div className={`text-xs ${duration > 0 && selectedLanguage ? 'text-orange-500' : 'text-gray-400'}`}>2. {t('pages.schedule_lesson.select_duration')}</div>
-                <div className={`text-xs ${selectedDate ? 'text-orange-500' : 'text-gray-400'}`}>3. {t('pages.schedule_lesson.select_date')}</div>
-                <div className={`text-xs ${selectedTimeSlot ? 'text-orange-500' : 'text-gray-400'}`}>4. {t('pages.schedule_lesson.select_time')}</div>
-                <div className={`text-xs ${notes.trim() ? 'text-orange-500' : 'text-gray-400'}`}>5. {t('pages.schedule_lesson.notes')}</div>
-              </div>
+            
             </form>
           </div>
         </div>
