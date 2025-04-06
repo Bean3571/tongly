@@ -9,6 +9,7 @@ var (
 	ErrUsernameExists     = errors.New("username already exists")
 	ErrEmailExists        = errors.New("email already exists")
 	ErrInvalidRole        = errors.New("invalid role")
+	ErrNotFound           = errors.New("resource not found")
 )
 
 // TutorNotApprovedError represents an error when booking a lesson with an unapproved tutor

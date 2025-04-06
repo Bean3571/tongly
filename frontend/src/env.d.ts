@@ -29,8 +29,8 @@ interface ImportMeta {
 // Convert environment variables to their proper types
 export const getEnvConfig = () => {
   return {
-    apiUrl: 'http://localhost:8080/api',
-    wsUrl: 'ws://localhost:8080',
+    apiUrl: 'https://192.168.0.106:8080',
+    wsUrl: 'ws://192.168.0.106:8080',
     environment: 'development',
     
     // WebRTC Configuration

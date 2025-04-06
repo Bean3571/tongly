@@ -19,10 +19,11 @@ func SetupRouter(
 	commonHandler *interfaces.CommonHandler,
 	userHandler *interfaces.UserHandler,
 	preferencesHandler *interfaces.UserPreferencesHandler,
+	videoCallHandler *interfaces.VideoCallHandler,
 ) {
 	// Add CORS middleware first
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowAllOrigins:  true,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -64,6 +65,7 @@ func SetupRouter(
 			lessonHandler.RegisterRoutes(r)
 			userHandler.RegisterRoutes(r)
 			preferencesHandler.RegisterRoutes(r)
+			videoCallHandler.RegisterRoutes(r)
 		}
 	}
 
@@ -79,6 +81,7 @@ func NewRouter(
 	commonHandler *interfaces.CommonHandler,
 	userHandler *interfaces.UserHandler,
 	preferencesHandler *interfaces.UserPreferencesHandler,
+	videoCallHandler *interfaces.VideoCallHandler,
 ) *gin.Engine {
 	router := gin.Default()
 
@@ -92,6 +95,7 @@ func NewRouter(
 		commonHandler,
 		userHandler,
 		preferencesHandler,
+		videoCallHandler,
 	)
 
 	return router

@@ -32,7 +32,7 @@ export const getErrorMessage = (error: any): string => {
     return error.response.statusText || 'An unknown error occurred';
 };
 
-const baseURL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+const baseURL = process.env.REACT_APP_API_URL || 'http://192.168.0.106:8080';
 console.log('API baseURL:', baseURL);
 
 export const apiClient = axios.create({

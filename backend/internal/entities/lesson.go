@@ -7,17 +7,20 @@ import (
 
 // Lesson represents a scheduled or completed lesson
 type Lesson struct {
-	ID          int        `json:"id"`
-	StudentID   int        `json:"student_id"`
-	TutorID     int        `json:"tutor_id"`
-	LanguageID  int        `json:"language_id"`
-	StartTime   time.Time  `json:"start_time"`
-	EndTime     time.Time  `json:"end_time"`
-	CancelledBy *int       `json:"cancelled_by,omitempty"`
-	CancelledAt *time.Time `json:"cancelled_at,omitempty"`
-	Notes       *string    `json:"notes,omitempty"`
-	CreatedAt   time.Time  `json:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at"`
+	ID               int        `json:"id"`
+	StudentID        int        `json:"student_id"`
+	TutorID          int        `json:"tutor_id"`
+	LanguageID       int        `json:"language_id"`
+	StartTime        time.Time  `json:"start_time"`
+	EndTime          time.Time  `json:"end_time"`
+	CancelledBy      *int       `json:"cancelled_by,omitempty"`
+	CancelledAt      *time.Time `json:"cancelled_at,omitempty"`
+	Notes            *string    `json:"notes,omitempty"`
+	SessionID        *string    `json:"session_id,omitempty"`
+	JoinTokenStudent *string    `json:"join_token_student,omitempty"`
+	JoinTokenTutor   *string    `json:"join_token_tutor,omitempty"`
+	CreatedAt        time.Time  `json:"created_at"`
+	UpdatedAt        time.Time  `json:"updated_at"`
 
 	// Related entities (not in the database)
 	Student  *User     `json:"student,omitempty"`
@@ -178,3 +181,26 @@ func (r *LessonCancellationRequest) Validate() error {
 	}
 	return nil
 }
+
+// VideoCallEvent represents an event in a video call session
+type VideoCallEvent struct {
+	ID        int                    `json:"id"`
+	LessonID  int                    `json:"lesson_id"`
+	UserID    int                    `json:"user_id"`
+	EventType string                 `json:"event_type"`
+	EventData map[string]interface{} `json:"event_data,omitempty"`
+	CreatedAt time.Time              `json:"created_at"`
+}
+
+// VideoCallEventType enum for different types of video call events
+type VideoCallEventType string
+
+const (
+	VideoCallEventJoined             VideoCallEventType = "joined"
+	VideoCallEventLeft               VideoCallEventType = "left"
+	VideoCallEventMicToggled         VideoCallEventType = "mic_toggled"
+	VideoCallEventCameraToggled      VideoCallEventType = "camera_toggled"
+	VideoCallEventScreenshareStarted VideoCallEventType = "screenshare_started"
+	VideoCallEventScreenshareEnded   VideoCallEventType = "screenshare_ended"
+	VideoCallEventViewChanged        VideoCallEventType = "view_changed"
+)
