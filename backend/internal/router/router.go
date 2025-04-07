@@ -2,6 +2,7 @@ package router
 
 import (
 	interfaces "tongly-backend/internal/handlers"
+	"tongly-backend/internal/logger"
 	"tongly-backend/pkg/middleware"
 
 	"time"
@@ -24,21 +25,29 @@ func SetupRouter(
 ) {
 	// Add CORS middleware first
 	r.Use(cors.New(cors.Config{
-		AllowOrigins: []string{
-			"https://localhost:3000",
-			"http://localhost:3000",
-			"https://192.168.0.106:3000",
-			"http://192.168.0.106:3000",
-			"https://192.168.0.108:3000",
-			"http://192.168.0.108:3000",
-			"https://192.168.17.17:3000",
-			"http://192.168.17.17:3000",
-		},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Upgrade", "Connection", "Sec-WebSocket-Protocol", "Sec-WebSocket-Key", "Sec-WebSocket-Version", "Sec-WebSocket-Extensions"},
 		ExposeHeaders:    []string{"Content-Length", "Upgrade", "Connection", "Sec-WebSocket-Protocol", "Sec-WebSocket-Key", "Sec-WebSocket-Version", "Sec-WebSocket-Extensions"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
+		AllowOriginFunc: func(origin string) bool {
+			allowed := false
+			for _, allowedOrigin := range []string{
+				"https://192.168.0.106:3000",
+				"https://192.168.0.107:3000",
+				"https://192.168.0.108:3000",
+				"https:",
+			} {
+				if origin == allowedOrigin {
+					allowed = true
+					break
+				}
+			}
+			if !allowed {
+				logger.Info("CORS request blocked", "origin", origin)
+			}
+			return allowed
+		},
 	}))
 
 	// Add logger middleware
