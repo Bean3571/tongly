@@ -5,23 +5,11 @@
 
 // Helper function to safely get environment variables with fallback values
 const getEnvVar = (key: string, defaultValue: string = ''): string => {
-  // First check runtime config (useful for production deployments)
-  if (
-    typeof window !== 'undefined' &&
-    window.__RUNTIME_CONFIG__ && 
-    window.__RUNTIME_CONFIG__[key]
-  ) {
-    return window.__RUNTIME_CONFIG__[key];
-  }
-  
-  // Then try standard Vite env variables
+  // Access the environment variables using process.env
+  // for Create React App (which uses REACT_APP_ prefix)
   try {
-    // Using process.env for Create React App environment
-    if (typeof process !== 'undefined' && process.env && process.env[`REACT_APP_${key}`]) {
-      const envValue = process.env[`REACT_APP_${key}`];
-      return envValue !== undefined ? String(envValue) : defaultValue;
-    }
-    return defaultValue;
+    const envValue = process.env[`REACT_APP_${key}`];
+    return envValue !== undefined ? String(envValue) : defaultValue;
   } catch (error) {
     console.warn(`Error accessing env var ${key}, using default:`, error);
     return defaultValue;
@@ -43,29 +31,29 @@ const parseBoolean = (value: string): boolean => {
   return value?.toLowerCase() === 'true';
 };
 
-// Environment configuration with default values
+// Environment configuration reading from .env file
 export const envConfig = {
   // API Configuration
-  apiUrl: getEnvVar('API_URL', 'https://192.168.0.106:8080'),
-  wsUrl: getEnvVar('WS_URL', 'https://192.168.0.106:8080'),
-  environment: getEnvVar('ENVIRONMENT', 'development'),
+  apiUrl: process.env.REACT_APP_API_URL || 'https://localhost:8080',
+  wsUrl: process.env.REACT_APP_WS_URL || 'wss://localhost:8080',
+  environment: process.env.REACT_APP_ENVIRONMENT || 'development',
+  frontendUrl: process.env.REACT_APP_FRONTEND_URL || 'http://localhost:3000',
+  
+  // Assets
+  defaultAvatar: process.env.REACT_APP_DEFAULT_AVATAR || 'https://secure.gravatar.com/avatar/default?s=200&d=mp',
+  placeholderImage: process.env.REACT_APP_PLACEHOLDER_IMAGE || 'https://via.placeholder.com/80?text=Error',
+  youtubeEmbedUrl: process.env.REACT_APP_YOUTUBE_EMBED_URL || 'https://www.youtube.com/embed',
   
   // WebRTC Configuration
-  iceServers: parseJSON<Array<{ urls: string }>>(
-    getEnvVar('ICE_SERVERS'), 
-    [{ urls: 'stun:stun.l.google.com:19302' }]
-  ),
-  turnServerUrl: getEnvVar('TURN_SERVER_URL', ''),
-  turnUsername: getEnvVar('TURN_USERNAME', ''),
-  turnCredential: getEnvVar('TURN_CREDENTIAL', ''),
+  stunServer: process.env.REACT_APP_STUN_SERVER || 'stun:stun.l.google.com:19302',
   
-  // Feature Flags
+  // Feature Flags (with defaults)
   enableScreenShare: parseBoolean(getEnvVar('ENABLE_SCREEN_SHARE', 'false')),
   enableChat: parseBoolean(getEnvVar('ENABLE_CHAT', 'true')),
   enableRecording: parseBoolean(getEnvVar('ENABLE_RECORDING', 'false')),
   
   // UI Configuration
-  maxVideoParticipants: parseInt(getEnvVar('MAX_VIDEO_PARTICIPANTS', '4'), 10),
+  maxVideoParticipants: parseInt(getEnvVar('MAX_VIDEO_PARTICIPANTS', '2'), 10),
   defaultVideoQuality: getEnvVar('DEFAULT_VIDEO_QUALITY', '720p'),
   enableVirtualBackground: parseBoolean(getEnvVar('ENABLE_VIRTUAL_BACKGROUND', 'false')),
 };

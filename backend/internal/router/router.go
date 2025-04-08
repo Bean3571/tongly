@@ -36,7 +36,8 @@ func SetupRouter(
 				"https://192.168.0.106:3000",
 				"https://192.168.0.107:3000",
 				"https://192.168.0.108:3000",
-				"https:",
+				"https://localhost:3000",
+				"http://localhost:3000",
 			} {
 				if origin == allowedOrigin {
 					allowed = true

@@ -5,8 +5,9 @@ import { format } from 'date-fns';
 import { cancelLesson } from '../services/lesson.service';
 import { toast } from 'react-hot-toast';
 import { useTranslation } from '../contexts/I18nContext';
+import { envConfig } from '../config/env';
 
-const DEFAULT_AVATAR = 'https://secure.gravatar.com/avatar/default?s=200&d=mp';
+const DEFAULT_AVATAR = envConfig.defaultAvatar;
 
 interface LessonCardProps {
   lesson: Lesson;

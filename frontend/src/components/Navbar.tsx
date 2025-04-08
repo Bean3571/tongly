@@ -3,8 +3,9 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/I18nContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { envConfig } from '../config/env';
 
-const DEFAULT_AVATAR = 'https://secure.gravatar.com/avatar/default?s=200&d=mp';
+const DEFAULT_AVATAR = envConfig.defaultAvatar;
 
 export const Navbar = () => {
     const { user, logout } = useAuth();

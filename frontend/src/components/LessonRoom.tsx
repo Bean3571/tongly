@@ -1018,7 +1018,7 @@ const LessonRoom: React.FC<LessonRoomProps> = ({ lesson }) => {
               </p>
               <button 
                 className="mt-4 px-4 py-2 bg-orange-500 text-white rounded-md"
-                onClick={() => window.open('http://localhost:3000/lessons/' + lesson.id, '_self')}
+                onClick={() => window.open(`${envConfig.frontendUrl}/lessons/${lesson.id}`, '_self')}
               >
                 Try HTTP Mode
               </button>

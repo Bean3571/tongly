@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/I18nContext';
 import { UserUpdateRequest } from '../types';
 import { userService, getErrorMessage } from '../services/api';
+import { envConfig } from '../config/env';
 
 export const UserSettings = () => {
   const { user, setUser } = useAuth();
@@ -126,6 +127,11 @@ export const UserSettings = () => {
     }
   }, [user]);
 
+  const handleImageError = (event: React.SyntheticEvent<HTMLImageElement>) => {
+    const target = event.target as HTMLImageElement;
+    target.src = envConfig.placeholderImage;
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <h1 className="text-3xl font-bold mb-6">{t('pages.user_settings.title')}</h1>
@@ -227,10 +233,7 @@ export const UserSettings = () => {
                       src={personalInfoFormik.values.profile_picture_url} 
                       alt={t('user.profile_picture')} 
                       className="h-20 w-20 rounded-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = 'https://via.placeholder.com/80?text=Error';
-                      }}
+                      onError={handleImageError}
                     />
                   </div>
                 )}

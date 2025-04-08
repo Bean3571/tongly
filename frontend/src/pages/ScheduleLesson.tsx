@@ -5,23 +5,17 @@ import { getTutorProfile, getTutorAvailabilities, bookLesson } from '../services
 import { TutorProfile, TutorAvailability, AvailableTimeSlot } from '../types/tutor';
 import { LessonBookingRequest } from '../types/lesson';
 import { getAvailableTimeSlots, getAvailableDates, formatDateToString } from '../utils/availability';
+import { envConfig } from '../config/env';
 
 // Constants for lesson durations in minutes
 const LESSON_DURATIONS = [30, 60, 90];
 // Time interval in minutes for the time picker
 const TIME_INTERVAL = 15;
 
-// Helper function to get YouTube video ID from URL
-const getYoutubeVideoId = (url: string): string | null => {
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-  const match = url.match(regExp);
-  return (match && match[2].length === 11) ? match[2] : null;
-};
 
-// Convert YouTube URL to embed URL
-const getYoutubeEmbedUrl = (url: string): string | null => {
-  const videoId = getYoutubeVideoId(url);
-  return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+// Function to generate embedded video URL
+const getYoutubeEmbedUrl = (videoId: string | null) => {
+  return videoId ? `${envConfig.youtubeEmbedUrl}/${videoId}` : null;
 };
 
 export const ScheduleLesson: React.FC = () => {
@@ -326,6 +320,7 @@ export const ScheduleLesson: React.FC = () => {
     
     const dayOfWeek = selectedDate.getDay();
     const dateString = formatDateToString(selectedDate);
+    const currentTime = new Date();
     
     console.log('Generating times for date:', dateString, 'day of week:', dayOfWeek);
     console.log('Available slots:', availabilities);
@@ -398,8 +393,13 @@ export const ScheduleLesson: React.FC = () => {
           const timeOption = new Date(selectedDate);
           timeOption.setHours(hours, minutes, 0, 0);
           
-          console.log('Adding time option:', formatTime(timeOption));
-          timeOptions.push(timeOption);
+          // Only include future time slots
+          if (timeOption > currentTime) {
+            console.log('Adding time option:', formatTime(timeOption));
+            timeOptions.push(timeOption);
+          } else {
+            console.log('Skipping past time option:', formatTime(timeOption));
+          }
         }
       } else {
         console.log('Slot too short for selected duration');
@@ -726,41 +726,43 @@ export const ScheduleLesson: React.FC = () => {
                 </select>
               </div>
               
-              {/* Step 2: Duration Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  <span className="inline-block w-6 h-6 rounded-full bg-orange-500 text-white text-center mr-2">2</span>
-                  {t('pages.schedule_lesson.select_duration')}
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {LESSON_DURATIONS.map(durationOption => {
-                    const isDisabled = selectedTimeSlot && isExceedingEndTime(selectedTimeSlot, durationOption);
-                    return (
-                      <button
-                        key={durationOption}
-                        type="button"
-                        className={`px-3 py-2 text-center text-sm rounded-md transition-colors ${
-                          duration === durationOption
-                            ? isDisabled 
-                              ? 'bg-gray-400 text-white cursor-not-allowed'
-                              : 'bg-orange-500 text-white'
-                            : isDisabled
-                              ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                              : 'bg-gray-100 hover:bg-gray-200'
-                        }`}
-                        onClick={() => handleDurationSelect(durationOption)}
-                        disabled={bookingStatus === 'loading' || bookingStatus === 'success' || !selectedLanguage || isDisabled === true}
-                        title={isDisabled ? t('pages.schedule_lesson.duration_exceeds_availability') : undefined}
-                      >
-                        {durationOption} {t('pages.schedule_lesson.duration_' + durationOption)}
-                      </button>
-                    );
-                  })}
+              {/* Step 2: Duration Selection - only available after language is selected */}
+              {selectedLanguage && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <span className="inline-block w-6 h-6 rounded-full bg-orange-500 text-white text-center mr-2">2</span>
+                    {t('pages.schedule_lesson.select_duration')}
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {LESSON_DURATIONS.map(durationOption => {
+                      const isDisabled = selectedTimeSlot && isExceedingEndTime(selectedTimeSlot, durationOption);
+                      return (
+                        <button
+                          key={durationOption}
+                          type="button"
+                          className={`px-3 py-2 text-center text-sm rounded-md transition-colors ${
+                            duration === durationOption
+                              ? isDisabled 
+                                ? 'bg-gray-400 text-white cursor-not-allowed'
+                                : 'bg-orange-500 text-white'
+                              : isDisabled
+                                ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                                : 'bg-gray-100 hover:bg-gray-200'
+                          }`}
+                          onClick={() => handleDurationSelect(durationOption)}
+                          disabled={bookingStatus === 'loading' || bookingStatus === 'success' || isDisabled === true}
+                          title={isDisabled ? t('pages.schedule_lesson.duration_exceeds_availability') : undefined}
+                        >
+                          {durationOption} {t('pages.schedule_lesson.duration_' + durationOption)}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              )}
               
               {/* Step 3: Date Selection - only available after language and duration are selected */}
-              {selectedLanguage && (
+              {selectedLanguage && duration && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     <span className="inline-block w-6 h-6 rounded-full bg-orange-500 text-white text-center mr-2">3</span>

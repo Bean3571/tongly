@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import { envConfig } from '../config/env';
 import { User, LoginRequest, UserRegistrationRequest, UserUpdateRequest, AuthResponse } from '../types';
 import { Language, LanguageProficiency, UserLanguage, UserLanguageUpdate } from '../types/language';
 import { Interest, UserInterest, Goal, UserGoal } from '../types/interest-goal';
@@ -32,7 +33,7 @@ export const getErrorMessage = (error: any): string => {
     return error.response.statusText || 'An unknown error occurred';
 };
 
-const baseURL = process.env.REACT_APP_API_URL || 'https://192.168.0.106:8080';
+const baseURL = envConfig.apiUrl;
 console.log('API baseURL:', baseURL);
 
 export const apiClient = axios.create({
@@ -41,7 +42,7 @@ export const apiClient = axios.create({
         'Content-Type': 'application/json',
     },
     // Add withCredentials for CORS with credentials if needed
-    withCredentials: false,
+    withCredentials: true,
 });
 
 // Request interceptor
