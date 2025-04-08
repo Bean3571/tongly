@@ -135,7 +135,7 @@ export const TutorSettings = () => {
 
       {/* Loading state */}
       {isLoading && (
-        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-md p-4 text-sm text-blue-600">
+        <div className="mb-6 bg-orange-50 border border-orange-200 rounded-md p-4 text-sm text-orange-600">
           {t('common.loading')}
         </div>
       )}

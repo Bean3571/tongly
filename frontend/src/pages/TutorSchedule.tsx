@@ -439,7 +439,7 @@ export const TutorSchedule: React.FC = () => {
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handleEdit(availability)}
-                        className="p-1 rounded-md text-blue-600 hover:bg-blue-100"
+                        className="p-1 rounded-md text-orange-600 hover:bg-orange-100"
                         title={t('common.edit')}
                       >
                         <PencilIcon className="h-5 w-5" />
@@ -492,7 +492,7 @@ export const TutorSchedule: React.FC = () => {
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handleEdit(availability)}
-                        className="p-1 rounded-md text-blue-600 hover:bg-blue-100"
+                        className="p-1 rounded-md text-orange-600 hover:bg-orange-100"
                         title={t('common.edit')}
                       >
                         <PencilIcon className="h-5 w-5" />

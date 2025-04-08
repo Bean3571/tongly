@@ -73,7 +73,7 @@ export const LanguageSwitcher: React.FC = () => {
                             key={code}
                             className={`flex items-center px-4 py-2 text-sm cursor-pointer
                                 ${currentLanguage === code
-                                    ? 'bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-200'
+                                    ? 'bg-orange-50 dark:bg-orange-900 text-orange-700 dark:text-orange-200'
                                     : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
                                 }`}
                             role="option"

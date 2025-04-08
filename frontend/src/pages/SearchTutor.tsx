@@ -566,20 +566,6 @@ export const SearchTutor = () => {
                 </span>
               )}
             </div>
-            
-            {tutors.length > 0 && (
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-600">{t('pages.search_tutor.sort_by')}:</label>
-                <select 
-                  value={sortBy}
-                  onChange={handleSortChange}
-                  className="text-sm rounded-md border-gray-300 py-1 pl-2 pr-7 focus:ring-orange-500 focus:border-orange-500"
-                >
-                  <option value="experience">{t('pages.search_tutor.experience')}</option>
-                  <option value="rating">{t('pages.search_tutor.rating')}</option>
-                </select>
-              </div>
-            )}
           </div>
           
           {/* Error Display */}

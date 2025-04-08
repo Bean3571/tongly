@@ -37,7 +37,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                     notification.type === 'success' ? 'bg-green-500' :
                     notification.type === 'error' ? 'bg-red-500' :
                     notification.type === 'warning' ? 'bg-yellow-500' :
-                    'bg-blue-500'
+                    'bg-orange-500'
                 } text-white`}>
                     {notification.message}
                 </div>
