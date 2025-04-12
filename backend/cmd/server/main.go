@@ -123,11 +123,18 @@ func main() {
 	go func() {
 		var err error
 		if useSSL {
-			// Use absolute path to certificates
-			workDir, _ := os.Getwd()
-			certsDir := filepath.Join(workDir, "..", "certs")
-			certFile := filepath.Join(certsDir, "localhost+2.pem")
-			keyFile := filepath.Join(certsDir, "localhost+2-key.pem")
+			// Get certificate paths from environment variables or use defaults
+			certFile := os.Getenv("SSL_CERT_FILE")
+			keyFile := os.Getenv("SSL_KEY_FILE")
+
+			// If environment variables are not set, use default paths
+			if certFile == "" || keyFile == "" {
+				// Use absolute path to certificates
+				workDir, _ := os.Getwd()
+				certsDir := filepath.Join(workDir, "..", "certs")
+				certFile = filepath.Join(certsDir, "localhost+4.pem")
+				keyFile = filepath.Join(certsDir, "localhost+4-key.pem")
+			}
 
 			// Check if cert files exist
 			if _, certErr := os.Stat(certFile); certErr != nil {
@@ -142,7 +149,7 @@ func main() {
 				logger.Info("Found key file", "path", keyFile)
 			}
 
-			logger.Info("Server started with HTTPS", "port", cfg.ServerPort, "certsDir", certsDir)
+			logger.Info("Server started with HTTPS", "port", cfg.ServerPort, "certFile", certFile, "keyFile", keyFile)
 			err = srv.ListenAndServeTLS(certFile, keyFile)
 		} else {
 			logger.Info("Server started with HTTP", "port", cfg.ServerPort)
