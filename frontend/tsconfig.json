@@ -19,8 +19,11 @@
     "strictNullChecks": true,
     "baseUrl": "src",
     "paths": {
-      "@/*": ["*"]
+      "@/*": ["*"],
+      "components/*": ["components/*"],
+      "contexts/*": ["contexts/*"],
+      "pages/*": ["pages/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src/**/*"]
 }

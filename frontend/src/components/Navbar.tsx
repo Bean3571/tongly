@@ -18,6 +18,7 @@ export const Navbar = () => {
         const navItems = [
             { to: '/search-tutors', label: t('pages.search_tutor.title'), visibleTo: 'student' },
             { to: '/lessons', label: t('pages.my_lessons.title'), visibleTo: 'all' },
+            { to: '/video-call', label: 'Video Call', visibleTo: 'all' },
             { to: '/tutor-schedule', label: t('pages.tutor_schedule.title'), visibleTo: 'tutor' },
             { to: '/tutor-settings', label: t('navbar.tutor_settings'), visibleTo: 'tutor' },
             { to: '/preferences', label: t('navbar.preferences'), visibleTo: 'all' },

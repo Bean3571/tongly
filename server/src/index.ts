@@ -9,39 +9,65 @@ import { roomHandler } from "./room";
 const app = express();
 
 app.get("/health", (_, res) => {
-    res.send("Server is running");
+    res.send("Socket.IO Server is running");
 });
 
-app.use(cors());
-const port = 8080;
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST']
+}));
+
+const port = Number(process.env.PORT) || 8000;
 
 let server: http.Server | https.Server;
 
 try {
     const httpsOptions = {
-        key: fs.readFileSync("../certificates/key.pem"),
-        cert: fs.readFileSync("../certificates/cert.pem")
+        key: fs.readFileSync("../certs/localhost+4-key.pem"),
+        cert: fs.readFileSync("../certs/localhost+4.pem")
     };
     server = https.createServer(httpsOptions, app);
-    console.log("Using HTTPS server");
+    console.log("Using HTTPS server with certificates from certs directory");
 } catch (error) {
-    console.log("Certificate files not found, using HTTP server");
+    console.error("Certificate files not found, using HTTP server", error);
     server = http.createServer(app);
+    console.warn("WARNING: Running without HTTPS is not recommended for production!");
 }
 
+// Improved Socket.IO configuration with supported options
 const io = new Server(server, {
     cors: {
         origin: "*",
         methods: ["GET", "POST"],
+        credentials: true
     },
+    // Only use options supported by Socket.IO v4
+    pingTimeout: 5000,
+    pingInterval: 10000,
+    transports: ['websocket', 'polling']
 });
 
 io.on("connection", (socket) => {
-    console.log("a user connected");
+    console.log(`User connected: ${socket.id}`);
+
     roomHandler(socket);
-    socket.on("disconnect", () => {
-        console.log("user disconnected");
+
+    socket.on("disconnect", (reason) => {
+        console.log(`User disconnected: ${socket.id}, reason: ${reason}`);
     });
+
+    socket.on("error", (error) => {
+        console.error(`Socket error for ${socket.id}:`, error);
+    });
+});
+
+io.on("connect_error", (error) => {
+    console.error("Socket.IO connection error:", error);
+});
+
+// Catch unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
 server.listen(port, "0.0.0.0", () => {

@@ -5,6 +5,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { I18nProvider } from './contexts/I18nContext';
+import { VideoCallProvider } from './contexts/VideoCallContext';
 import { TranslationLoader } from './components/TranslationLoader';
 import { Navbar } from './components/Navbar';
 import { Login } from './pages/Login';
@@ -19,6 +20,8 @@ import { SearchTutor } from './pages/SearchTutor';
 import { ScheduleLesson } from './pages/ScheduleLesson';
 import MyLessons from './pages/MyLessons';
 import LessonRoom from './pages/LessonRoom';
+import VideoCallCreation from './pages/VideoCallCreation';
+import VideoCall from './pages/VideoCall';
 import { UserRole } from './types/user';
 
 const queryClient = new QueryClient();
@@ -88,6 +91,24 @@ const AppRoutes = () => {
                         } 
                     />
                     
+                    {/* Video Call Routes */}
+                    <Route 
+                        path="/video-call" 
+                        element={
+                            <PrivateRoute>
+                                <VideoCallCreation />
+                            </PrivateRoute>
+                        } 
+                    />
+                    <Route 
+                        path="/video/:id" 
+                        element={
+                            <PrivateRoute>
+                                <VideoCall />
+                            </PrivateRoute>
+                        } 
+                    />
+                    
                     {/* Tutor-only Routes */}
                     <Route 
                         path="/tutor-schedule" 
@@ -134,7 +155,9 @@ const App = () => {
                         <I18nProvider>
                             <TranslationLoader>
                                 <AuthProvider>
-                                    <AppRoutes />
+                                    <VideoCallProvider>
+                                        <AppRoutes />
+                                    </VideoCallProvider>
                                 </AuthProvider>
                             </TranslationLoader>
                         </I18nProvider>
