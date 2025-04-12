@@ -20,8 +20,6 @@ func SetupRouter(
 	commonHandler *interfaces.CommonHandler,
 	userHandler *interfaces.UserHandler,
 	preferencesHandler *interfaces.UserPreferencesHandler,
-	videoCallHandler *interfaces.VideoCallHandler,
-	webSocketHandler *interfaces.WebSocketHandler,
 ) {
 	// Add CORS middleware first
 	r.Use(cors.New(cors.Config{
@@ -85,12 +83,8 @@ func SetupRouter(
 			lessonHandler.RegisterRoutes(r)
 			userHandler.RegisterRoutes(r)
 			preferencesHandler.RegisterRoutes(r)
-			videoCallHandler.RegisterRoutes(r)
 		}
 	}
-
-	// Register WebSocket routes
-	webSocketHandler.RegisterRoutes(r)
 
 	// Setup static file serving
 	r.Static("/uploads", "./uploads")
@@ -104,8 +98,6 @@ func NewRouter(
 	commonHandler *interfaces.CommonHandler,
 	userHandler *interfaces.UserHandler,
 	preferencesHandler *interfaces.UserPreferencesHandler,
-	videoCallHandler *interfaces.VideoCallHandler,
-	webSocketHandler *interfaces.WebSocketHandler,
 ) *gin.Engine {
 	router := gin.Default()
 
@@ -119,8 +111,6 @@ func NewRouter(
 		commonHandler,
 		userHandler,
 		preferencesHandler,
-		videoCallHandler,
-		webSocketHandler,
 	)
 
 	return router
