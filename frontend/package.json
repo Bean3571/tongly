@@ -32,11 +32,11 @@
     "react-router-dom": "^6.28.2",
     "react-toastify": "^11.0.3",
     "styled-components": "^6.1.15",
-    "typescript": "^4.9.5",
+    "typescript": "^5.8.3",
     "yup": "^1.6.1"
   },
   "scripts": {
-    "start": "cross-env HTTPS=true SSL_CRT_FILE=../certs/localhost+2.pem SSL_KEY_FILE=../certs/localhost+2-key.pem react-scripts start",
+    "start": "cross-env HTTPS=true SSL_CRT_FILE=../certs/cert.pem SSL_KEY_FILE=../certs/key.pem react-scripts start",
     "build": "react-scripts build",
     "eject": "react-scripts eject",
     "i18n": "npm run extract-translations && npm run validate-translations",

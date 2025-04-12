@@ -33,6 +33,7 @@ func SetupRouter(
 		AllowOriginFunc: func(origin string) bool {
 			allowed := false
 			for _, allowedOrigin := range []string{
+				"https://192.168.0.100:3000",
 				"https://192.168.0.106:3000",
 				"https://192.168.0.107:3000",
 				"https://192.168.0.108:3000",

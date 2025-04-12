@@ -126,8 +126,8 @@ func main() {
 			// Use absolute path to certificates
 			workDir, _ := os.Getwd()
 			certsDir := filepath.Join(workDir, "..", "certs")
-			certFile := filepath.Join(certsDir, "localhost+2.pem")
-			keyFile := filepath.Join(certsDir, "localhost+2-key.pem")
+			certFile := filepath.Join(certsDir, "cert.pem")
+			keyFile := filepath.Join(certsDir, "key.pem")
 
 			// Check if cert files exist
 			if _, certErr := os.Stat(certFile); certErr != nil {
