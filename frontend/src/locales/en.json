@@ -417,5 +417,53 @@
         "cancelled": "CANCELLED"
       }
     }
+  },
+  "games": {
+    "hub": {
+      "title": "Language Games",
+      "description": "Play games to practice your language skills and earn points!"
+    },
+    "emoji_quiz": {
+      "title": "Emoji Quiz",
+      "description": "Choose the correct name of the emoji from multiple options.",
+      "instruction": "What is this emoji called?"
+    },
+    "emoji_typing": {
+      "title": "Emoji Typing",
+      "description": "Type the correct name of the emoji.",
+      "instruction": "Type the name of this emoji",
+      "placeholder": "Type your answer..."
+    },
+    "leaderboard_title": "Language Games Leaderboard",
+    "leaderboard_description": "See who's leading in language learning games!",
+    "back_to_games": "Back to Games",
+    "leaderboard": "View Leaderboard",
+    "points": "{{count}} points per game",
+    "select_language": "Select Language:",
+    "completed": "Game Completed!",
+    "final_score": "Your final score is",
+    "score": "Score",
+    "question": "Question",
+    "correct_answer": "Correct!",
+    "incorrect_answer": "Not quite right.",
+    "correct_is": "The correct answer is",
+    "submit_answer": "Submit Answer",
+    "view_leaderboard": "View Leaderboard",
+    "top_players": "Top Players",
+    "rank": "Rank",
+    "player": "Player",
+    "streak": "Streak",
+    "longest": "Longest",
+    "no_players": "No players on the leaderboard yet.",
+    "your_stats": "Your Stats",
+    "your_rank": "Your Rank",
+    "total_score": "Total Score",
+    "streaks": "Streaks",
+    "current": "Current"
+  },
+  "languages": {
+    "english": "English",
+    "spanish": "Spanish",
+    "russian": "Russian"
   }
 }

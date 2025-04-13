@@ -19,6 +19,9 @@ import { SearchTutor } from './pages/SearchTutor';
 import { ScheduleLesson } from './pages/ScheduleLesson';
 import MyLessons from './pages/MyLessons';
 import LessonRoom from './pages/LessonRoom';
+import GamesHub from './pages/Games/GamesHub';
+import GamePlay from './pages/Games/GamePlay';
+import Leaderboard from './pages/Games/Leaderboard';
 import { UserRole } from './types/user';
 
 const queryClient = new QueryClient();
@@ -112,6 +115,32 @@ const AppRoutes = () => {
                         element={
                             <PrivateRoute role={UserRole.STUDENT}>
                                 <ScheduleLesson />
+                            </PrivateRoute>
+                        } 
+                    />
+                    
+                    {/* Game Routes (Student-only) */}
+                    <Route 
+                        path="/games" 
+                        element={
+                            <PrivateRoute role={UserRole.STUDENT}>
+                                <GamesHub />
+                            </PrivateRoute>
+                        } 
+                    />
+                    <Route 
+                        path="/games/play/:gameType/:language" 
+                        element={
+                            <PrivateRoute role={UserRole.STUDENT}>
+                                <GamePlay />
+                            </PrivateRoute>
+                        } 
+                    />
+                    <Route 
+                        path="/games/leaderboard" 
+                        element={
+                            <PrivateRoute role={UserRole.STUDENT}>
+                                <Leaderboard />
                             </PrivateRoute>
                         } 
                     />

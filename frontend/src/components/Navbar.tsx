@@ -21,11 +21,12 @@ export const Navbar = () => {
         if (!user) return [];
 
         const navItems = [
-            { to: '/search-tutors', label: t('pages.search_tutor.title'), visibleTo: 'student' },
-            { to: '/lessons', label: t('pages.my_lessons.title'), visibleTo: 'all' },
-            { to: '/tutor-schedule', label: t('pages.tutor_schedule.title'), visibleTo: 'tutor' },
-            { to: '/tutor-settings', label: t('navbar.tutor_settings'), visibleTo: 'tutor' },
-            { to: '/preferences', label: t('navbar.preferences'), visibleTo: 'all' },
+            { to: '/search-tutors', label: t('pages.search_tutor.title') || 'Find Tutors', visibleTo: 'student' },
+            { to: '/lessons', label: t('pages.my_lessons.title') || 'My Lessons', visibleTo: 'all' },
+            { to: '/tutor-schedule', label: t('pages.tutor_schedule.title') || 'Schedule', visibleTo: 'tutor' },
+            { to: '/games', label: t('games.title') || 'Language Games', visibleTo: 'student' },
+            { to: '/tutor-settings', label: t('navbar.tutor_settings') || 'Tutor Settings', visibleTo: 'tutor' },
+            { to: '/preferences', label: t('navbar.preferences') || 'Preferences', visibleTo: 'all' },
         ];
 
         return navItems.filter(item => 

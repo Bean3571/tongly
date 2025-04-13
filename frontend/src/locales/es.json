@@ -307,6 +307,50 @@
         "title": "Chat",
         "description": "La conexión del chat no está establecida. Por favor reconecta para empezar a enviar mensajes."
       }
+    },
+    "games": {
+      "hub": {
+        "title": "Juegos de Idiomas",
+        "description": "¡Juega para practicar tus habilidades lingüísticas y ganar puntos!"
+      },
+      "emoji_quiz": {
+        "title": "Quiz de Emojis",
+        "description": "Elige el nombre correcto del emoji entre varias opciones.",
+        "instruction": "¿Cómo se llama este emoji?"
+      },
+      "emoji_typing": {
+        "title": "Escritura de Emojis",
+        "description": "Escribe el nombre correcto del emoji.",
+        "instruction": "Escribe el nombre de este emoji",
+        "placeholder": "Escribe tu respuesta..."
+      },
+      "leaderboard_title": "Tabla de Clasificación de Juegos de Idiomas",
+      "leaderboard_description": "¡Mira quién está liderando en los juegos de aprendizaje de idiomas!",
+      "back_to_games": "Volver a Juegos",
+      "leaderboard": "Ver Tabla de Clasificación",
+      "points": "{{count}} puntos por juego",
+      "select_language": "Seleccionar Idioma:",
+      "completed": "¡Juego Completado!",
+      "final_score": "Tu puntuación final es",
+      "points": "puntos",
+      "score": "Puntuación",
+      "question": "Pregunta",
+      "correct_answer": "¡Correcto!",
+      "incorrect_answer": "No es correcto.",
+      "correct_is": "La respuesta correcta es",
+      "submit_answer": "Enviar Respuesta",
+      "view_leaderboard": "Ver Tabla de Clasificación",
+      "top_players": "Mejores Jugadores",
+      "rank": "Rango",
+      "player": "Jugador",
+      "streak": "Racha",
+      "longest": "Más larga",
+      "no_players": "No hay jugadores en la tabla de clasificación todavía.",
+      "your_stats": "Tus Estadísticas",
+      "your_rank": "Tu Rango",
+      "total_score": "Puntuación Total",
+      "streaks": "Rachas",
+      "current": "Actual"
     }
   },
   "userSettings": {
@@ -418,5 +462,10 @@
         "cancelled": "CANCELADA"
       }
     }
+  },
+  "languages": {
+    "english": "Inglés",
+    "spanish": "Español",
+    "russian": "Ruso"
   }
 } 
