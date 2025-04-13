@@ -8,14 +8,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"
-	guuid "github.com/google/uuid"
 	"github.com/pion/webrtc/v3"
 )
-
-// RoomCreate creates a new room with a random UUID
-func RoomCreate(c *fiber.Ctx) error {
-	return c.Redirect(fmt.Sprintf("/room/%s", guuid.New().String()))
-}
 
 // RoomCreateWithID creates a new room with a specific ID (for lessons)
 func RoomCreateWithID(c *fiber.Ctx) error {
