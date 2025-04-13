@@ -263,48 +263,40 @@
     },
     "my_lessons": {
       "title": "My Lessons",
+      "loading": "Loading your lessons...",
       "filters": {
-        "scheduled": "Scheduled",
+        "all": "All Lessons",
+        "scheduled": "Upcoming",
         "past": "Past",
         "cancelled": "Cancelled"
       },
       "empty_state": {
         "no_lessons": "No lessons found",
-        "no_scheduled_student": "You don't have any upcoming lessons scheduled with tutors.",
-        "no_scheduled_tutor": "You don't have any upcoming lessons scheduled with students.",
-        "no_past": "You don't have any past lessons.",
+        "no_scheduled_student": "You don't have any upcoming lessons scheduled. Find a tutor to book your first lesson!",
+        "no_scheduled_tutor": "You don't have any upcoming lessons scheduled. Your students will appear here when they book with you.",
+        "no_past": "You don't have any completed lessons yet.",
         "no_cancelled": "You don't have any cancelled lessons.",
         "find_tutor": "Find a Tutor"
-      },
-      "loading": "Loading lessons..."
+      }
     },
     "lesson_room": {
-      "title": "Lesson with",
-      "language": "Language",
-      "notes": "Notes",
-      "info": "Lesson Information",
-      "loading": "Loading lesson...",
-      "connecting": "Connecting to video room...",
-      "reconnect": "Reconnect",
-      "unauthorized": "You are not authorized to access this lesson.",
-      "lesson_not_found": "Lesson not found or unable to access.",
-      "load_error": "Failed to load lesson data. Please try again.",
-      "connection_error": "Failed to connect to the video room. Please try again.",
-      "error_title": "Error",
-      "tutor": "Tutor",
-      "student": "Student",
-      "unknown_participant": "Unknown participant",
-      "placeholder": {
-        "title": "Video Connection",
-        "description": "Connect your camera and microphone to start the video lesson."
-      },
-      "back_to_lessons": "Back to my lessons",
+      "title": "Lesson Room",
+      "loading": "Loading lesson room...",
+      "connecting": "Connecting to lesson room...",
+      "connection_error": "Could not connect to the lesson room",
+      "error_title": "Connection Error",
+      "back_to_lessons": "Back to My Lessons",
       "hide_chat": "Hide Chat",
       "show_chat": "Show Chat",
       "leave_room": "Leave Room",
+      "reconnect": "Try to Reconnect",
+      "placeholder": {
+        "title": "Video not connected",
+        "description": "There was an error connecting to the video. Click below to try again."
+      },
       "chat_placeholder": {
-        "title": "Chat",
-        "description": "Chat connection is not established. Please reconnect to start messaging."
+        "title": "Chat not connected",
+        "description": "There was an error connecting to the chat. Click below to try again."
       }
     }
   },
@@ -337,17 +329,17 @@
     "user_data_fetch_failed": "Failed to load user data"
   },
   "home": {
-    "subtitle": "Learn languages with native speakers",
-    "description": "Connect with native speaking tutors for personalized language lessons. Improve your skills through real conversations.",
+    "subtitle": "Learn Languages with Native Speakers",
+    "description": "Connect with tutors who speak the language you want to learn and start improving your skills today.",
     "find_tutors": "Find Tutors",
     "my_lessons": "My Lessons",
     "features": {
-      "learn_title": "Learn Naturally",
-      "learn_description": "Practice with native speakers through live video lessons that fit your schedule.",
-      "connect_title": "Connect Globally",
-      "connect_description": "Find language partners and tutors from around the world.",
-      "grow_title": "Track Progress",
-      "grow_description": "Set goals, complete lessons, and track your language learning journey."
+      "learn_title": "Learn at Your Own Pace",
+      "learn_description": "Take lessons when it suits you and focus on the topics that interest you most.",
+      "connect_title": "Connect with Native Speakers",
+      "connect_description": "Practice with tutors who speak the language naturally and understand its cultural context.",
+      "grow_title": "Grow Your Skills",
+      "grow_description": "Track your progress, set goals, and continuously improve your language abilities."
     }
   },
   "tutor": {

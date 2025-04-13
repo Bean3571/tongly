@@ -13,6 +13,8 @@ DROP INDEX IF EXISTS idx_user_interests_user_id;
 DROP INDEX IF EXISTS idx_user_languages_language_id;
 DROP INDEX IF EXISTS idx_user_languages_user_id;
 DROP INDEX IF EXISTS idx_users_role;
+DROP INDEX IF EXISTS idx_game_results_user_id;
+DROP INDEX IF EXISTS idx_game_results_completed_at;
 
 -- Drop triggers
 DROP TRIGGER IF EXISTS update_lessons_updated_at ON lessons;
@@ -25,6 +27,8 @@ DROP TRIGGER IF EXISTS update_users_updated_at ON users;
 DROP FUNCTION IF EXISTS update_updated_at_column();
 
 -- Drop tables in reverse order of creation (respect foreign key constraints)
+DROP TABLE IF EXISTS game_results CASCADE;
+DROP TABLE IF EXISTS emojis CASCADE;
 DROP TABLE IF EXISTS reviews CASCADE;
 DROP TABLE IF EXISTS lessons CASCADE;
 DROP TABLE IF EXISTS tutor_availability CASCADE;

@@ -261,51 +261,40 @@
     },
     "my_lessons": {
       "title": "Mis Lecciones",
+      "loading": "Cargando tus lecciones...",
       "filters": {
-        "scheduled": "Programadas",
+        "all": "Todas las Lecciones",
+        "scheduled": "Próximas",
         "past": "Pasadas",
         "cancelled": "Canceladas"
       },
       "empty_state": {
         "no_lessons": "No se encontraron lecciones",
-        "no_scheduled_student": "No tienes ninguna lección próxima programada con tutores.",
-        "no_scheduled_tutor": "No tienes ninguna lección próxima programada con estudiantes.",
-        "no_past": "No tienes ninguna lección pasada.",
-        "no_cancelled": "No tienes ninguna lección cancelada.",
+        "no_scheduled_student": "No tienes lecciones próximas programadas. ¡Encuentra un tutor para reservar tu primera lección!",
+        "no_scheduled_tutor": "No tienes lecciones próximas programadas. Tus estudiantes aparecerán aquí cuando reserven contigo.",
+        "no_past": "Aún no tienes lecciones completadas.",
+        "no_cancelled": "No tienes lecciones canceladas.",
         "find_tutor": "Encontrar un Tutor"
-      },
-      "loading": "Cargando lecciones..."
+      }
     },
     "lesson_room": {
-      "title": "Lección con",
-      "language": "Idioma",
-      "notes": "Notas",
-      "placeholder": {
-        "title": "Sala de Lección",
-        "description": "Este es un marcador de posición para la funcionalidad real de la sala de lecciones.",
-        "future_features": "La implementación futura incluirá videoconferencia, chat y herramientas de aprendizaje compartidas."
-      },
-      "back_to_lessons": "Volver a Lecciones",
-      "unauthorized": "No estás autorizado para acceder a esta lección.",
-      "load_error": "Error al cargar los datos de la lección. Por favor, inténtalo de nuevo.",
-      "connection_error": "Error al conectar con la sala de video. Por favor, inténtalo de nuevo.",
-      "connecting": "Conectando a la sala de video...",
-      "loading": "Cargando información de la lección...",
-      "error_title": "Error",
-      "lesson_not_found": "Lección no encontrada o no se puede acceder.",
-      "back_to_lessons": "Volver a mis lecciones",
-      "unknown_participant": "Participante desconocido",
+      "title": "Sala de Lección",
+      "loading": "Cargando sala de lección...",
+      "connecting": "Conectando a la sala de lección...",
+      "connection_error": "No se pudo conectar a la sala de lección",
+      "error_title": "Error de Conexión",
+      "back_to_lessons": "Volver a Mis Lecciones",
       "hide_chat": "Ocultar Chat",
       "show_chat": "Mostrar Chat",
       "leave_room": "Salir de la Sala",
-      "reconnect": "Reconectar",
+      "reconnect": "Intentar Reconectar",
       "placeholder": {
-        "title": "Conexión de Video",
-        "description": "Conecta tu cámara y micrófono para comenzar la lección de video."
+        "title": "Video no conectado",
+        "description": "Hubo un error al conectar el video. Haz clic abajo para intentarlo de nuevo."
       },
       "chat_placeholder": {
-        "title": "Chat",
-        "description": "La conexión del chat no está establecida. Por favor reconecta para empezar a enviar mensajes."
+        "title": "Chat no conectado",
+        "description": "Hubo un error al conectar el chat. Haz clic abajo para intentarlo de nuevo."
       }
     },
     "games": {
@@ -382,17 +371,17 @@
     "user_data_fetch_failed": "No se pudo cargar los datos del usuario"
   },
   "home": {
-    "subtitle": "Aprende idiomas con hablantes nativos",
-    "description": "Conéctate con tutores nativos para recibir lecciones personalizadas de idiomas. Mejora tus habilidades a través de conversaciones reales.",
+    "subtitle": "Aprende Idiomas con Hablantes Nativos",
+    "description": "Conéctate con tutores que hablan el idioma que quieres aprender y comienza a mejorar tus habilidades hoy.",
     "find_tutors": "Encontrar Tutores",
     "my_lessons": "Mis Lecciones",
     "features": {
-      "learn_title": "Aprende de Forma Natural",
-      "learn_description": "Practica con hablantes nativos a través de lecciones en video que se adaptan a tu horario.",
-      "connect_title": "Conéctate Globalmente",
-      "connect_description": "Encuentra compañeros y tutores de idiomas de todo el mundo.",
-      "grow_title": "Sigue tu Progreso",
-      "grow_description": "Establece metas, completa lecciones y sigue tu camino de aprendizaje de idiomas."
+      "learn_title": "Aprende a Tu Propio Ritmo",
+      "learn_description": "Toma lecciones cuando te convenga y concéntrate en los temas que más te interesen.",
+      "connect_title": "Conéctate con Hablantes Nativos",
+      "connect_description": "Practica con tutores que hablan el idioma naturalmente y entienden su contexto cultural.",
+      "grow_title": "Desarrolla Tus Habilidades",
+      "grow_description": "Sigue tu progreso, establece metas y mejora continuamente tus habilidades lingüísticas."
     }
   },
   "tutor": {
