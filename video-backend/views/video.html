@@ -60,14 +60,20 @@
             position: absolute;
             bottom: 20px;
             right: 20px;
-            width: 25%;
-            max-width: 250px;
-            min-width: 160px;
+            width: 20%;
+            max-width: 220px;
+            min-width: 150px;
             z-index: 10;
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
-            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        #local-container:hover {
+            transform: scale(1.05);
+            border-color: rgba(255, 255, 255, 0.5);
         }
         
         #localVideo {
@@ -93,6 +99,43 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
+        }
+        
+        /* Controls */
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px 15px;
+            border-radius: 30px;
+            z-index: 20;
+        }
+        
+        .control-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background-color: rgba(255, 255, 255, 0.9);
+            margin: 0 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .control-button:hover {
+            background-color: white;
+            transform: scale(1.1);
+        }
+        
+        .control-button.muted {
+            background-color: #e74c3c;
+            color: white;
         }
         
         /* Notification styling */
@@ -146,6 +189,24 @@
                     Please refresh the page.
                 </article>
             </div>
+            
+            <!-- Controls -->
+            <div id="controls" style="display:none;">
+                <button id="toggleMic" class="control-button" title="Mute/Unmute Microphone">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                        <line x1="12" y1="19" x2="12" y2="23"></line>
+                        <line x1="8" y1="23" x2="16" y2="23"></line>
+                    </svg>
+                </button>
+                <button id="toggleVideo" class="control-button" title="Turn Camera On/Off">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M23 7l-7 5 7 5V7z"></path>
+                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                    </svg>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -156,10 +217,38 @@
         // Modified version of peer.js specifically for video layout
         let pc;
         let ws;
+        let localStream;
+        let audioTrack;
+        let videoTrack;
+        let audioMuted = false;
+        let videoMuted = false;
+
+        // Toggle microphone
+        document.getElementById('toggleMic').addEventListener('click', function() {
+            if (audioTrack) {
+                audioMuted = !audioMuted;
+                audioTrack.enabled = !audioMuted;
+                this.classList.toggle('muted', audioMuted);
+            }
+        });
+
+        // Toggle camera
+        document.getElementById('toggleVideo').addEventListener('click', function() {
+            if (videoTrack) {
+                videoMuted = !videoMuted;
+                videoTrack.enabled = !videoMuted;
+                this.classList.toggle('muted', videoMuted);
+            }
+        });
 
         function connect(stream) {
+            localStream = stream;
+            audioTrack = stream.getAudioTracks()[0];
+            videoTrack = stream.getVideoTracks()[0];
+            
             document.getElementById('peers').style.display = 'block';
             document.getElementById('noperm').style.display = 'none';
+            document.getElementById('controls').style.display = 'flex';
             
             pc = new RTCPeerConnection({
                 iceServers: [{
@@ -185,18 +274,13 @@
                 let el = document.createElement(event.track.kind);
                 el.srcObject = event.streams[0];
                 el.className = "remote-video";
-                el.setAttribute("controls", "true");
+                el.setAttribute("controls", "false");
                 el.setAttribute("autoplay", "true");
                 el.setAttribute("playsinline", "true");
                 
                 // Add video to container
                 remoteContainer.appendChild(el);
                 
-                // Add label
-                const label = document.createElement("div");
-                label.className = "video-label";
-                label.textContent = "Participant";
-                remoteContainer.appendChild(label);
                 
                 // Hide waiting notification
                 document.getElementById('noone').style.display = 'none';

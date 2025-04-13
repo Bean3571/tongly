@@ -1,7 +1,7 @@
 var msg = document.getElementById("msg");
 var log = document.getElementById("log");
 
-var slideOpen = false;
+var slideOpen = true;
 
 function slideToggle() {
     var chat = document.getElementById('chat-content');
@@ -10,7 +10,10 @@ function slideToggle() {
         slideOpen = false;
     } else {
         chat.style.display = 'block'
-        document.getElementById('chat-alert').style.display = 'none';
+        var chatAlert = document.getElementById('chat-alert');
+        if (chatAlert) {
+            chatAlert.style.display = 'none';
+        }
         document.getElementById('msg').focus();
         slideOpen = true
     }
@@ -63,7 +66,10 @@ function connectChat() {
     chatWs.onmessage = function (evt) {
         var messages = evt.data.split('\n');
         if (slideOpen == false) {
-            document.getElementById('chat-alert').style.display = 'block'
+            var chatAlert = document.getElementById('chat-alert');
+            if (chatAlert) {
+                chatAlert.style.display = 'block';
+            }
         }
         for (var i = 0; i < messages.length; i++) {
             var item = document.createElement("div");
