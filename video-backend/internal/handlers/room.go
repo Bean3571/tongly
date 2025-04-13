@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"time"
 	"video-service/pkg/chat"
 	w "video-service/pkg/webrtc"
 
@@ -33,12 +32,11 @@ func Room(c *fiber.Ctx) error {
 
 	uuid, suuid, _ := createOrGetRoom(uuid)
 	return c.Render("peer", fiber.Map{
-		"RoomWebsocketAddr":   fmt.Sprintf("%s://%s/room/%s/websocket", wsScheme, c.Hostname(), uuid),
-		"RoomLink":            fmt.Sprintf("%s://%s/room/%s", c.Protocol(), c.Hostname(), uuid),
-		"ChatWebsocketAddr":   fmt.Sprintf("%s://%s/room/%s/chat/websocket", wsScheme, c.Hostname(), uuid),
-		"ViewerWebsocketAddr": fmt.Sprintf("%s://%s/room/%s/viewer/websocket", wsScheme, c.Hostname(), uuid),
-		"StreamLink":          fmt.Sprintf("%s://%s/stream/%s", c.Protocol(), c.Hostname(), suuid),
-		"Type":                "room",
+		"RoomWebsocketAddr": fmt.Sprintf("%s://%s/room/%s/websocket", wsScheme, c.Hostname(), uuid),
+		"RoomLink":          fmt.Sprintf("%s://%s/room/%s", c.Protocol(), c.Hostname(), uuid),
+		"ChatWebsocketAddr": fmt.Sprintf("%s://%s/room/%s/chat/websocket", wsScheme, c.Hostname(), uuid),
+		"StreamLink":        fmt.Sprintf("%s://%s/stream/%s", c.Protocol(), c.Hostname(), suuid),
+		"Type":              "room",
 	}, "layouts/main")
 }
 
@@ -80,38 +78,6 @@ func createOrGetRoom(uuid string) (string, string, *w.Room) {
 
 	go hub.Run()
 	return uuid, suuid, room
-}
-
-func RoomViewerWebsocket(c *websocket.Conn) {
-	uuid := c.Params("uuid")
-	if uuid == "" {
-		return
-	}
-
-	w.RoomsLock.Lock()
-	if peer, ok := w.Rooms[uuid]; ok {
-		w.RoomsLock.Unlock()
-		roomViewerConn(c, peer.Peers)
-		return
-	}
-	w.RoomsLock.Unlock()
-}
-
-func roomViewerConn(c *websocket.Conn, p *w.Peers) {
-	ticker := time.NewTicker(1 * time.Second)
-	defer ticker.Stop()
-	defer c.Close()
-
-	for {
-		select {
-		case <-ticker.C:
-			w, err := c.Conn.NextWriter(websocket.TextMessage)
-			if err != nil {
-				return
-			}
-			w.Write([]byte(fmt.Sprintf("%d", len(p.Connections))))
-		}
-	}
 }
 
 type websocketMessage struct {

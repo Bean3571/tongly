@@ -12,10 +12,6 @@
 
 {{ template "partials/chat" . }}
 
-<div class="viewer">
-	<p class="icon-users" id="viewer-count"></p>
-</div>
-
 <div id="peers">
 	<div class="columns is-multiline" id="videos">
 		<div id="noonestream" class="column notif">
@@ -37,9 +33,7 @@
 <script>
 	let StreamWebsocketAddr = "{{.StreamWebsocketAddr}}"
 	let ChatWebsocketAddr = "{{.ChatWebsocketAddr}}"
-	let ViewerWebsocketAddr = "{{.ViewerWebsocketAddr}}"
 </script>
 <script src="/javascript/stream.js"></script>
 <script src="/javascript/chat.js"></script>
-<script src="/javascript/viewer.js"></script>
 {{ end }}

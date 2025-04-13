@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"time"
 	w "video-service/pkg/webrtc"
 
 	"github.com/gofiber/fiber/v2"
@@ -28,7 +27,6 @@ func Stream(c *fiber.Ctx) error {
 		return c.Render("stream", fiber.Map{
 			"StreamWebsocketAddr": fmt.Sprintf("%s://%s/stream/%s/websocket", wsScheme, c.Hostname(), suuid),
 			"ChatWebsocketAddr":   fmt.Sprintf("%s://%s/stream/%s/chat/websocket", wsScheme, c.Hostname(), suuid),
-			"ViewerWebsocketAddr": fmt.Sprintf("%s://%s/stream/%s/viewer/websocket", wsScheme, c.Hostname(), suuid),
 			"Type":                "stream",
 		}, "layouts/main")
 	}
@@ -53,36 +51,4 @@ func StreamWebsocket(c *websocket.Conn) {
 		return
 	}
 	w.RoomsLock.Unlock()
-}
-
-func StreamViewerWebsocket(c *websocket.Conn) {
-	suuid := c.Params("suuid")
-	if suuid == "" {
-		return
-	}
-
-	w.RoomsLock.Lock()
-	if stream, ok := w.Streams[suuid]; ok {
-		w.RoomsLock.Unlock()
-		viewerConn(c, stream.Peers)
-		return
-	}
-	w.RoomsLock.Unlock()
-}
-
-func viewerConn(c *websocket.Conn, p *w.Peers) {
-	ticker := time.NewTicker(1 * time.Second)
-	defer ticker.Stop()
-	defer c.Close()
-
-	for {
-		select {
-		case <-ticker.C:
-			w, err := c.Conn.NextWriter(websocket.TextMessage)
-			if err != nil {
-				return
-			}
-			w.Write([]byte(fmt.Sprintf("%d", len(p.Connections))))
-		}
-	}
 }
