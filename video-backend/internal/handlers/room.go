@@ -6,8 +6,6 @@ import (
 	"video-service/pkg/chat"
 	w "video-service/pkg/webrtc"
 
-	"crypto/sha256"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"
 	guuid "github.com/google/uuid"
@@ -28,7 +26,7 @@ func RoomCreateWithID(c *fiber.Ctx) error {
 		})
 	}
 
-	_, _, _ = createOrGetRoom(uuid)
+	uuid, _ = createOrGetRoom(uuid)
 	return c.JSON(fiber.Map{
 		"success": true,
 		"room_id": uuid,
@@ -67,12 +65,11 @@ func Room(c *fiber.Ctx) error {
 		wsScheme = "wss"
 	}
 
-	uuid, suuid, _ := createOrGetRoom(uuid)
+	uuid, _ = createOrGetRoom(uuid)
 	return c.Render("peer", fiber.Map{
 		"RoomWebsocketAddr": fmt.Sprintf("%s://%s/room/%s/websocket", wsScheme, c.Hostname(), uuid),
 		"RoomLink":          fmt.Sprintf("%s://%s/room/%s", c.Protocol(), c.Hostname(), uuid),
 		"ChatWebsocketAddr": fmt.Sprintf("%s://%s/room/%s/chat/websocket", wsScheme, c.Hostname(), uuid),
-		"StreamLink":        fmt.Sprintf("%s://%s/stream/%s", c.Protocol(), c.Hostname(), suuid),
 		"Type":              "room",
 	}, "layouts/main")
 }
@@ -113,24 +110,17 @@ func RoomWebsocket(c *websocket.Conn) {
 		return
 	}
 
-	_, _, room := createOrGetRoom(uuid)
+	_, room := createOrGetRoom(uuid)
 	w.RoomConn(c, room.Peers)
 }
 
 // createOrGetRoom creates a new room or returns an existing one
-func createOrGetRoom(uuid string) (string, string, *w.Room) {
+func createOrGetRoom(uuid string) (string, *w.Room) {
 	w.RoomsLock.Lock()
 	defer w.RoomsLock.Unlock()
 
-	h := sha256.New()
-	h.Write([]byte(uuid))
-	suuid := fmt.Sprintf("%x", h.Sum(nil))
-
 	if room := w.Rooms[uuid]; room != nil {
-		if _, ok := w.Streams[suuid]; !ok {
-			w.Streams[suuid] = room
-		}
-		return uuid, suuid, room
+		return uuid, room
 	}
 
 	hub := chat.NewHub()
@@ -143,10 +133,8 @@ func createOrGetRoom(uuid string) (string, string, *w.Room) {
 	}
 
 	w.Rooms[uuid] = room
-	w.Streams[suuid] = room
-
 	go hub.Run()
-	return uuid, suuid, room
+	return uuid, room
 }
 
 type websocketMessage struct {

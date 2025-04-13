@@ -3,10 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from '../contexts/I18nContext';
 import { useAuth } from '../contexts/AuthContext';
 import { getLessonById } from '../services/lesson.service';
-import { joinRoom, getRoomWebsocketUrl, getRoomChatWebsocketUrl } from '../services/videoRoom.service';
+import { joinRoom } from '../services/videoRoom.service';
 import { Lesson } from '../types/lesson';
 import { toast } from 'react-hot-toast';
-import { envConfig } from '../config/env';
 import { format } from 'date-fns';
 
 const LessonRoom: React.FC = () => {
@@ -22,7 +21,7 @@ const LessonRoom: React.FC = () => {
   const [connecting, setConnecting] = useState<boolean>(false);
   const [connected, setConnected] = useState<boolean>(false);
   
-  // Refs for WebRTC connection
+  // Refs for video room
   const videoRef = useRef<HTMLIFrameElement>(null);
   const roomUrlRef = useRef<string | null>(null);
   
@@ -149,15 +148,15 @@ const LessonRoom: React.FC = () => {
         </button>
       </div>
       
+      {/* Video and Chat Container */}
       <div className="grid grid-cols-1 gap-6">
-        {/* Video and Chat Section */}
         <div className="rounded-lg overflow-hidden border border-gray-200 bg-white shadow-sm h-[600px]">
           {connected && roomUrlRef.current ? (
             <iframe
               ref={videoRef}
               src={roomUrlRef.current}
               className="w-full h-full border-0"
-              allow="camera; microphone; display-capture"
+              allow="camera; microphone"
               title="Lesson Room"
             ></iframe>
           ) : (

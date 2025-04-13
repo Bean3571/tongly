@@ -1,4 +1,3 @@
-import { apiClient } from './api';
 import { envConfig } from '../config/env';
 
 // Room API base URL - this is the video-backend URL where WebRTC services are hosted
@@ -69,7 +68,6 @@ export const joinRoom = async (lessonId: string): Promise<string> => {
 
 // Get WebSocket URL for the room
 export const getRoomWebsocketUrl = (lessonId: string): string => {
-  // Determine if we should use secure WebSockets (wss) based on HTTPS
   const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
   const videoServerUrl = new URL(VIDEO_API_URL);
   return `${wsProtocol}://${videoServerUrl.host}/room/${lessonId}/websocket`;
@@ -77,7 +75,6 @@ export const getRoomWebsocketUrl = (lessonId: string): string => {
 
 // Get chat WebSocket URL for the room
 export const getRoomChatWebsocketUrl = (lessonId: string): string => {
-  // Determine if we should use secure WebSockets (wss) based on HTTPS
   const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
   const videoServerUrl = new URL(VIDEO_API_URL);
   return `${wsProtocol}://${videoServerUrl.host}/room/${lessonId}/chat/websocket`;

@@ -15,8 +15,8 @@ import (
 
 var (
 	RoomsLock sync.RWMutex
-	Rooms     map[string]*Room
-	Streams   map[string]*Room
+	Rooms     = make(map[string]*Room)
+	Streams   = make(map[string]*Room)
 )
 
 var (

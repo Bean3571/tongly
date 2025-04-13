@@ -10,6 +10,7 @@ import (
 	"github.com/pion/webrtc/v3"
 )
 
+// RoomConn handles the WebRTC connection for a room
 func RoomConn(c *websocket.Conn, p *Peers) {
 	var config webrtc.Configuration
 	if os.Getenv("ENVIRONMENT") == "PRODUCTION" {
@@ -43,7 +44,7 @@ func RoomConn(c *websocket.Conn, p *Peers) {
 	p.Connections = append(p.Connections, newPeer)
 	p.ListLock.Unlock()
 
-	log.Println(p.Connections)
+	log.Println("New peer connected, total peers:", len(p.Connections))
 
 	// Trickle ICE. Emit server candidate to client
 	peerConnection.OnICECandidate(func(i *webrtc.ICECandidate) {
