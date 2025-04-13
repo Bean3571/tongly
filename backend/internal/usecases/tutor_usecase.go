@@ -217,21 +217,6 @@ func (uc *TutorUseCase) SearchTutors(ctx context.Context, filters *entities.Tuto
 	return tutors, nil
 }
 
-// ApproveTutor approves a tutor to start teaching
-func (uc *TutorUseCase) ApproveTutor(ctx context.Context, tutorID int) error {
-	// Verify tutor exists
-	tutorProfile, err := uc.tutorRepo.GetByUserID(ctx, tutorID)
-	if err != nil {
-		return err
-	}
-	if tutorProfile == nil {
-		return errors.New("tutor profile not found")
-	}
-
-	// Update approval status
-	return uc.tutorRepo.UpdateApprovalStatus(ctx, tutorID, true)
-}
-
 // GetUpcomingLessons retrieves upcoming lessons for a tutor
 func (uc *TutorUseCase) GetUpcomingLessons(ctx context.Context, tutorID int) ([]entities.Lesson, error) {
 	return uc.lessonRepo.GetUpcomingLessons(ctx, tutorID, false)

@@ -87,8 +87,8 @@ func (uc *StudentUseCase) UpdateStudentProfile(ctx context.Context, studentID in
 	}
 
 	// Update profile picture if provided
-	if req.ProfilePictureURL != nil {
-		user.ProfilePictureURL = req.ProfilePictureURL
+	if req.ProfilePictureURL != "" {
+		user.ProfilePictureURL = &req.ProfilePictureURL
 		if err := uc.userRepo.Update(ctx, user); err != nil {
 			return err
 		}

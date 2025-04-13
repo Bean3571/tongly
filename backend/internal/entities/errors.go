@@ -11,13 +11,3 @@ var (
 	ErrInvalidRole        = errors.New("invalid role")
 	ErrNotFound           = errors.New("resource not found")
 )
-
-// TutorNotApprovedError represents an error when booking a lesson with an unapproved tutor
-type TutorNotApprovedError struct {
-	Message string
-	Lesson  *Lesson
-}
-
-func (e *TutorNotApprovedError) Error() string {
-	return e.Message
-}

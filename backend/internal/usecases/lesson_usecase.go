@@ -50,7 +50,7 @@ func (uc *LessonUseCase) BookLesson(ctx context.Context, studentID int, req *ent
 		return nil, errors.New("student not found")
 	}
 
-	// Check if tutor exists and is approved
+	// Check if tutor exists
 	tutorProfile, err := uc.tutorRepo.GetByUserID(ctx, req.TutorID)
 	if err != nil {
 		return nil, err

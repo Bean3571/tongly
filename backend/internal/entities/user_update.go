@@ -2,12 +2,12 @@ package entities
 
 // UserUpdateRequest represents data for updating a user profile
 type UserUpdateRequest struct {
-	FirstName         string  `json:"first_name,omitempty"`
-	LastName          string  `json:"last_name,omitempty"`
-	Email             string  `json:"email,omitempty"`
-	ProfilePictureURL *string `json:"profile_picture_url,omitempty"`
-	Sex               string  `json:"sex,omitempty"`
-	Age               *int    `json:"age,omitempty"`
+	FirstName         string `json:"first_name,omitempty"`
+	LastName          string `json:"last_name,omitempty"`
+	Email             string `json:"email,omitempty"`
+	ProfilePictureURL string `json:"profile_picture_url,omitempty"`
+	Sex               string `json:"sex,omitempty"`
+	Age               *int   `json:"age,omitempty"`
 }
 
 // PasswordUpdateRequest represents data for updating a user's password

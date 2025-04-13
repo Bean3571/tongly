@@ -20,9 +20,9 @@ type StudentProfile struct {
 // StudentRegistrationRequest represents the data needed to register as a student
 type StudentRegistrationRequest struct {
 	// Basic user registration data
-	Username     string `json:"username" validate:"required"`
-	PasswordHash string `json:"password_hash" validate:"required"`
-	Email        string `json:"email" validate:"required,email"`
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
+	Email    string `json:"email" validate:"required,email"`
 
 	// Student-specific data (optional)
 	Languages []UserLanguageUpdate `json:"languages,omitempty"`
@@ -32,7 +32,7 @@ type StudentRegistrationRequest struct {
 
 // StudentUpdateRequest represents the data needed to update a student's profile
 type StudentUpdateRequest struct {
-	ProfilePictureURL *string              `json:"profile_picture_url,omitempty"`
+	ProfilePictureURL string               `json:"profile_picture_url,omitempty"`
 	Languages         []UserLanguageUpdate `json:"languages,omitempty"`
 	Interests         []int                `json:"interests,omitempty"`
 	Goals             []int                `json:"goals,omitempty"`

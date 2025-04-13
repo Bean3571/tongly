@@ -46,7 +46,7 @@ export const Register = () => {
                 const registrationData: UserRegistrationRequest = {
                     username: values.username,
                     email: values.email,
-                    password_hash: values.password,
+                    password: values.password,
                     role: values.role as UserRole,
                 };
                 

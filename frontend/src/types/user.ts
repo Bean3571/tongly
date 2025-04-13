@@ -29,19 +29,18 @@ export interface User {
 export interface UserRegistrationRequest {
   username: string;
   email: string;
-  password_hash: string;
+  password: string;
   role: UserRole;
 }
 
 // User update request
 export interface UserUpdateRequest {
-  username?: string;
-  email?: string;
   first_name?: string;
   last_name?: string;
-  profile_picture_url?: string;
+  email?: string;
+  profile_picture_url?: string | null;
   sex?: string;
-  age?: number;
+  age?: number | null;
 }
 
 // Authentication response
@@ -53,7 +52,7 @@ export interface AuthResponse {
 // Login request
 export interface LoginRequest {
   username: string;
-  password_hash: string;
+  password: string;
 }
 
 // User with token model for auth context

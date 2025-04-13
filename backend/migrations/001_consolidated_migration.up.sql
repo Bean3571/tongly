@@ -1,3 +1,6 @@
+-- CONSOLIDATED MIGRATION
+-- Merges all migrations (001-004) into a single file
+
 -- Drop old schema
 DROP TABLE IF EXISTS lessons CASCADE;
 DROP TABLE IF EXISTS tutor_details CASCADE;
@@ -43,7 +46,7 @@ CREATE TABLE users (
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
     profile_picture_url VARCHAR(255),
-    sex VARCHAR(10) CHECK (sex IN ('male', 'female', 'not_set')) DEFAULT 'not_set',
+    sex VARCHAR(10) CHECK (sex IN ('мужской', 'женский', 'не выбран')) DEFAULT 'не выбран',
     age INTEGER,
     role VARCHAR(10) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -98,7 +101,6 @@ CREATE TABLE tutor_profiles (
     bio TEXT,
     education JSONB,
     intro_video_url VARCHAR(255),
-    approved BOOLEAN DEFAULT FALSE,
     years_experience INTEGER,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -113,6 +115,7 @@ CREATE TABLE tutor_availability (
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
     is_recurring BOOLEAN DEFAULT TRUE,
+    specific_date DATE DEFAULT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     FOREIGN KEY (tutor_id) REFERENCES users(id) ON DELETE CASCADE
@@ -185,25 +188,22 @@ CREATE TRIGGER update_lessons_updated_at
 
 -- Initial data for proficiency, languages, interests, goals
 INSERT INTO language_proficiency (name) VALUES
-('A1'), ('A2'), ('B1'), ('B2'), ('C1'), ('C2'), ('Native');
+('A1'), ('A2'), ('B1'), ('B2'), ('C1'), ('C2'), ('Родной');
 
 INSERT INTO languages (name) VALUES 
-('English'), ('Spanish'), ('French'), ('German'), ('Italian'),
-('Japanese'), ('Chinese'), ('Korean'), ('Russian'), ('Portuguese'),
-('Arabic'), ('Hindi'), ('Turkish'), ('Dutch'), ('Swedish');
+('Английский'), ('Испанский'), ('Французский'), ('Немецкий'), ('Итальянский'),
+('Японский'), ('Китайский'), ('Корейский'), ('Русский'), ('Португальский'),
+('Арабский'), ('Хинди'), ('Турецкий'), ('Голландский'), ('Шведский');
 
 INSERT INTO interests (name) VALUES 
-('Music'), ('Movies'), ('Sports'), ('Cooking'), ('Travel'),
-('Photography'), ('Reading'), ('Writing'), ('Art'), ('Technology'),
-('Science'), ('History'), ('Politics'), ('Fashion'), ('Gaming'),
-('Fitness'), ('Nature'), ('Philosophy');
+('Музыка'), ('Кино'), ('Спорт'), ('Кулинария'), ('Путешествия'),
+('Фотография'), ('Литература'), ('Искусство'), ('Технологии'),
+('История'), ('Политика'), ('Мода'), ('Игры'), ('Природа'), ('Философия');
 
 INSERT INTO goals (name) VALUES 
-('Travel Preparation'), ('Business Communication'),
-('Academic Study'), ('Certification Test Prep'), ('Cultural Understanding'),
-('Reading Literature'), ('Writing Skills'), ('Listening Comprehension'),
-('Pronunciation Improvement'), ('Grammar Mastery'), ('Vocabulary Building'),
-('Fluency Development'), ('Accent Reduction'), ('Technical Language Skills');
+('Подготовка к путешествию'), ('Деловое общение'), ('Подготовка к экзаменам'),
+('Понимание культуры'), ('Чтение литературы'),  ('Понимание на слух'),
+('Освоение грамматики'), ('Расширение словарного запаса'), ('Уменьшение акцента'), ('Технический язык');
 
 -- Create indexes for improved performance
 CREATE INDEX idx_users_role ON users(role);
@@ -212,6 +212,8 @@ CREATE INDEX idx_user_languages_language_id ON user_languages(language_id);
 CREATE INDEX idx_user_interests_user_id ON user_interests(user_id);
 CREATE INDEX idx_user_goals_user_id ON user_goals(user_id);
 CREATE INDEX idx_tutor_availability_tutor_id ON tutor_availability(tutor_id);
+CREATE INDEX idx_tutor_availability_specific_date ON tutor_availability(specific_date);
+CREATE INDEX idx_tutor_availability_tutor_date ON tutor_availability(tutor_id, specific_date);
 CREATE INDEX idx_lessons_student_id ON lessons(student_id);
 CREATE INDEX idx_lessons_tutor_id ON lessons(tutor_id);
 CREATE INDEX idx_lessons_language_id ON lessons(language_id);

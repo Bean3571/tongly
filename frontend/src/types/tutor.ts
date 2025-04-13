@@ -22,7 +22,6 @@ export interface TutorProfile extends BaseEntity {
   bio: string;
   education: Education[];
   intro_video_url?: string;
-  approved: boolean;
   years_experience: number;
   created_at: string;
   updated_at: string;

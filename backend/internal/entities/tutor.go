@@ -8,7 +8,6 @@ type TutorProfile struct {
 	Bio             string      `json:"bio"`
 	Education       interface{} `json:"education"` // Stored as JSONB in the database
 	IntroVideoURL   string      `json:"intro_video_url,omitempty"`
-	Approved        bool        `json:"approved"`
 	YearsExperience int         `json:"years_experience"`
 	CreatedAt       time.Time   `json:"created_at"`
 	UpdatedAt       time.Time   `json:"updated_at"`
@@ -36,9 +35,9 @@ type TutorAvailability struct {
 // TutorRegistrationRequest represents the data needed to register as a tutor
 type TutorRegistrationRequest struct {
 	// Basic user registration data
-	Username     string `json:"username" validate:"required"`
-	PasswordHash string `json:"password_hash" validate:"required"`
-	Email        string `json:"email" validate:"required,email"`
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
+	Email    string `json:"email" validate:"required,email"`
 
 	// Tutor-specific data
 	Bio             string               `json:"bio"`

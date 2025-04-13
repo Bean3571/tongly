@@ -24,10 +24,10 @@ type User struct {
 
 // UserRegistrationRequest represents data needed for user registration
 type UserRegistrationRequest struct {
-	Username     string `json:"username" validate:"required"`
-	PasswordHash string `json:"password" validate:"required"`
-	Email        string `json:"email" validate:"required,email"`
-	Role         string `json:"role" validate:"required,oneof=student tutor"`
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
+	Email    string `json:"email" validate:"required,email"`
+	Role     string `json:"role" validate:"required,oneof=student tutor"`
 }
 
 // HashPassword hashes the user's password using bcrypt

@@ -84,7 +84,6 @@ func (uc *AuthUseCase) Register(ctx context.Context, username, email, password, 
 			UserID:          user.ID,
 			Bio:             "",
 			Education:       []map[string]string{},
-			Approved:        false,
 			YearsExperience: 0,
 		}
 		if err := uc.tutorRepo.Create(ctx, tutorProfile); err != nil {
@@ -122,7 +121,7 @@ func (uc *AuthUseCase) GetUserByID(ctx context.Context, id int) (*entities.User,
 // RegisterStudent registers a new student with additional profile information
 func (uc *AuthUseCase) RegisterStudent(ctx context.Context, req *entities.StudentRegistrationRequest) (*entities.User, error) {
 	// Register the base user first
-	user, err := uc.Register(ctx, req.Username, req.Email, req.PasswordHash, "student")
+	user, err := uc.Register(ctx, req.Username, req.Email, req.Password, "student")
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +153,7 @@ func (uc *AuthUseCase) RegisterStudent(ctx context.Context, req *entities.Studen
 // RegisterTutor registers a new tutor with additional profile information
 func (uc *AuthUseCase) RegisterTutor(ctx context.Context, req *entities.TutorRegistrationRequest) (*entities.User, error) {
 	// Register the base user first
-	user, err := uc.Register(ctx, req.Username, req.Email, req.PasswordHash, "tutor")
+	user, err := uc.Register(ctx, req.Username, req.Email, req.Password, "tutor")
 	if err != nil {
 		return nil, err
 	}

@@ -17,15 +17,15 @@ type AuthHandler struct {
 }
 
 type LoginCredentials struct {
-	Username     string `json:"username" binding:"required"`
-	PasswordHash string `json:"password_hash" binding:"required"`
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
 type RegisterRequest struct {
-	Username     string `json:"username" binding:"required"`
-	Email        string `json:"email" binding:"required,email"`
-	PasswordHash string `json:"password_hash" binding:"required,min=6"`
-	Role         string `json:"role" binding:"required,oneof=student tutor"`
+	Username string `json:"username" binding:"required"`
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6"`
+	Role     string `json:"role" binding:"required,oneof=student tutor"`
 }
 
 func NewAuthHandler(
@@ -52,7 +52,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	// Register the user
-	user, err := h.authUseCase.Register(c.Request.Context(), req.Username, req.Email, req.PasswordHash, req.Role)
+	user, err := h.authUseCase.Register(c.Request.Context(), req.Username, req.Email, req.Password, req.Role)
 	if err != nil {
 		logger.Error("Registration failed", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register user"})
@@ -85,7 +85,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	user, err := h.authUseCase.Authenticate(c.Request.Context(), credentials.Username, credentials.PasswordHash)
+	user, err := h.authUseCase.Authenticate(c.Request.Context(), credentials.Username, credentials.Password)
 	if err != nil {
 		logger.Error("Authentication failed", "username", credentials.Username, "error", err)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})

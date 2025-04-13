@@ -87,8 +87,8 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	if req.Age != nil {
 		user.Age = req.Age
 	}
-	if req.ProfilePictureURL != nil {
-		user.ProfilePictureURL = req.ProfilePictureURL
+	if req.ProfilePictureURL != "" {
+		user.ProfilePictureURL = &req.ProfilePictureURL
 	}
 
 	if err := h.userUseCase.UpdateUserProfile(c.Request.Context(), user); err != nil {

@@ -66,7 +66,6 @@ func (uc *UserUseCase) UpdatePassword(ctx context.Context, userID int, currentPa
 
 // DeleteUser deletes a user and all associated data
 func (uc *UserUseCase) DeleteUser(ctx context.Context, userID int) error {
-	// In a real application, you might need to check for related data
-	// and handle deletion of dependent resources
+
 	return uc.userRepo.Delete(ctx, userID)
 }

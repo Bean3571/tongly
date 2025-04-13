@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"tongly-backend/internal/entities"
 
 	"github.com/lib/pq"
@@ -33,8 +34,8 @@ func (r *TutorRepository) Create(ctx context.Context, tutorProfile *entities.Tut
 
 	query := `
 		INSERT INTO tutor_profiles
-		(user_id, bio, education, intro_video_url, approved, years_experience)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		(user_id, bio, education, intro_video_url, years_experience)
+		VALUES ($1, $2, $3, $4, $5)
 		RETURNING created_at, updated_at
 	`
 
@@ -45,7 +46,6 @@ func (r *TutorRepository) Create(ctx context.Context, tutorProfile *entities.Tut
 		tutorProfile.Bio,
 		educationJSON,
 		tutorProfile.IntroVideoURL,
-		tutorProfile.Approved,
 		tutorProfile.YearsExperience,
 	).Scan(&tutorProfile.CreatedAt, &tutorProfile.UpdatedAt)
 
@@ -55,7 +55,7 @@ func (r *TutorRepository) Create(ctx context.Context, tutorProfile *entities.Tut
 // GetByUserID retrieves a tutor profile by user ID
 func (r *TutorRepository) GetByUserID(ctx context.Context, userID int) (*entities.TutorProfile, error) {
 	query := `
-		SELECT user_id, bio, education, intro_video_url, approved, years_experience, created_at, updated_at
+		SELECT user_id, bio, education, intro_video_url, years_experience, created_at, updated_at
 		FROM tutor_profiles
 		WHERE user_id = $1
 	`
@@ -67,7 +67,6 @@ func (r *TutorRepository) GetByUserID(ctx context.Context, userID int) (*entitie
 		&profile.Bio,
 		&educationJSON,
 		&profile.IntroVideoURL,
-		&profile.Approved,
 		&profile.YearsExperience,
 		&profile.CreatedAt,
 		&profile.UpdatedAt,
@@ -116,18 +115,6 @@ func (r *TutorRepository) Update(ctx context.Context, tutorProfile *entities.Tut
 		tutorProfile.YearsExperience,
 		tutorProfile.UserID,
 	).Scan(&tutorProfile.UpdatedAt)
-}
-
-// UpdateApprovalStatus updates a tutor's approval status
-func (r *TutorRepository) UpdateApprovalStatus(ctx context.Context, userID int, approved bool) error {
-	query := `
-		UPDATE tutor_profiles
-		SET approved = $1
-		WHERE user_id = $2
-	`
-
-	_, err := r.db.ExecContext(ctx, query, approved, userID)
-	return err
 }
 
 // Delete deletes a tutor profile
@@ -241,123 +228,95 @@ func (r *TutorRepository) DeleteAvailability(ctx context.Context, availabilityID
 func (r *TutorRepository) SearchTutors(ctx context.Context, filters *entities.TutorSearchFilters) ([]entities.TutorProfile, error) {
 	// Base query to get all tutors
 	baseQuery := `
-		SELECT tp.user_id, tp.bio, tp.education, tp.intro_video_url, tp.approved, 
-		       tp.years_experience, tp.created_at, tp.updated_at
+		SELECT tp.user_id, tp.bio, tp.education, tp.intro_video_url, tp.years_experience, tp.created_at, tp.updated_at
 		FROM tutor_profiles tp
 		JOIN users u ON tp.user_id = u.id
 	`
 
-	// Build WHERE clauses and arguments
-	var whereConditions []string
+	// Additional filters
+	var conditions []string
 	var args []interface{}
-	paramCounter := 1 // For parameter placeholders
+	var argCounter int
 
-	// Handle language and proficiency filter together if both are present
-	if filters != nil && len(filters.Languages) > 0 && filters.ProficiencyID > 0 {
-		whereConditions = append(whereConditions, fmt.Sprintf(`
-			tp.user_id IN (
-				SELECT DISTINCT ul.user_id
-				FROM user_languages ul
-				JOIN languages l ON ul.language_id = l.id
-				WHERE l.name = ANY($%d) AND ul.proficiency_id >= $%d
-			)`, paramCounter, paramCounter+1))
-		args = append(args, pq.Array(filters.Languages), filters.ProficiencyID)
-		paramCounter += 2
-	} else {
-		// Handle language filter if only languages are specified
-		if filters != nil && len(filters.Languages) > 0 {
-			whereConditions = append(whereConditions, fmt.Sprintf(`
-				tp.user_id IN (
-					SELECT DISTINCT ul.user_id
-					FROM user_languages ul
-					JOIN languages l ON ul.language_id = l.id
-					WHERE l.name = ANY($%d)
-				)`, paramCounter))
+	// Add a WHERE clause if we have any filters
+	whereClause := ""
+	orderClause := " ORDER BY tp.created_at DESC"
+
+	// Process filters if provided
+	if filters != nil {
+		// Filter by languages
+		if len(filters.Languages) > 0 {
+			argCounter++
+			conditions = append(conditions, fmt.Sprintf("tp.user_id IN (SELECT user_id FROM user_languages WHERE language_id IN (SELECT id FROM languages WHERE name = ANY($%d)))", argCounter))
 			args = append(args, pq.Array(filters.Languages))
-			paramCounter++
 		}
 
-		// Handle proficiency filter if only proficiency is specified
-		if filters != nil && filters.ProficiencyID > 0 {
-			whereConditions = append(whereConditions, fmt.Sprintf(`
-				tp.user_id IN (
-					SELECT DISTINCT ul.user_id
-					FROM user_languages ul
-					WHERE ul.proficiency_id >= $%d
-				)`, paramCounter))
+		// Filter by years of experience
+		if filters.YearsExperience > 0 {
+			argCounter++
+			conditions = append(conditions, fmt.Sprintf("tp.years_experience >= $%d", argCounter))
+			args = append(args, filters.YearsExperience)
+		}
+
+		// Filter by proficiency level
+		if filters.ProficiencyID > 0 {
+			argCounter++
+			conditions = append(conditions, fmt.Sprintf("tp.user_id IN (SELECT user_id FROM user_languages WHERE proficiency_id >= $%d)", argCounter))
 			args = append(args, filters.ProficiencyID)
-			paramCounter++
+		}
+
+		// Filter by interests
+		if len(filters.Interests) > 0 {
+			argCounter++
+			conditions = append(conditions, fmt.Sprintf("tp.user_id IN (SELECT user_id FROM user_interests WHERE interest_id = ANY($%d))", argCounter))
+			args = append(args, pq.Array(filters.Interests))
+		}
+
+		// Filter by goals
+		if len(filters.Goals) > 0 {
+			argCounter++
+			conditions = append(conditions, fmt.Sprintf("tp.user_id IN (SELECT user_id FROM user_goals WHERE goal_id = ANY($%d))", argCounter))
+			args = append(args, pq.Array(filters.Goals))
+		}
+
+		// Filter by age (minimum)
+		if filters.MinAge > 0 {
+			argCounter++
+			conditions = append(conditions, fmt.Sprintf("u.age >= $%d", argCounter))
+			args = append(args, filters.MinAge)
+		}
+
+		// Filter by age (maximum)
+		if filters.MaxAge > 0 {
+			argCounter++
+			conditions = append(conditions, fmt.Sprintf("u.age <= $%d", argCounter))
+			args = append(args, filters.MaxAge)
+		}
+
+		// Filter by sex
+		if filters.Sex != "" {
+			argCounter++
+			conditions = append(conditions, fmt.Sprintf("u.sex = $%d", argCounter))
+			args = append(args, filters.Sex)
 		}
 	}
 
-	// Add interests filter
-	if filters != nil && len(filters.Interests) > 0 {
-		whereConditions = append(whereConditions, fmt.Sprintf(`
-			tp.user_id IN (
-				SELECT DISTINCT ui.user_id
-				FROM user_interests ui
-				WHERE ui.interest_id = ANY($%d)
-			)`, paramCounter))
-		args = append(args, pq.Array(filters.Interests))
-		paramCounter++
+	// Combine all conditions
+	if len(conditions) > 0 {
+		whereClause = " WHERE " + strings.Join(conditions, " AND ")
 	}
 
-	// Add goals filter
-	if filters != nil && len(filters.Goals) > 0 {
-		whereConditions = append(whereConditions, fmt.Sprintf(`
-			tp.user_id IN (
-				SELECT DISTINCT ug.user_id
-				FROM user_goals ug
-				WHERE ug.goal_id = ANY($%d)
-			)`, paramCounter))
-		args = append(args, pq.Array(filters.Goals))
-		paramCounter++
-	}
+	// Build the final query
+	finalQuery := baseQuery + whereClause + orderClause
 
-	// Add years of experience filter
-	if filters != nil && filters.YearsExperience > 0 {
-		whereConditions = append(whereConditions, fmt.Sprintf(`tp.years_experience >= $%d`, paramCounter))
-		args = append(args, filters.YearsExperience)
-		paramCounter++
-	}
+	// Log the generated SQL and args for debugging
+	fmt.Printf("SQL Query: %s\n", finalQuery)
+	fmt.Printf("Args: %+v\n", args)
 
-	// Add age filter
-	if filters != nil && filters.MinAge > 0 {
-		whereConditions = append(whereConditions, fmt.Sprintf(`u.age >= $%d`, paramCounter))
-		args = append(args, filters.MinAge)
-		paramCounter++
-	}
-
-	if filters != nil && filters.MaxAge > 0 {
-		whereConditions = append(whereConditions, fmt.Sprintf(`u.age <= $%d`, paramCounter))
-		args = append(args, filters.MaxAge)
-		paramCounter++
-	}
-
-	// Add sex filter
-	if filters != nil && filters.Sex != "" {
-		whereConditions = append(whereConditions, fmt.Sprintf(`u.sex = $%d`, paramCounter))
-		args = append(args, filters.Sex)
-		paramCounter++
-	}
-
-	// Combine query
-	finalQuery := baseQuery
-	if len(whereConditions) > 0 {
-		finalQuery += " WHERE " + whereConditions[0]
-
-		for i := 1; i < len(whereConditions); i++ {
-			finalQuery += " AND " + whereConditions[i]
-		}
-	}
-
-	// Log the query for debugging
-	fmt.Printf("Final query: \n%s\n", finalQuery)
-	fmt.Printf("Args: %v\n", args)
-
-	// Execute query
+	// Execute the query
 	var rows *sql.Rows
 	var err error
+
 	if len(args) == 0 {
 		rows, err = r.db.QueryContext(ctx, finalQuery)
 	} else {
@@ -380,7 +339,6 @@ func (r *TutorRepository) SearchTutors(ctx context.Context, filters *entities.Tu
 			&tutor.Bio,
 			&educationJSON,
 			&tutor.IntroVideoURL,
-			&tutor.Approved,
 			&tutor.YearsExperience,
 			&tutor.CreatedAt,
 			&tutor.UpdatedAt,

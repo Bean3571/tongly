@@ -20,15 +20,15 @@ export const UserSettings = () => {
       first_name: user?.first_name || '',
       last_name: user?.last_name || '',
       profile_picture_url: user?.profile_picture_url || '',
-      sex: user?.sex || 'not_set',
+      sex: user?.sex || 'не выбран',
       age: user?.age || '',
     },
     validationSchema: Yup.object({
       first_name: Yup.string().required(t('validation.required')),
       last_name: Yup.string().required(t('validation.required')),
       profile_picture_url: Yup.string().url(t('validation.url_invalid')).nullable(),
-      sex: Yup.string().oneOf(['male', 'female', 'not_set'], t('validation.sex_invalid')),
-      age: Yup.number().nullable().min(1, t('validation.age_min')).max(120, t('validation.age_max')),
+      sex: Yup.string().oneOf(['мужской', 'женский', 'не выбран'], t('validation.sex_invalid')),
+      age: Yup.number().nullable().min(18, t('validation.age_min')).max(120, t('validation.age_max')),
     }),
     onSubmit: async (values) => {
       try {
@@ -39,9 +39,9 @@ export const UserSettings = () => {
         const updateData: UserUpdateRequest = {
           first_name: values.first_name,
           last_name: values.last_name,
-          profile_picture_url: values.profile_picture_url || undefined,
+          profile_picture_url: values.profile_picture_url,
           sex: values.sex,
-          age: values.age ? Number(values.age) : undefined,
+          age: values.age ? Number(values.age) : null,
         };
         
         const updatedUser = await userService.updateProfile(updateData);
@@ -114,7 +114,7 @@ export const UserSettings = () => {
         first_name: user.first_name || '',
         last_name: user.last_name || '',
         profile_picture_url: user.profile_picture_url || '',
-        sex: user.sex || 'not_set',
+        sex: user.sex || 'не выбран',
         age: user.age || '',
       });
       
@@ -248,9 +248,9 @@ export const UserSettings = () => {
                   {...personalInfoFormik.getFieldProps('sex')}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
                 >
-                  <option value="not_set">{t('common.not_specified')}</option>
-                  <option value="male">{t('common.male')}</option>
-                  <option value="female">{t('common.female')}</option>
+                  <option value="не выбран">{t('common.not_specified')}</option>
+                  <option value="мужской">{t('common.male')}</option>
+                  <option value="женский">{t('common.female')}</option>
                 </select>
                 {personalInfoFormik.touched.sex && personalInfoFormik.errors.sex && (
                   <p className="mt-1 text-sm text-red-600">{personalInfoFormik.errors.sex}</p>
