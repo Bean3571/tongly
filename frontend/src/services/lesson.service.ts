@@ -1,5 +1,5 @@
 import { apiClient } from './api';
-import { Lesson, LessonCancellationRequest } from '../types/lesson';
+import { Lesson, LessonCancellationRequest, Review } from '../types/lesson';
 
 // Get all lessons for the current user
 export const getUserLessons = async (): Promise<Lesson[]> => {
@@ -35,4 +35,10 @@ export const getLessonById = async (lessonId: number): Promise<Lesson> => {
 export const cancelLesson = async (lessonId: number, reason: string): Promise<void> => {
   const data: LessonCancellationRequest = { reason };
   await apiClient.post(`/api/lessons/${lessonId}/cancel`, data);
+};
+
+// Add a review for a lesson
+export const addReview = async (lessonId: number, rating: number): Promise<Review> => {
+  const response = await apiClient.post(`/api/lessons/${lessonId}/reviews`, { rating });
+  return response.data;
 }; 

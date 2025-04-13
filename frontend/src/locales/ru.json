@@ -400,6 +400,12 @@
       "cancel_success": "Урок успешно отменен",
       "cancel_error": "Не удалось отменить урок",
       "view_details": "Просмотреть детали",
+      "rate_lesson": "Оценить этот урок",
+      "submit_review": "Отправить оценку",
+      "submitting": "Отправка...",
+      "review_success": "Оценка успешно отправлена",
+      "review_error": "Не удалось отправить оценку",
+      "already_reviewed": "Вы уже оценили этот урок",
       "status": {
         "scheduled": "ЗАПЛАНИРОВАН",
         "in_progress": "В ПРОЦЕССЕ",

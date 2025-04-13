@@ -1,6 +1,3 @@
--- CONSOLIDATED MIGRATION
--- Merges all migrations (001-004) into a single file
-
 -- Drop old schema
 DROP TABLE IF EXISTS lessons CASCADE;
 DROP TABLE IF EXISTS tutor_details CASCADE;

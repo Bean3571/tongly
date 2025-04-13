@@ -1,6 +1,3 @@
--- CONSOLIDATED DOWN MIGRATION
--- Reverses all changes made in the consolidated migration
-
 -- Drop indexes
 DROP INDEX IF EXISTS idx_reviews_reviewer_id;
 DROP INDEX IF EXISTS idx_reviews_lesson_id;

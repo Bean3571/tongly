@@ -404,6 +404,12 @@
       "cancel_success": "Lesson cancelled successfully",
       "cancel_error": "Failed to cancel lesson",
       "view_details": "View Details",
+      "rate_lesson": "Rate this lesson",
+      "submit_review": "Submit Review",
+      "submitting": "Submitting...",
+      "review_success": "Review submitted successfully",
+      "review_error": "Failed to submit review",
+      "already_reviewed": "You have already reviewed this lesson",
       "status": {
         "scheduled": "SCHEDULED",
         "in_progress": "IN PROGRESS",

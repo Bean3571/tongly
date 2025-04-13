@@ -405,6 +405,12 @@
       "cancel_success": "Lección cancelada con éxito",
       "cancel_error": "Error al cancelar la lección",
       "view_details": "Ver Detalles",
+      "rate_lesson": "Calificar esta lección",
+      "submit_review": "Enviar Calificación",
+      "submitting": "Enviando...",
+      "review_success": "Calificación enviada con éxito",
+      "review_error": "Error al enviar calificación",
+      "already_reviewed": "Ya has calificado esta lección",
       "status": {
         "scheduled": "PROGRAMADA",
         "in_progress": "EN PROGRESO",
