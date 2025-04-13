@@ -6,7 +6,6 @@ import { getLessonById } from '../services/lesson.service';
 import { joinRoom, getRoomWebsocketUrl, getRoomChatWebsocketUrl } from '../services/videoRoom.service';
 import { Lesson } from '../types/lesson';
 import { toast } from 'react-hot-toast';
-import { envConfig } from '../config/env';
 import { format } from 'date-fns';
 
 const LessonRoom: React.FC = () => {
@@ -21,10 +20,18 @@ const LessonRoom: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [connecting, setConnecting] = useState<boolean>(false);
   const [connected, setConnected] = useState<boolean>(false);
+  const [messages, setMessages] = useState<{ text: string; time: string; isSelf: boolean }[]>([]);
+  const [chatMessage, setChatMessage] = useState<string>('');
+  const [chatVisible, setChatVisible] = useState<boolean>(true);
+  const [newMessageAlert, setNewMessageAlert] = useState<boolean>(false);
   
   // Refs for WebRTC connection
-  const videoRef = useRef<HTMLIFrameElement>(null);
-  const roomUrlRef = useRef<string | null>(null);
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoContainer = useRef<HTMLDivElement>(null);
+  const peerConnection = useRef<RTCPeerConnection | null>(null);
+  const localStream = useRef<MediaStream | null>(null);
+  const chatWebsocket = useRef<WebSocket | null>(null);
+  const roomWebsocket = useRef<WebSocket | null>(null);
   
   // Load lesson data and check access
   useEffect(() => {
@@ -55,6 +62,22 @@ const LessonRoom: React.FC = () => {
     };
     
     fetchLessonData();
+    
+    // Clean up function
+    return () => {
+      if (localStream.current) {
+        localStream.current.getTracks().forEach(track => track.stop());
+      }
+      if (peerConnection.current) {
+        peerConnection.current.close();
+      }
+      if (roomWebsocket.current) {
+        roomWebsocket.current.close();
+      }
+      if (chatWebsocket.current) {
+        chatWebsocket.current.close();
+      }
+    };
   }, [lessonId, user, t]);
   
   // Function to connect to the video room
@@ -63,8 +86,34 @@ const LessonRoom: React.FC = () => {
       setConnecting(true);
       
       // Join or create the room
-      const roomUrl = await joinRoom(roomId);
-      roomUrlRef.current = roomUrl;
+      await joinRoom(roomId);
+      
+      // Get user media (camera and microphone)
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { max: 1280 },
+          height: { max: 720 },
+          aspectRatio: 4 / 3,
+          frameRate: 30,
+        },
+        audio: {
+          sampleSize: 16,
+          channelCount: 2,
+          echoCancellation: true
+        }
+      });
+      
+      localStream.current = stream;
+      
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = stream;
+      }
+      
+      // Set up WebRTC connection
+      setupWebRTC(roomId, stream);
+      
+      // Set up chat WebSocket
+      setupChatWebSocket(roomId);
       
       // Set connected state
       setConnected(true);
@@ -72,16 +121,191 @@ const LessonRoom: React.FC = () => {
       console.error('Error connecting to room:', err);
       setError(t('pages.lesson_room.connection_error'));
       toast.error(t('pages.lesson_room.connection_error'));
-      
-      // Try to recover by setting connected to true anyway so the iframe will be shown
-      // This is a fallback in case the API calls fail but the room URL might still work
-      if (!connected && roomId) {
-        const videoApiUrl = process.env.REACT_APP_VIDEO_API_URL || 'https://192.168.0.100:8081';
-        roomUrlRef.current = `${videoApiUrl}/room/${roomId}`;
-        setConnected(true);
-      }
     } finally {
       setConnecting(false);
+    }
+  };
+  
+  // Setup WebRTC peer connection
+  const setupWebRTC = (roomId: string, stream: MediaStream) => {
+    const pc = new RTCPeerConnection({
+      iceServers: [
+        { urls: "stun:relay.metered.ca:80" },
+        {
+          urls: "turn:relay.metered.ca:80",
+          username: "f656bb327ada11408d2cd592",
+          credential: "D5FTwyiln3XE0vFq",
+        },
+      ],
+    });
+    
+    peerConnection.current = pc;
+    
+    // Add local tracks to the peer connection
+    stream.getTracks().forEach(track => pc.addTrack(track, stream));
+    
+    // Handle incoming tracks (remote video/audio)
+    pc.ontrack = (event) => {
+      if (event.track.kind === 'video' && remoteVideoContainer.current) {
+        const videoElement = document.createElement('video');
+        videoElement.srcObject = event.streams[0];
+        videoElement.className = 'w-full h-full object-cover rounded-lg';
+        videoElement.autoplay = true;
+        videoElement.controls = true;
+        videoElement.playsInline = true;
+        
+        // Remove existing videos first
+        while (remoteVideoContainer.current.firstChild) {
+          remoteVideoContainer.current.removeChild(remoteVideoContainer.current.firstChild);
+        }
+        
+        remoteVideoContainer.current.appendChild(videoElement);
+        
+        // Handle track ending
+        event.streams[0].onremovetrack = () => {
+          if (videoElement.parentNode) {
+            videoElement.parentNode.removeChild(videoElement);
+          }
+        };
+      }
+    };
+    
+    // Connect to the signaling server via WebSocket
+    const wsUrl = getRoomWebsocketUrl(roomId);
+    const ws = new WebSocket(wsUrl);
+    roomWebsocket.current = ws;
+    
+    // Handle ICE candidates
+    pc.onicecandidate = (e) => {
+      if (!e.candidate) return;
+      
+      ws.send(JSON.stringify({
+        event: 'candidate',
+        data: JSON.stringify(e.candidate)
+      }));
+    };
+    
+    // Handle WebSocket messages
+    ws.onmessage = (evt) => {
+      const msg = JSON.parse(evt.data);
+      if (!msg) {
+        return console.log('failed to parse msg');
+      }
+      
+      switch (msg.event) {
+        case 'offer':
+          const offer = JSON.parse(msg.data);
+          if (!offer) {
+            return console.log('failed to parse offer');
+          }
+          
+          pc.setRemoteDescription(new RTCSessionDescription(offer))
+            .then(() => pc.createAnswer())
+            .then(answer => pc.setLocalDescription(answer))
+            .then(() => {
+              ws.send(JSON.stringify({
+                event: 'answer',
+                data: JSON.stringify(pc.localDescription)
+              }));
+            })
+            .catch(err => console.error('Error handling offer:', err));
+          break;
+          
+        case 'candidate':
+          const candidate = JSON.parse(msg.data);
+          if (!candidate) {
+            return console.log('failed to parse candidate');
+          }
+          
+          pc.addIceCandidate(new RTCIceCandidate(candidate))
+            .catch(err => console.error('Error adding ICE candidate:', err));
+          break;
+      }
+    };
+    
+    // Handle WebSocket errors and reconnection
+    ws.onclose = () => {
+      console.log('WebSocket closed, attempting to reconnect...');
+      setTimeout(() => {
+        if (localStream.current) {
+          setupWebRTC(roomId, localStream.current);
+        }
+      }, 1000);
+    };
+    
+    ws.onerror = (err) => {
+      console.error('WebSocket error:', err);
+    };
+  };
+  
+  // Setup chat WebSocket
+  const setupChatWebSocket = (roomId: string) => {
+    const chatWsUrl = getRoomChatWebsocketUrl(roomId);
+    const ws = new WebSocket(chatWsUrl);
+    chatWebsocket.current = ws;
+    
+    ws.onmessage = (evt) => {
+      const messages = evt.data.split('\n');
+      
+      messages.forEach((messageText: string) => {
+        if (!messageText) return;
+        
+        // Check if the message is from the current user
+        const isSelf = messageText.includes(`${user?.username}:`);
+        const text = messageText;
+        
+        setMessages(prev => [
+          ...prev, 
+          { 
+            text, 
+            time: getCurrentTime(), 
+            isSelf 
+          }
+        ]);
+        
+        if (!chatVisible) {
+          setNewMessageAlert(true);
+        }
+      });
+    };
+    
+    ws.onclose = () => {
+      console.log('Chat WebSocket closed, attempting to reconnect...');
+      setTimeout(() => {
+        setupChatWebSocket(roomId);
+      }, 1000);
+    };
+    
+    ws.onerror = (err) => {
+      console.error('Chat WebSocket error:', err);
+    };
+  };
+  
+  // Get current time for chat messages
+  const getCurrentTime = () => {
+    const date = new Date();
+    let hour = date.getHours();
+    let minute = date.getMinutes();
+    const hourStr = hour < 10 ? `0${hour}` : `${hour}`;
+    const minuteStr = minute < 10 ? `0${minute}` : `${minute}`;
+    return `${hourStr}:${minuteStr}`;
+  };
+  
+  // Handle sending chat messages
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!chatMessage.trim() || !chatWebsocket.current) return;
+    
+    chatWebsocket.current.send(chatMessage);
+    setChatMessage('');
+  };
+  
+  // Toggle chat visibility
+  const toggleChat = () => {
+    setChatVisible(!chatVisible);
+    if (!chatVisible) {
+      setNewMessageAlert(false);
     }
   };
   
@@ -149,33 +373,109 @@ const LessonRoom: React.FC = () => {
         </button>
       </div>
       
-      <div className="grid grid-cols-1 gap-6">
-        {/* Video and Chat Section */}
-        <div className="rounded-lg overflow-hidden border border-gray-200 bg-white shadow-sm h-[600px]">
-          {connected && roomUrlRef.current ? (
-            <iframe
-              ref={videoRef}
-              src={roomUrlRef.current}
-              className="w-full h-full border-0"
-              allow="camera; microphone; display-capture"
-              title="Lesson Room"
-            ></iframe>
-          ) : (
-            <div className="flex items-center justify-center h-full bg-gray-50">
-              <div className="text-center p-6">
-                <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                </svg>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">{t('pages.lesson_room.placeholder.title')}</h3>
-                <p className="text-gray-600 mb-4">{t('pages.lesson_room.placeholder.description')}</p>
-                <button
-                  onClick={() => connectToRoom(lessonId!)}
-                  className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors"
-                >
-                  {t('pages.lesson_room.reconnect')}
-                </button>
+      <div className="grid grid-cols-3 gap-6">
+        {/* Video Section */}
+        <div className="col-span-2 rounded-lg overflow-hidden border border-gray-200 bg-white shadow-sm h-[600px]">
+          <div className="flex flex-wrap h-full">
+            <div className="w-full h-1/2 p-2">
+              {connected ? (
+                <div className="relative w-full h-full rounded-lg overflow-hidden bg-gray-100">
+                  <video
+                    ref={localVideoRef}
+                    autoPlay
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                  <div className="absolute bottom-2 left-2 bg-gray-800 text-white text-xs px-2 py-1 rounded">
+                    {user?.username} (You)
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-full bg-gray-100 rounded-lg">
+                  <div className="text-center">
+                    <svg className="w-12 h-12 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                    <p className="text-sm text-gray-500">{t('pages.lesson_room.camera_loading')}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="w-full h-1/2 p-2">
+              <div 
+                ref={remoteVideoContainer}
+                className="w-full h-full rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center"
+              >
+                <div className="text-center">
+                  <svg className="w-12 h-12 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                  </svg>
+                  <p className="text-sm text-gray-500">{t('pages.lesson_room.waiting_for_other')}</p>
+                </div>
               </div>
             </div>
+          </div>
+        </div>
+        
+        {/* Chat Section */}
+        <div className="col-span-1 rounded-lg overflow-hidden border border-gray-200 bg-white shadow-sm h-[600px] flex flex-col">
+          <div 
+            className="bg-gray-100 px-4 py-3 flex items-center justify-between cursor-pointer"
+            onClick={toggleChat}
+          >
+            <h3 className="font-medium text-gray-800">{t('pages.lesson_room.chat')}</h3>
+            {newMessageAlert && !chatVisible && (
+              <span className="bg-orange-500 h-2 w-2 rounded-full"></span>
+            )}
+          </div>
+          
+          {chatVisible && (
+            <>
+              <div className="flex-1 overflow-y-auto p-4">
+                {messages.length === 0 ? (
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-gray-500 text-sm">{t('pages.lesson_room.no_messages')}</p>
+                  </div>
+                ) : (
+                  messages.map((message, index) => (
+                    <div 
+                      key={index} 
+                      className={`mb-3 ${message.isSelf ? 'text-right' : 'text-left'}`}
+                    >
+                      <div 
+                        className={`inline-block px-4 py-2 rounded-lg ${
+                          message.isSelf 
+                            ? 'bg-orange-500 text-white' 
+                            : 'bg-gray-200 text-gray-800'
+                        }`}
+                      >
+                        <p className="text-sm">{message.text}</p>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">{message.time}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+              
+              <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-200">
+                <div className="flex">
+                  <input
+                    type="text"
+                    value={chatMessage}
+                    onChange={(e) => setChatMessage(e.target.value)}
+                    placeholder={t('pages.lesson_room.type_message')}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  />
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-orange-600 text-white rounded-r-md hover:bg-orange-700 transition-colors"
+                  >
+                    {t('pages.lesson_room.send')}
+                  </button>
+                </div>
+              </form>
+            </>
           )}
         </div>
       </div>
