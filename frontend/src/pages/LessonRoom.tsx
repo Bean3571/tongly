@@ -7,6 +7,7 @@ import { joinRoom, getRoomWebsocketUrl, getRoomChatWebsocketUrl } from '../servi
 import { Lesson } from '../types/lesson';
 import { toast } from 'react-hot-toast';
 import { envConfig } from '../config/env';
+import { format } from 'date-fns';
 
 const LessonRoom: React.FC = () => {
   const { t } = useTranslation();
@@ -127,12 +128,15 @@ const LessonRoom: React.FC = () => {
   const otherParticipantName = otherParticipant 
     ? `${otherParticipant.first_name || ''} ${otherParticipant.last_name || ''}`.trim() || otherParticipant.username
     : t('pages.lesson_room.unknown_participant');
+    
+  // Format end time
+  const formattedEndTime = lesson.end_time ? format(new Date(lesson.end_time), 'HH:mm') : '';
   
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">
-          {t('pages.lesson_room.title')} {otherParticipantName}
+          {lesson.language?.name || t('common.unknown')} | {formattedEndTime} | {otherParticipantName}
         </h1>
         <button
           onClick={handleBackToLessons}
@@ -145,9 +149,9 @@ const LessonRoom: React.FC = () => {
         </button>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         {/* Video and Chat Section */}
-        <div className="lg:col-span-3 rounded-lg overflow-hidden border border-gray-200 bg-white shadow-sm h-[600px]">
+        <div className="rounded-lg overflow-hidden border border-gray-200 bg-white shadow-sm h-[600px]">
           {connected && roomUrlRef.current ? (
             <iframe
               ref={videoRef}
@@ -173,48 +177,6 @@ const LessonRoom: React.FC = () => {
               </div>
             </div>
           )}
-        </div>
-        
-        {/* Lesson Info Section */}
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">{t('pages.lesson_room.info')}</h3>
-            
-            {/* Language */}
-            <div className="mb-4">
-              <h4 className="text-sm font-medium text-gray-700">{t('pages.lesson_room.language')}</h4>
-              <p className="text-gray-800">{lesson.language?.name || t('common.unknown')}</p>
-            </div>
-            
-            {/* Notes if available */}
-            {lesson.notes && (
-              <div className="mb-4">
-                <h4 className="text-sm font-medium text-gray-700">{t('pages.lesson_room.notes')}</h4>
-                <div className="bg-orange-50 p-3 rounded-md mt-1">
-                  <p className="text-gray-800 text-sm whitespace-pre-wrap">{lesson.notes}</p>
-                </div>
-              </div>
-            )}
-            
-            {/* Other participant info */}
-            <div className="mb-4">
-              <h4 className="text-sm font-medium text-gray-700">
-                {isStudent ? t('pages.lesson_room.tutor') : t('pages.lesson_room.student')}
-              </h4>
-              <div className="flex items-center mt-1">
-                <img 
-                  src={otherParticipant?.profile_picture_url || envConfig.defaultAvatar} 
-                  alt={otherParticipantName}
-                  className="w-10 h-10 rounded-full mr-2 object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = envConfig.defaultAvatar;
-                  }}
-                />
-                <span className="text-gray-800">{otherParticipantName}</span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
