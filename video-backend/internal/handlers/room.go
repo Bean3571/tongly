@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"time"
 	"video-service/pkg/chat"
 	w "video-service/pkg/webrtc"
 
@@ -13,10 +14,46 @@ import (
 	"github.com/pion/webrtc/v3"
 )
 
+// RoomCreate creates a new room with a random UUID
 func RoomCreate(c *fiber.Ctx) error {
 	return c.Redirect(fmt.Sprintf("/room/%s", guuid.New().String()))
 }
 
+// RoomCreateWithID creates a new room with a specific ID (for lessons)
+func RoomCreateWithID(c *fiber.Ctx) error {
+	uuid := c.Params("uuid")
+	if uuid == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Room ID is required",
+		})
+	}
+
+	_, _, _ = createOrGetRoom(uuid)
+	return c.JSON(fiber.Map{
+		"success": true,
+		"room_id": uuid,
+	})
+}
+
+// RoomExists checks if a room exists
+func RoomExists(c *fiber.Ctx) error {
+	uuid := c.Params("uuid")
+	if uuid == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Room ID is required",
+		})
+	}
+
+	w.RoomsLock.RLock()
+	_, exists := w.Rooms[uuid]
+	w.RoomsLock.RUnlock()
+
+	return c.JSON(fiber.Map{
+		"exists": exists,
+	})
+}
+
+// Room renders the room page
 func Room(c *fiber.Ctx) error {
 	uuid := c.Params("uuid")
 	if uuid == "" {
@@ -40,6 +77,36 @@ func Room(c *fiber.Ctx) error {
 	}, "layouts/main")
 }
 
+// RoomInfo returns information about a room
+func RoomInfo(c *fiber.Ctx) error {
+	uuid := c.Params("uuid")
+	if uuid == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Room ID is required",
+		})
+	}
+
+	w.RoomsLock.RLock()
+	room, exists := w.Rooms[uuid]
+	w.RoomsLock.RUnlock()
+
+	if !exists {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "Room not found",
+		})
+	}
+
+	// Count participants
+	participantCount := len(room.Peers.Connections)
+
+	return c.JSON(fiber.Map{
+		"id":           uuid,
+		"participants": participantCount,
+		"created_at":   room.CreatedAt,
+	})
+}
+
+// RoomWebsocket handles WebSocket connections for the room
 func RoomWebsocket(c *websocket.Conn) {
 	uuid := c.Params("uuid")
 	if uuid == "" {
@@ -50,6 +117,7 @@ func RoomWebsocket(c *websocket.Conn) {
 	w.RoomConn(c, room.Peers)
 }
 
+// createOrGetRoom creates a new room or returns an existing one
 func createOrGetRoom(uuid string) (string, string, *w.Room) {
 	w.RoomsLock.Lock()
 	defer w.RoomsLock.Unlock()
@@ -69,8 +137,9 @@ func createOrGetRoom(uuid string) (string, string, *w.Room) {
 	p := &w.Peers{}
 	p.TrackLocals = make(map[string]*webrtc.TrackLocalStaticRTP)
 	room := &w.Room{
-		Peers: p,
-		Hub:   hub,
+		Peers:     p,
+		Hub:       hub,
+		CreatedAt: time.Now(),
 	}
 
 	w.Rooms[uuid] = room

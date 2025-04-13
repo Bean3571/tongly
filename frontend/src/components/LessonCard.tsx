@@ -42,8 +42,13 @@ const LessonCard: React.FC<LessonCardProps> = ({ lesson, currentUserId, onCancel
     startTime.getTime() - now.getTime() > 24 * 60 * 60 * 1000;
 
   const handleJoinLesson = () => {
-    // TODO: Implement join lesson!!!!
-    navigate(`/lessons/room/${lesson.id}`);
+    try {
+      // Simply navigate to the lesson room - the room component will handle creation/joining
+      navigate(`/lessons/room/${lesson.id}`);
+    } catch (error) {
+      console.error('Error joining lesson room:', error);
+      toast.error(t('components.lesson_card.join_error'));
+    }
   };
 
   const handleCancelLesson = async () => {

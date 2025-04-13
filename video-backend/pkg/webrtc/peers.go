@@ -39,8 +39,9 @@ var (
 )
 
 type Room struct {
-	Peers *Peers
-	Hub   *chat.Hub
+	Peers     *Peers
+	Hub       *chat.Hub
+	CreatedAt time.Time
 }
 
 type Peers struct {

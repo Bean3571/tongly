@@ -40,7 +40,14 @@ func Run() error {
 	engine := html.New("./views", ".html")
 	app := fiber.New(fiber.Config{Views: engine})
 	app.Use(logger.New())
-	app.Use(cors.New())
+
+	// Use a more permissive CORS configuration for development
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     "https://192.168.0.100:3000, https://192.168.0.106:3000, https://192.168.0.107:3000, https://192.168.0.108:3000,https://localhost:3000,http://localhost:3000",
+		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
+		AllowCredentials: true,
+	}))
 
 	app.Get("/", handlers.Welcome)
 	app.Get("/room/create", handlers.RoomCreate)
@@ -55,6 +62,12 @@ func Run() error {
 		HandshakeTimeout: 10 * time.Second,
 	}))
 	app.Get("/stream/:suuid/chat/websocket", websocket.New(handlers.StreamChatWebsocket))
+
+	// API endpoints
+	app.Get("/api/room/:uuid/exists", handlers.RoomExists)
+	app.Post("/api/room/create/:uuid", handlers.RoomCreateWithID)
+	app.Get("/api/room/:uuid/info", handlers.RoomInfo)
+
 	app.Static("/", "./assets")
 
 	w.Rooms = make(map[string]*w.Room)
