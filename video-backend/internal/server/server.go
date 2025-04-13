@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"os"
+	"path/filepath"
 	"time"
 
 	"video-service/internal/handlers"
@@ -31,10 +32,29 @@ func Run() error {
 
 	// Set default certificate and key files if flags were not provided
 	if *cert == "" {
-		*cert = "../certs/cert.pem"
+		// Get current working directory for absolute paths
+		workDir, err := os.Getwd()
+		if err != nil {
+			log.Printf("Failed to get working directory: %v", err)
+			// Fallback to relative path
+			*cert = "../certs/cert.pem"
+		} else {
+			// Use absolute path
+			*cert = filepath.Join(workDir, "..", "certs", "cert.pem")
+		}
 	}
+
 	if *key == "" {
-		*key = "../certs/key.pem"
+		// Get current working directory for absolute paths
+		workDir, err := os.Getwd()
+		if err != nil {
+			log.Printf("Failed to get working directory: %v", err)
+			// Fallback to relative path
+			*key = "../certs/key.pem"
+		} else {
+			// Use absolute path
+			*key = filepath.Join(workDir, "..", "certs", "key.pem")
+		}
 	}
 
 	engine := html.New("./views", ".html")
@@ -43,7 +63,7 @@ func Run() error {
 
 	// Use a more permissive CORS configuration for development
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "https://192.168.0.100:3000, https://192.168.0.106:3000, https://192.168.0.107:3000, https://192.168.0.108:3000,https://localhost:3000,http://localhost:3000",
+		AllowOrigins:     "https://192.168.0.100:3000, https://192.168.0.106:3000, https://192.168.0.107:3000, https://192.168.0.108:3000, https://localhost:3000",
 		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
 		AllowCredentials: true,

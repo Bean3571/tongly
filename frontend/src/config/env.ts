@@ -34,10 +34,10 @@ const parseBoolean = (value: string): boolean => {
 // Environment configuration reading from .env file
 export const envConfig = {
   // API Configuration
-  apiUrl: process.env.REACT_APP_API_URL || 'https://localhost:8080',
-  wsUrl: process.env.REACT_APP_WS_URL || 'wss://localhost:8080',
+  apiUrl: process.env.REACT_APP_API_URL || 'https://192.168.0.100:8080',
+  wsUrl: process.env.REACT_APP_WS_URL || 'wss://192.168.0.100:8080',
   environment: process.env.REACT_APP_ENVIRONMENT || 'development',
-  frontendUrl: process.env.REACT_APP_FRONTEND_URL || 'http://localhost:3000',
+  frontendUrl: process.env.REACT_APP_FRONTEND_URL || 'https://192.168.0.100:3000',
   
   // Assets
   defaultAvatar: process.env.REACT_APP_DEFAULT_AVATAR || 'https://secure.gravatar.com/avatar/default?s=200&d=mp',
