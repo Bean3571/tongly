@@ -106,11 +106,6 @@
       "confirm_delete": "Вы уверены, что хотите удалить этот временной интервал?",
       "not_tutor_message": "Эта страница доступна только для преподавателей."
     },
-    "userSettings": {
-      "title": "Настройки пользователя",
-      "personal_info": "Личная информация",
-      "account_settings": "Безопасность аккаунта"
-    },
     "user_settings": {
       "title": "Настройки пользователя",
       "personal_info": "Личная информация",
@@ -118,6 +113,7 @@
       "update_success": "Ваш профиль успешно обновлен",
       "personal_tab": "Личная информация",
       "security_tab": "Безопасность",
+      "security": "Безопасность аккаунта",
       "profile_picture_placeholder": "Введите URL для вашего изображения профиля",
       "not_set": "Не указано",
       "change_password": "Изменить пароль",
@@ -135,10 +131,6 @@
       "document_url_placeholder": "Введите URL для вашего документа об образовании (диплом, сертификат и т.д.)",
       "add_education": "Добавить образование",
       "confirm_remove_education": "Вы уверены, что хотите удалить эту запись об образовании?"
-    },
-    "home": {
-      "title": "Добро пожаловать в Tongly",
-      "description": "Начните изучать языки с носителями языка уже сегодня!"
     },
     "search_tutor": {
       "title": "Найти преподавателей",
@@ -299,25 +291,6 @@
       }
     }
   },
-  "userSettings": {
-    "fields": {
-      "first_name": "Имя",
-      "last_name": "Фамилия",
-      "user_picture_url": "URL изображения профиля",
-      "age": "Возраст",
-      "gender": "Пол"
-    },
-    "gender": {
-      "not_set": "Не указано",
-      "male": "Мужской",
-      "female": "Женский"
-    },
-    "buttons": {
-      "change_photo": "Изменить фото"
-    },
-    "no_user_data": "Не удалось загрузить данные пользователя. Пожалуйста, попробуйте снова.",
-    "username_note": "Имя пользователя нельзя изменить после создания аккаунта."
-  },
   "notifications": {
     "personal_info_updated": "Личная информация обновлена",
     "personal_info_update_failed": "Не удалось обновить личную информацию",
@@ -371,7 +344,10 @@
     "home": "Главная",
     "preferences": "Предпочтения",
     "account_settings": "Настройки аккаунта",
-    "tutor_settings": "Профиль преподавателя"
+    "tutor_settings": "Профиль преподавателя",
+    "games": {
+      "title": "Языковые Игры"
+    }
   },
   "user": {
     "first_name": "Имя",
@@ -428,15 +404,15 @@
     "leaderboard_title": "Таблица Лидеров",
     "leaderboard_description": "Узнайте, кто лидирует в языковых играх!",
     "back_to_games": "Вернуться к Играм",
-    "leaderboard": "Просмотр Таблицы Лидеров",
-    "points": "{{count}} очков за игру",
+    "leaderboard": "Посмотреть Таблицу Лидеров",
+    "points": "{{count}} очков за ответ",
     "select_language": "Выберите Язык:",
     "completed": "Игра Завершена!",
     "final_score": "Ваш итоговый счет",
     "score": "Счет",
     "question": "Вопрос",
     "correct_answer": "Правильно!",
-    "incorrect_answer": "Не совсем правильно.",
+    "incorrect_answer": "Неправильно.",
     "correct_is": "Правильный ответ",
     "submit_answer": "Отправить Ответ",
     "view_leaderboard": "Посмотреть Таблицу Лидеров",

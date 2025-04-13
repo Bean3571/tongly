@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService, userService, getErrorMessage } from '../services/api';
-import { useNotification } from '../contexts/NotificationContext';
+import toast from 'react-hot-toast';
 import { logger } from '../services/logger';
 import { User, UserRole, UserRegistrationRequest, LoginRequest, AuthResponse } from '../types';
 
@@ -33,7 +33,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [user, setUser] = useState<User | null>(null);
     const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
     const navigate = useNavigate();
-    const { showNotification } = useNotification();
 
     // Initialize user from localStorage if available
     useEffect(() => {
@@ -58,7 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 localStorage.removeItem('user');
                 setUser(null);
                 setToken(null);
-                showNotification('error', 'Session expired. Please login again.');
+                toast.error('Session expired. Please login again.');
                 navigate('/login');
             });
         }
@@ -77,7 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setUser(authResponse.user);
                 
                 logger.info('Login successful', { userId: authResponse.user.id });
-                showNotification('success', 'Welcome back!');
+                toast.success('Welcome back!');
                 
             } else {
                 throw new Error('Invalid response from server');
@@ -90,7 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 status: error.response?.status,
                 statusText: error.response?.statusText
             });
-            showNotification('error', getErrorMessage(error));
+            toast.error(getErrorMessage(error));
             throw error;
         }
     };
@@ -117,7 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setUser(authResponse.user);
                 
                 logger.info('Registration successful', { userId: authResponse.user.id });
-                showNotification('success', 'Registration successful!');
+                toast.success('Registration successful!');
                 
             } else {
                 throw new Error('Invalid response from server');
@@ -138,7 +137,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 status: error.response?.status 
             });
             
-            showNotification('error', getErrorMessage(error));
+            toast.error(getErrorMessage(error));
             throw error;
         }
     };
@@ -148,7 +147,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         authService.logout();
         setUser(null);
         setToken(null);
-        showNotification('info', 'You have been logged out');
+        toast.success('You have been logged out');
         navigate('/login');
     };
 

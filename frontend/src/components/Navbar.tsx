@@ -24,7 +24,7 @@ export const Navbar = () => {
             { to: '/search-tutors', label: t('pages.search_tutor.title') || 'Find Tutors', visibleTo: 'student' },
             { to: '/lessons', label: t('pages.my_lessons.title') || 'My Lessons', visibleTo: 'all' },
             { to: '/tutor-schedule', label: t('pages.tutor_schedule.title') || 'Schedule', visibleTo: 'tutor' },
-            { to: '/games', label: t('games.title') || 'Language Games', visibleTo: 'student' },
+            { to: '/games', label: t('navbar.games.title') || 'Language Games', visibleTo: 'student' },
             { to: '/tutor-settings', label: t('navbar.tutor_settings') || 'Tutor Settings', visibleTo: 'tutor' },
             { to: '/preferences', label: t('navbar.preferences') || 'Preferences', visibleTo: 'all' },
         ];

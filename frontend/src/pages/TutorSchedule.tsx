@@ -8,7 +8,6 @@ import { TutorAvailability, TutorAvailabilityRequest } from '../types/tutor';
 import { UserRole } from '../types';
 import { Button } from '../components/ui/Button';
 import { Select } from '../components/ui/Select';
-import { TimePicker } from '../components/ui/TimePicker';
 import { useForm, Controller, ControllerRenderProps } from 'react-hook-form';
 import { CalendarIcon, PlusIcon, TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
 import classNames from 'classnames';

@@ -57,6 +57,7 @@
     "current_password": "Current Password",
     "new_password": "New Password",
     "confirm_password": "Confirm Password",
+    "logout": "Log out",
     "errors": {
       "invalidCredentials": "Invalid username or password"
     },
@@ -92,7 +93,6 @@
       "add_availability": "Add Availability",
       "edit_availability": "Edit Availability",
       "recurring": "Weekly Recurring",
-      "specific_date": "Specific Date",
       "day_of_week": "Day of Week",
       "specific_date": "Date",
       "start_time": "Start Time",
@@ -107,11 +107,6 @@
       "confirm_delete": "Are you sure you want to delete this availability slot?",
       "not_tutor_message": "This page is only available for tutors."
     },
-    "userSettings": {
-      "title": "User Settings",
-      "personal_info": "Personal Information",
-      "account_settings": "Account Security"
-    },
     "user_settings": {
       "title": "User Settings",
       "personal_info": "Personal Information",
@@ -119,6 +114,7 @@
       "update_success": "Your profile has been updated successfully",
       "personal_tab": "Personal Information",
       "security_tab": "Security",
+      "security": "Account Security",
       "profile_picture_placeholder": "Enter URL for your profile picture",
       "not_set": "Not specified",
       "change_password": "Change Password",
@@ -371,7 +367,10 @@
     "home": "Home",
     "preferences": "Preferences",
     "account_settings": "Account Settings",
-    "tutor_settings": "Tutor Profile"
+    "tutor_settings": "Tutor Profile",
+    "games": {
+      "title": "Language Games"
+    }
   },
   "user": {
     "first_name": "First Name",

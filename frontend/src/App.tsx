@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { NotificationProvider } from './contexts/NotificationContext';
 import { I18nProvider } from './contexts/I18nContext';
 import { TranslationLoader } from './components/TranslationLoader';
 import { Navbar } from './components/Navbar';
@@ -23,6 +22,7 @@ import GamesHub from './pages/Games/GamesHub';
 import GamePlay from './pages/Games/GamePlay';
 import Leaderboard from './pages/Games/Leaderboard';
 import { UserRole } from './types/user';
+import { Toaster } from 'react-hot-toast';
 
 const queryClient = new QueryClient();
 
@@ -159,15 +159,23 @@ const App = () => {
         <ThemeProvider>
             <QueryClientProvider client={queryClient}>
                 <Router>
-                    <NotificationProvider>
-                        <I18nProvider>
-                            <TranslationLoader>
-                                <AuthProvider>
-                                    <AppRoutes />
-                                </AuthProvider>
-                            </TranslationLoader>
-                        </I18nProvider>
-                    </NotificationProvider>
+                    <I18nProvider>
+                        <TranslationLoader>
+                            <AuthProvider>
+                                <AppRoutes />
+                                <Toaster 
+                                    position="top-right"
+                                    toastOptions={{
+                                        duration: 5000,
+                                        style: {
+                                            background: 'var(--bg-surface)',
+                                            color: 'var(--text-primary)',
+                                        },
+                                    }}
+                                />
+                            </AuthProvider>
+                        </TranslationLoader>
+                    </I18nProvider>
                 </Router>
             </QueryClientProvider>
         </ThemeProvider>

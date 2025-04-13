@@ -1,3 +1,2 @@
 export * from './Button';
-export * from './Select';
-export * from './TimePicker'; 
+export * from './Select'; 
