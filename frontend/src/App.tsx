@@ -18,7 +18,6 @@ import { TutorSchedule } from './pages/TutorSchedule';
 import { SearchTutor } from './pages/SearchTutor';
 import { ScheduleLesson } from './pages/ScheduleLesson';
 import MyLessons from './pages/MyLessons';
-import LessonRoom from './pages/LessonRoom';
 import { UserRole } from './types/user';
 
 const queryClient = new QueryClient();
@@ -76,14 +75,6 @@ const AppRoutes = () => {
                         element={
                             <PrivateRoute>
                                 <MyLessons />
-                            </PrivateRoute>
-                        } 
-                    />
-                    <Route 
-                        path="/lessons/room/:lessonId" 
-                        element={
-                            <PrivateRoute>
-                                <LessonRoom />
                             </PrivateRoute>
                         } 
                     />

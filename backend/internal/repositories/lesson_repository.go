@@ -3,7 +3,6 @@ package repositories
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"time"
 	"tongly-backend/internal/entities"
 )
@@ -24,9 +23,8 @@ func NewLessonRepository(db *sql.DB) *LessonRepository {
 func (r *LessonRepository) Create(ctx context.Context, lesson *entities.Lesson) error {
 	query := `
 		INSERT INTO lessons
-		(student_id, tutor_id, language_id, start_time, end_time, notes, 
-		 session_id, join_token_student, join_token_tutor)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		(student_id, tutor_id, language_id, start_time, end_time, notes)
+		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING id, created_at, updated_at
 	`
 
@@ -39,9 +37,6 @@ func (r *LessonRepository) Create(ctx context.Context, lesson *entities.Lesson) 
 		lesson.StartTime,
 		lesson.EndTime,
 		lesson.Notes,
-		lesson.SessionID,
-		lesson.JoinTokenStudent,
-		lesson.JoinTokenTutor,
 	).Scan(&lesson.ID, &lesson.CreatedAt, &lesson.UpdatedAt)
 
 	return err
@@ -53,7 +48,6 @@ func (r *LessonRepository) GetByID(ctx context.Context, id int) (*entities.Lesso
 		SELECT 
 			l.id, l.student_id, l.tutor_id, l.language_id, l.start_time, l.end_time,
 			l.cancelled_by, l.cancelled_at, l.notes, l.created_at, l.updated_at,
-			l.session_id, l.join_token_student, l.join_token_tutor,
 			s.username as student_username, s.email as student_email, 
 			s.first_name as student_first_name, s.last_name as student_last_name,
 			s.profile_picture_url as student_profile_picture_url, s.role as student_role,
@@ -75,16 +69,13 @@ func (r *LessonRepository) GetByID(ctx context.Context, id int) (*entities.Lesso
 	var cancelledBy sql.NullInt64
 	var cancelledAt sql.NullTime
 	var notes sql.NullString
-	var sessionID sql.NullString
-	var joinTokenStudent sql.NullString
-	var joinTokenTutor sql.NullString
 	var studentProfilePictureURL sql.NullString
 	var tutorProfilePictureURL sql.NullString
 
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&lesson.ID, &lesson.StudentID, &lesson.TutorID, &lesson.LanguageID,
 		&lesson.StartTime, &lesson.EndTime, &cancelledBy, &cancelledAt, &notes,
-		&lesson.CreatedAt, &lesson.UpdatedAt, &sessionID, &joinTokenStudent, &joinTokenTutor,
+		&lesson.CreatedAt, &lesson.UpdatedAt,
 		&student.Username, &student.Email, &student.FirstName, &student.LastName,
 		&studentProfilePictureURL, &student.Role,
 		&tutor.Username, &tutor.Email, &tutor.FirstName, &tutor.LastName,
@@ -110,18 +101,6 @@ func (r *LessonRepository) GetByID(ctx context.Context, id int) (*entities.Lesso
 
 	if notes.Valid {
 		lesson.Notes = &notes.String
-	}
-
-	if sessionID.Valid {
-		lesson.SessionID = &sessionID.String
-	}
-
-	if joinTokenStudent.Valid {
-		lesson.JoinTokenStudent = &joinTokenStudent.String
-	}
-
-	if joinTokenTutor.Valid {
-		lesson.JoinTokenTutor = &joinTokenTutor.String
 	}
 
 	if studentProfilePictureURL.Valid {
@@ -397,57 +376,4 @@ func (r *LessonRepository) GetTutorReviewsCount(ctx context.Context, tutorID int
 	}
 
 	return count, nil
-}
-
-// UpdateLessonVideoSession updates the video session information for a lesson
-func (r *LessonRepository) UpdateLessonVideoSession(lessonID int, sessionID, studentToken, tutorToken string) error {
-	query := `
-		UPDATE lessons
-		SET 
-			session_id = $2,
-			join_token_student = $3,
-			join_token_tutor = $4,
-			updated_at = NOW()
-		WHERE id = $1
-	`
-
-	result, err := r.db.Exec(query, lessonID, sessionID, studentToken, tutorToken)
-	if err != nil {
-		return err
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-
-	if rowsAffected == 0 {
-		return entities.ErrNotFound
-	}
-
-	return nil
-}
-
-// LogVideoCallEvent logs a video call event in the database
-func (r *LessonRepository) LogVideoCallEvent(event *entities.VideoCallEvent) error {
-	query := `
-		INSERT INTO video_call_events (
-			lesson_id, user_id, event_type, event_data, created_at
-		)
-		VALUES ($1, $2, $3, $4, NOW())
-		RETURNING id, created_at
-	`
-
-	eventDataJSON, err := json.Marshal(event.EventData)
-	if err != nil {
-		return err
-	}
-
-	return r.db.QueryRow(
-		query,
-		event.LessonID,
-		event.UserID,
-		event.EventType,
-		eventDataJSON,
-	).Scan(&event.ID, &event.CreatedAt)
 }

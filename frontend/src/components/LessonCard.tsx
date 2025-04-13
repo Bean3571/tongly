@@ -42,6 +42,7 @@ const LessonCard: React.FC<LessonCardProps> = ({ lesson, currentUserId, onCancel
     startTime.getTime() - now.getTime() > 24 * 60 * 60 * 1000;
 
   const handleJoinLesson = () => {
+    // TODO: Implement join lesson!!!!
     navigate(`/lessons/room/${lesson.id}`);
   };
 
