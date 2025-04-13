@@ -50,7 +50,6 @@ func Run() error {
 	}))
 
 	// Core room and chat endpoints - keep only these
-	app.Get("/", handlers.Welcome)
 	app.Get("/room/:uuid", handlers.Room)
 	app.Get("/room/:uuid/websocket", websocket.New(handlers.RoomWebsocket, websocket.Config{
 		HandshakeTimeout: 10 * time.Second,
