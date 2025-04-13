@@ -135,3 +135,47 @@ type websocketMessage struct {
 	Event string `json:"event"`
 	Data  string `json:"data"`
 }
+
+// RoomVideoOnly renders the video-only component for a room
+func RoomVideoOnly(c *fiber.Ctx) error {
+	uuid := c.Params("uuid")
+	if uuid == "" {
+		c.Status(400)
+		return nil
+	}
+
+	// Determine WebSocket scheme based on request protocol
+	wsScheme := "ws"
+	if c.Protocol() == "https" {
+		wsScheme = "wss"
+	}
+
+	uuid, _ = createOrGetRoom(uuid)
+
+	// Return HTML template with video only
+	return c.Render("video", fiber.Map{
+		"RoomWebsocketAddr": fmt.Sprintf("%s://%s/api/room/%s/video/websocket", wsScheme, c.Hostname(), uuid),
+	}, "")
+}
+
+// RoomChatOnly renders the chat-only component for a room
+func RoomChatOnly(c *fiber.Ctx) error {
+	uuid := c.Params("uuid")
+	if uuid == "" {
+		c.Status(400)
+		return nil
+	}
+
+	// Determine WebSocket scheme based on request protocol
+	wsScheme := "ws"
+	if c.Protocol() == "https" {
+		wsScheme = "wss"
+	}
+
+	uuid, _ = createOrGetRoom(uuid)
+
+	// Return HTML template with chat only
+	return c.Render("chat", fiber.Map{
+		"ChatWebsocketAddr": fmt.Sprintf("%s://%s/api/room/%s/chat/websocket", wsScheme, c.Hostname(), uuid),
+	}, "")
+}

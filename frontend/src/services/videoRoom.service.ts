@@ -34,7 +34,7 @@ export const checkRoomExists = async (lessonId: string): Promise<boolean> => {
 };
 
 // Join a room (creates it if it doesn't exist)
-export const joinRoom = async (lessonId: string): Promise<string> => {
+export const joinRoom = async (lessonId: string): Promise<void> => {
   try {
     // First, check if we need to create the room
     let roomExists = false;
@@ -57,11 +57,50 @@ export const joinRoom = async (lessonId: string): Promise<string> => {
         console.error('Error creating room, will try to connect anyway:', error);
       }
     }
-    
-    // Return the room URL
-    return `${VIDEO_API_URL}/room/${lessonId}`;
   } catch (error) {
     console.error('Error joining room:', error);
+    throw error;
+  }
+};
+
+// Get room video connection info
+export const getRoomVideoInfo = async (lessonId: string): Promise<{ room_id: string; video_websocket_url: string }> => {
+  try {
+    const response = await fetch(`${VIDEO_API_URL}/api/room/${lessonId}/video`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error getting video room info:', error);
+    throw error;
+  }
+};
+
+// Get room chat connection info
+export const getRoomChatInfo = async (lessonId: string): Promise<{ room_id: string; chat_websocket_url: string }> => {
+  try {
+    const response = await fetch(`${VIDEO_API_URL}/api/room/${lessonId}/chat`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error getting chat room info:', error);
     throw error;
   }
 };

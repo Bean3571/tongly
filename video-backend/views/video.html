@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        body {
+            background-color: #1a1a1a;
+        }
+        
+        #peers {
+            position: relative;
+            height: 100vh;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        .video-container {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        .video-area {
+            width: 100%;
+            height: 100%;
+            background-color: #2c3e50;
+            object-fit: cover;
+        }
+        
+        .video-label {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        #videos {
+            height: 100%;
+            width: 100%;
+            position: relative;
+        }
+        
+        /* Local video styling - position in lower right corner */
+        #local-container {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 25%;
+            max-width: 250px;
+            min-width: 160px;
+            z-index: 10;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        #localVideo {
+            width: 100%;
+            height: auto;
+            background-color: #2c3e50;
+            object-fit: cover;
+        }
+        
+        /* Remote video styling - make it big and centered */
+        .remote-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .remote-video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        /* Notification styling */
+        .notif {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 500px;
+            width: 80%;
+        }
+        
+        .notification {
+            text-align: center;
+        }
+        
+        .mirror {
+            transform: scaleX(-1);
+        }
+    </style>
+</head>
+<body>
+    <div id="noperm" class="columns">
+        <div class="column notif">
+            <article class="notification is-link">
+                Camera and microphone permissions are needed to join the lesson room.
+            </article>
+        </div>
+    </div>
+
+    <div id="peers">
+        <div id="videos">
+            <!-- Local video -->
+            <div id="local-container">
+                <video id="localVideo" class="video-area mirror" autoplay muted></video>
+                <div class="video-label">You</div>
+            </div>
+            
+            <!-- Remote videos will be added here dynamically -->
+            
+            <!-- Notifications -->
+            <div id="noone" class="notif">
+                <article id="noonein" class="notification is-primary is-light">
+                    <button class="delete"></button>
+                    Waiting for the other participant to join...
+                </article>
+            </div>
+            <div id="nocon" class="notif" style="display:none;">
+                <article class="notification is-danger">
+                    Connection is closed!<br>
+                    Please refresh the page.
+                </article>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let RoomWebsocketAddr = "{{.RoomWebsocketAddr}}"
+    </script>
+    <script>
+        // Modified version of peer.js specifically for video layout
+        let pc;
+        let ws;
+
+        function connect(stream) {
+            document.getElementById('peers').style.display = 'block';
+            document.getElementById('noperm').style.display = 'none';
+            
+            pc = new RTCPeerConnection({
+                iceServers: [{
+                    urls: "stun:relay.metered.ca:80",
+                },
+                {
+                    urls: "turn:relay.metered.ca:80",
+                    username: "f656bb327ada11408d2cd592",
+                    credential: "D5FTwyiln3XE0vFq",
+                }],
+            });
+            
+            pc.ontrack = function (event) {
+                if (event.track.kind === 'audio') {
+                    return;
+                }
+
+                // Create container for remote video
+                const remoteContainer = document.createElement("div");
+                remoteContainer.className = "remote-container";
+                
+                // Create video element
+                let el = document.createElement(event.track.kind);
+                el.srcObject = event.streams[0];
+                el.className = "remote-video";
+                el.setAttribute("controls", "true");
+                el.setAttribute("autoplay", "true");
+                el.setAttribute("playsinline", "true");
+                
+                // Add video to container
+                remoteContainer.appendChild(el);
+                
+                // Add label
+                const label = document.createElement("div");
+                label.className = "video-label";
+                label.textContent = "Participant";
+                remoteContainer.appendChild(label);
+                
+                // Hide waiting notification
+                document.getElementById('noone').style.display = 'none';
+                document.getElementById('nocon').style.display = 'none';
+                
+                // Add to videos container
+                document.getElementById('videos').appendChild(remoteContainer);
+
+                event.track.onmute = function (event) {
+                    el.play();
+                }
+
+                event.streams[0].onremovetrack = ({ track }) => {
+                    if (remoteContainer.parentNode) {
+                        remoteContainer.remove();
+                    }
+                    document.getElementById('noone').style.display = 'block';
+                }
+            }
+
+            stream.getTracks().forEach(track => pc.addTrack(track, stream));
+
+            ws = new WebSocket(RoomWebsocketAddr);
+            pc.onicecandidate = e => {
+                if (!e.candidate) {
+                    return;
+                }
+
+                ws.send(JSON.stringify({
+                    event: 'candidate',
+                    data: JSON.stringify(e.candidate)
+                }));
+            }
+
+            ws.addEventListener('error', function (event) {
+                console.log('error: ', event);
+            });
+
+            ws.addEventListener('close', function (event) {
+                console.log('close: ', event);
+                document.getElementById('nocon').style.display = 'block';
+            });
+
+            ws.addEventListener('message', function (event) {
+                let message = JSON.parse(event.data);
+                
+                if (!message) {
+                    return;
+                }
+
+                switch (message.event) {
+                    case 'offer':
+                        let offer = JSON.parse(message.data);
+                        if (!offer) {
+                            return;
+                        }
+                        pc.setRemoteDescription(new RTCSessionDescription(offer));
+                        pc.createAnswer()
+                            .then(answer => {
+                                pc.setLocalDescription(answer);
+                                ws.send(JSON.stringify({
+                                    event: 'answer',
+                                    data: JSON.stringify(answer)
+                                }));
+                            });
+                        break;
+                    case 'candidate':
+                        let candidate = JSON.parse(message.data);
+                        if (!candidate) {
+                            return;
+                        }
+                        pc.addIceCandidate(new RTCIceCandidate(candidate));
+                        break;
+                }
+            });
+        }
+
+        navigator.mediaDevices.getUserMedia({
+            video: {
+                width: { max: 1280 },
+                height: { max: 720 },
+                aspectRatio: 4 / 3,
+                frameRate: 30,
+            },
+            audio: {
+                sampleSize: 16,
+                channelCount: 2,
+                echoCancellation: true
+            }
+        })
+        .then(stream => {
+            document.getElementById('localVideo').srcObject = stream;
+            connect(stream);
+        }).catch(err => {
+            console.log(err);
+            document.getElementById('noperm').style.display = 'block';
+        });
+    </script>
+</body>
+</html> 

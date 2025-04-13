@@ -57,6 +57,14 @@ func Run() error {
 	app.Get("/room/:uuid/chat", handlers.RoomChat)
 	app.Get("/room/:uuid/chat/websocket", websocket.New(handlers.RoomChatWebsocket))
 
+	// Add separate API endpoints for video and chat
+	app.Get("/api/room/:uuid/video", handlers.RoomVideoOnly)
+	app.Get("/api/room/:uuid/video/websocket", websocket.New(handlers.RoomWebsocket, websocket.Config{
+		HandshakeTimeout: 10 * time.Second,
+	}))
+	app.Get("/api/room/:uuid/chat", handlers.RoomChatOnly)
+	app.Get("/api/room/:uuid/chat/websocket", websocket.New(handlers.RoomChatWebsocket))
+
 	// Essential API endpoints
 	app.Get("/api/room/:uuid/exists", handlers.RoomExists)
 	app.Post("/api/room/create/:uuid", handlers.RoomCreateWithID)
