@@ -136,8 +136,8 @@ const LessonRoom: React.FC = () => {
   
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">
+      <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-0">
           {lesson.language?.name || t('common.unknown')} | {formattedEndTime} | {otherParticipantName}
         </h1>
         <div className="flex items-center space-x-3">
@@ -162,9 +162,9 @@ const LessonRoom: React.FC = () => {
       </div>
       
       {/* Video and Chat Container */}
-      <div className="grid grid-cols-12 gap-6 h-[calc(100vh-10rem)]">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         {/* Video Section */}
-        <div className={`${chatVisible ? 'col-span-8' : 'col-span-12'} rounded-lg overflow-hidden border border-gray-200 bg-white shadow-sm h-full`}>
+        <div className={`${chatVisible ? 'md:col-span-8' : 'md:col-span-12'} rounded-lg overflow-hidden border border-gray-200 bg-white shadow-sm ${chatVisible ? 'h-[50vh]' : 'h-[80vh]'} md:h-[calc(100vh-12rem)]`}>
           {videoConnected ? (
             <iframe
               ref={videoRef}
@@ -192,35 +192,33 @@ const LessonRoom: React.FC = () => {
           )}
         </div>
         
-        {/* Chat Section - conditionally shown based on chatVisible state */}
-        {chatVisible && (
-          <div className="col-span-4 rounded-lg overflow-hidden border border-gray-200 bg-white shadow-sm h-full">
-            {chatConnected ? (
-              <iframe
-                ref={chatRef}
-                src={`${videoApiUrl}/api/room/${lessonId}/chat`}
-                className="w-full h-full border-0"
-                title="Chat Room"
-              ></iframe>
-            ) : (
-              <div className="flex items-center justify-center h-full bg-gray-50">
-                <div className="text-center p-6">
-                  <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                  </svg>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">{t('pages.lesson_room.chat_placeholder.title')}</h3>
-                  <p className="text-gray-600 mb-4">{t('pages.lesson_room.chat_placeholder.description')}</p>
-                  <button
-                    onClick={() => connectToRoom(lessonId!)}
-                    className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors"
-                  >
-                    {t('pages.lesson_room.reconnect')}
-                  </button>
-                </div>
+        {/* Chat Section - always in DOM but conditionally visible */}
+        <div className={`md:col-span-4 rounded-lg overflow-hidden border border-gray-200 bg-white shadow-sm h-[35vh] md:h-[calc(100vh-12rem)] ${chatVisible ? 'block' : 'hidden md:hidden'}`}>
+          {chatConnected ? (
+            <iframe
+              ref={chatRef}
+              src={`${videoApiUrl}/api/room/${lessonId}/chat`}
+              className="w-full h-full border-0"
+              title="Chat Room"
+            ></iframe>
+          ) : (
+            <div className="flex items-center justify-center h-full bg-gray-50">
+              <div className="text-center p-6">
+                <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                </svg>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">{t('pages.lesson_room.chat_placeholder.title')}</h3>
+                <p className="text-gray-600 mb-4">{t('pages.lesson_room.chat_placeholder.description')}</p>
+                <button
+                  onClick={() => connectToRoom(lessonId!)}
+                  className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors"
+                >
+                  {t('pages.lesson_room.reconnect')}
+                </button>
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

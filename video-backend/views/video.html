@@ -161,7 +161,7 @@
     <div id="noperm" class="columns">
         <div class="column notif">
             <article class="notification is-link">
-                Camera and microphone permissions are needed to join the lesson room.
+                Необходимо разрешить использование камеры и микрофона для входа.
             </article>
         </div>
     </div>
@@ -171,7 +171,6 @@
             <!-- Local video -->
             <div id="local-container">
                 <video id="localVideo" class="video-area mirror" autoplay muted></video>
-                <div class="video-label">You</div>
             </div>
             
             <!-- Remote videos will be added here dynamically -->
@@ -180,13 +179,13 @@
             <div id="noone" class="notif">
                 <article id="noonein" class="notification is-primary is-light">
                     <button class="delete"></button>
-                    Waiting for the other participant to join...
+                    Ожидание другого участника...
                 </article>
             </div>
             <div id="nocon" class="notif" style="display:none;">
                 <article class="notification is-danger">
-                    Connection is closed!<br>
-                    Please refresh the page.
+                    Соединение закрыто!<br>
+                    Пожалуйста, обновите страницу.
                 </article>
             </div>
             
@@ -274,7 +273,6 @@
                 let el = document.createElement(event.track.kind);
                 el.srcObject = event.streams[0];
                 el.className = "remote-video";
-                el.setAttribute("controls", "false");
                 el.setAttribute("autoplay", "true");
                 el.setAttribute("playsinline", "true");
                 

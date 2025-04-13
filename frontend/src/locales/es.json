@@ -285,7 +285,28 @@
         "description": "Este es un marcador de posición para la funcionalidad real de la sala de lecciones.",
         "future_features": "La implementación futura incluirá videoconferencia, chat y herramientas de aprendizaje compartidas."
       },
-      "back_to_lessons": "Volver a Lecciones"
+      "back_to_lessons": "Volver a Lecciones",
+      "unauthorized": "No estás autorizado para acceder a esta lección.",
+      "load_error": "Error al cargar los datos de la lección. Por favor, inténtalo de nuevo.",
+      "connection_error": "Error al conectar con la sala de video. Por favor, inténtalo de nuevo.",
+      "connecting": "Conectando a la sala de video...",
+      "loading": "Cargando información de la lección...",
+      "error_title": "Error",
+      "lesson_not_found": "Lección no encontrada o no se puede acceder.",
+      "back_to_lessons": "Volver a mis lecciones",
+      "unknown_participant": "Participante desconocido",
+      "hide_chat": "Ocultar Chat",
+      "show_chat": "Mostrar Chat",
+      "leave_room": "Salir de la Sala",
+      "reconnect": "Reconectar",
+      "placeholder": {
+        "title": "Conexión de Video",
+        "description": "Conecta tu cámara y micrófono para comenzar la lección de video."
+      },
+      "chat_placeholder": {
+        "title": "Chat",
+        "description": "La conexión del chat no está establecida. Por favor reconecta para empezar a enviar mensajes."
+      }
     }
   },
   "userSettings": {

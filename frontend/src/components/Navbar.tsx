@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/I18nContext';
@@ -11,6 +11,11 @@ export const Navbar = () => {
     const { user, logout } = useAuth();
     const { t, formatCurrency } = useTranslation();
     const location = useLocation();
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    const toggleMobileMenu = () => {
+        setMobileMenuOpen(!mobileMenuOpen);
+    };
 
     const getNavLinks = () => {
         if (!user) return [];
@@ -57,6 +62,25 @@ export const Navbar = () => {
                     </div>
 
                     <div className="flex items-center space-x-4">
+                        {/* Mobile menu button */}
+                        <button 
+                            className="md:hidden p-2 rounded-md hover:bg-overlay-light transition-colors focus:outline-none"
+                            onClick={toggleMobileMenu}
+                            aria-expanded={mobileMenuOpen}
+                        >
+                            <span className="sr-only">{mobileMenuOpen ? 'Close menu' : 'Open menu'}</span>
+                            {/* Hamburger icon */}
+                            {!mobileMenuOpen ? (
+                                <svg className="h-6 w-6 text-text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                </svg>
+                            ) : (
+                                <svg className="h-6 w-6 text-text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            )}
+                        </button>
+
                         <LanguageSwitcher />
 
                         {user ? (
@@ -72,7 +96,7 @@ export const Navbar = () => {
                                                 target.src = DEFAULT_AVATAR;
                                             }}
                                         />
-                                        <span className="text-text-primary font-medium">
+                                        <span className="text-text-primary font-medium hidden sm:inline">
                                             {user.username}
                                         </span>
                                     </button>
@@ -93,7 +117,7 @@ export const Navbar = () => {
                                 </div>
                             </div>
                         ) : (
-                            <div className="flex items-center space-x-4">
+                            <div className="hidden sm:flex items-center space-x-4">
                                 <Link
                                     to="/login"
                                     className="px-4 py-2 text-accent-primary hover:text-accent-primary-hover font-medium transition-colors"
@@ -110,6 +134,49 @@ export const Navbar = () => {
                         )}
                     </div>
                 </div>
+                
+                {/* Mobile menu, show/hide based on menu state */}
+                {mobileMenuOpen && (
+                    <div className="md:hidden py-2 border-t border-border">
+                        {getNavLinks().length > 0 && (
+                            <div className="px-2 pt-2 pb-4 space-y-1">
+                                {getNavLinks().map(link => (
+                                    <Link
+                                        key={link.to}
+                                        to={link.to}
+                                        className={`block px-3 py-2 rounded-md text-base font-medium transition-colors
+                                            ${isActive(link.to) 
+                                                ? 'bg-overlay-light text-accent-primary' 
+                                                : 'text-text-secondary hover:bg-overlay-light hover:text-text-primary'
+                                            }`}
+                                        onClick={() => setMobileMenuOpen(false)}
+                                    >
+                                        {link.label}
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
+                        
+                        {!user && (
+                            <div className="px-2 pt-2 pb-3 space-y-1 border-t border-border">
+                                <Link
+                                    to="/login"
+                                    className="block px-3 py-2 rounded-md text-base font-medium text-accent-primary hover:bg-overlay-light transition-colors"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    {t('auth.login')}
+                                </Link>
+                                <Link
+                                    to="/register"
+                                    className="block px-3 py-2 rounded-md text-base font-medium bg-accent-primary hover:bg-accent-primary-hover text-white transition-colors"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    {t('auth.register')}
+                                </Link>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         </nav>
     );

@@ -286,20 +286,26 @@
       "loading": "Loading lesson...",
       "connecting": "Connecting to video room...",
       "reconnect": "Reconnect",
-      "unauthorized": "You are not authorized to view this lesson",
-      "lesson_not_found": "Lesson not found",
-      "load_error": "Failed to load lesson data",
-      "connection_error": "Failed to connect to video room",
+      "unauthorized": "You are not authorized to access this lesson.",
+      "lesson_not_found": "Lesson not found or unable to access.",
+      "load_error": "Failed to load lesson data. Please try again.",
+      "connection_error": "Failed to connect to the video room. Please try again.",
       "error_title": "Error",
       "tutor": "Tutor",
       "student": "Student",
-      "unknown_participant": "Unknown Participant",
+      "unknown_participant": "Unknown participant",
       "placeholder": {
-        "title": "Lesson Room",
-        "description": "This is a placeholder for the actual lesson room functionality.",
-        "future_features": "Future implementation will include video conferencing, chat, and shared learning tools."
+        "title": "Video Connection",
+        "description": "Connect your camera and microphone to start the video lesson."
       },
-      "back_to_lessons": "Back to Lessons"
+      "back_to_lessons": "Back to my lessons",
+      "hide_chat": "Hide Chat",
+      "show_chat": "Show Chat",
+      "leave_room": "Leave Room",
+      "chat_placeholder": {
+        "title": "Chat",
+        "description": "Chat connection is not established. Please reconnect to start messaging."
+      }
     }
   },
   "userSettings": {
