@@ -49,26 +49,15 @@ func Run() error {
 		AllowCredentials: true,
 	}))
 
-	// Core room and chat endpoints - keep only these
-	app.Get("/room/:uuid", handlers.Room)
-	app.Get("/room/:uuid/websocket", websocket.New(handlers.RoomWebsocket, websocket.Config{
-		HandshakeTimeout: 10 * time.Second,
-	}))
-	app.Get("/room/:uuid/chat", handlers.RoomChat)
-	app.Get("/room/:uuid/chat/websocket", websocket.New(handlers.RoomChatWebsocket))
-
-	// Add separate API endpoints for video and chat
+	// API endpoints used by LessonRoom
 	app.Get("/api/room/:uuid/video", handlers.RoomVideoOnly)
 	app.Get("/api/room/:uuid/video/websocket", websocket.New(handlers.RoomWebsocket, websocket.Config{
 		HandshakeTimeout: 10 * time.Second,
 	}))
 	app.Get("/api/room/:uuid/chat", handlers.RoomChatOnly)
 	app.Get("/api/room/:uuid/chat/websocket", websocket.New(handlers.RoomChatWebsocket))
-
-	// Essential API endpoints
 	app.Get("/api/room/:uuid/exists", handlers.RoomExists)
 	app.Post("/api/room/create/:uuid", handlers.RoomCreateWithID)
-	app.Get("/api/room/:uuid/info", handlers.RoomInfo)
 
 	app.Static("/", "./assets")
 

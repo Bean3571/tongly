@@ -45,58 +45,6 @@ func RoomExists(c *fiber.Ctx) error {
 	})
 }
 
-// Room renders the room page
-func Room(c *fiber.Ctx) error {
-	uuid := c.Params("uuid")
-	if uuid == "" {
-		c.Status(400)
-		return nil
-	}
-
-	// Determine WebSocket scheme based on request protocol
-	wsScheme := "ws"
-	if c.Protocol() == "https" {
-		wsScheme = "wss"
-	}
-
-	uuid, _ = createOrGetRoom(uuid)
-	return c.Render("peer", fiber.Map{
-		"RoomWebsocketAddr": fmt.Sprintf("%s://%s/room/%s/websocket", wsScheme, c.Hostname(), uuid),
-		"RoomLink":          fmt.Sprintf("%s://%s/room/%s", c.Protocol(), c.Hostname(), uuid),
-		"ChatWebsocketAddr": fmt.Sprintf("%s://%s/room/%s/chat/websocket", wsScheme, c.Hostname(), uuid),
-		"Type":              "room",
-	}, "layouts/main")
-}
-
-// RoomInfo returns information about a room
-func RoomInfo(c *fiber.Ctx) error {
-	uuid := c.Params("uuid")
-	if uuid == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Room ID is required",
-		})
-	}
-
-	w.RoomsLock.RLock()
-	room, exists := w.Rooms[uuid]
-	w.RoomsLock.RUnlock()
-
-	if !exists {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "Room not found",
-		})
-	}
-
-	// Count participants
-	participantCount := len(room.Peers.Connections)
-
-	return c.JSON(fiber.Map{
-		"id":           uuid,
-		"participants": participantCount,
-		"created_at":   room.CreatedAt,
-	})
-}
-
 // RoomWebsocket handles WebSocket connections for the room
 func RoomWebsocket(c *websocket.Conn) {
 	uuid := c.Params("uuid")

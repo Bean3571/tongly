@@ -4,13 +4,8 @@ import (
 	"video-service/pkg/chat"
 	w "video-service/pkg/webrtc"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"
 )
-
-func RoomChat(c *fiber.Ctx) error {
-	return c.Render("chat", fiber.Map{}, "layouts/main")
-}
 
 func RoomChatWebsocket(c *websocket.Conn) {
 	uuid := c.Params("uuid")
