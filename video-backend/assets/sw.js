@@ -6,7 +6,6 @@ self.addEventListener('install', e => {
       '/javascript/chat.js',
       '/javascript/peer.js',
       '/javascript/stream.js',
-      '/javascript/viewer.js',
       '/font/v.eot',
       '/font/v.svg',
       '/font/v.ttf',
