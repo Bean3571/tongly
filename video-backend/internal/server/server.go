@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	addr = flag.String("addr", "192.168.0.100:8081", "")
+	addr = flag.String("addr", "0.0.0.0:8081", "")
 	cert = flag.String("cert", "", "Certificate file path")
 	key  = flag.String("key", "", "Key file path")
 )
@@ -29,11 +29,16 @@ func Run() error {
 		*addr = ":8081"
 	}
 
-	// Set default certificate and key files if flags were not provided
-	if *cert == "" {
+	// Use environment variables for cert paths if provided
+	if envCert := os.Getenv("CERT_FILE"); envCert != "" {
+		*cert = envCert
+	} else if *cert == "" {
 		*cert = "../certs/cert.pem"
 	}
-	if *key == "" {
+
+	if envKey := os.Getenv("KEY_FILE"); envKey != "" {
+		*key = envKey
+	} else if *key == "" {
 		*key = "../certs/key.pem"
 	}
 
@@ -43,7 +48,7 @@ func Run() error {
 
 	// Use a more permissive CORS configuration for development
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "https://192.168.0.100:3000, https://192.168.0.106:3000, https://192.168.0.107:3000, https://192.168.0.108:3000,https://localhost:3000,http://localhost:3000",
+		AllowOrigins:     "https://frontend,http://frontend,https://localhost,http://localhost,https://localhost:443,http://localhost:443,https://localhost:3000,http://localhost:3000",
 		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
 		AllowCredentials: true,
@@ -58,6 +63,11 @@ func Run() error {
 	app.Get("/api/room/:uuid/chat/websocket", websocket.New(handlers.RoomChatWebsocket))
 	app.Get("/api/room/:uuid/exists", handlers.RoomExists)
 	app.Post("/api/room/create/:uuid", handlers.RoomCreateWithID)
+
+	// Health check endpoint for Docker
+	app.Get("/api/room/health", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{"status": "ok"})
+	})
 
 	app.Static("/", "./assets")
 

@@ -124,9 +124,17 @@ func main() {
 		if useSSL {
 			// Use absolute path to certificates
 			workDir, _ := os.Getwd()
-			certsDir := filepath.Join(workDir, "..", "certs")
-			certFile := filepath.Join(certsDir, "cert.pem")
-			keyFile := filepath.Join(certsDir, "key.pem")
+
+			// Check for Docker environment first (certificates in /app/certs)
+			certFile := "/app/certs/cert.pem"
+			keyFile := "/app/certs/key.pem"
+
+			// If not in Docker, use relative path
+			if _, err := os.Stat(certFile); os.IsNotExist(err) {
+				certsDir := filepath.Join(workDir, "..", "certs")
+				certFile = filepath.Join(certsDir, "cert.pem")
+				keyFile = filepath.Join(certsDir, "key.pem")
+			}
 
 			// Check if cert files exist
 			if _, certErr := os.Stat(certFile); certErr != nil {
@@ -141,7 +149,7 @@ func main() {
 				logger.Info("Found key file", "path", keyFile)
 			}
 
-			logger.Info("Server started with HTTPS", "port", cfg.ServerPort, "certsDir", certsDir)
+			logger.Info("Server started with HTTPS", "port", cfg.ServerPort, "certFile", certFile)
 			err = srv.ListenAndServeTLS(certFile, keyFile)
 		} else {
 			logger.Info("Server started with HTTP", "port", cfg.ServerPort)
