@@ -3,8 +3,8 @@ package handlers
 import (
 	"fmt"
 	"time"
-	"v/pkg/chat"
-	w "v/pkg/webrtc"
+	"video-service/pkg/chat"
+	w "video-service/pkg/webrtc"
 
 	"crypto/sha256"
 

@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
-	"v/internal/handlers"
-	w "v/pkg/webrtc"
+	"video-service/internal/handlers"
+	w "video-service/pkg/webrtc"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	addr = flag.String("addr", "0.0.0.0:8080", "")
+	addr = flag.String("addr", "192.168.0.100:8081", "")
 	cert = flag.String("cert", "", "Certificate file path")
 	key  = flag.String("key", "", "Key file path")
 )
@@ -26,15 +26,15 @@ func Run() error {
 	flag.Parse()
 
 	if *addr == ":" {
-		*addr = ":8080"
+		*addr = ":8081"
 	}
 
 	// Set default certificate and key files if flags were not provided
 	if *cert == "" {
-		*cert = "certs/localhost+6.pem"
+		*cert = "../certs/cert.pem"
 	}
 	if *key == "" {
-		*key = "certs/localhost+6-key.pem"
+		*key = "../certs/key.pem"
 	}
 
 	engine := html.New("./views", ".html")

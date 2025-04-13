@@ -3,7 +3,7 @@ package handlers
 import (
 	"fmt"
 	"time"
-	w "v/pkg/webrtc"
+	w "video-service/pkg/webrtc"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"

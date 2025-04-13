@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"v/pkg/chat"
-	w "v/pkg/webrtc"
+	"video-service/pkg/chat"
+	w "video-service/pkg/webrtc"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"

@@ -4,13 +4,13 @@ import (
 	"log"
 	"os"
 
-	"v/internal/server"
+	"video-service/internal/server"
 )
 
 func main() {
 	// Check if certificates exist and set them as environment variables
-	certFile := "./certs/localhost+6.pem"
-	keyFile := "./certs/localhost+6-key.pem"
+	certFile := "../certs/cert.pem"
+	keyFile := "../certs/key.pem"
 
 	if _, err := os.Stat(certFile); err == nil {
 		if _, err := os.Stat(keyFile); err == nil {
