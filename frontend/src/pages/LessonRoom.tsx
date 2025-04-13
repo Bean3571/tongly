@@ -2,11 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from '../contexts/I18nContext';
 import { useAuth } from '../contexts/AuthContext';
-import { getLessonById } from '../services/lesson.service';
 import { joinRoom } from '../services/videoRoom.service';
-import { Lesson } from '../types/lesson';
 import { toast } from 'react-hot-toast';
-import { format } from 'date-fns';
 
 const LessonRoom: React.FC = () => {
   const { t } = useTranslation();
@@ -15,7 +12,6 @@ const LessonRoom: React.FC = () => {
   const navigate = useNavigate();
   
   // State
-  const [lesson, setLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [connecting, setConnecting] = useState<boolean>(false);
@@ -27,57 +23,32 @@ const LessonRoom: React.FC = () => {
   const videoRef = useRef<HTMLIFrameElement>(null);
   const chatRef = useRef<HTMLIFrameElement>(null);
   
-  // Load lesson data and check access
   useEffect(() => {
-    const fetchLessonData = async () => {
-      if (!lessonId || !user) return;
+    const connectToVideoRoom = async () => {
+      if (!lessonId) return;
       
       try {
-        setLoading(true);
-        const lessonData = await getLessonById(parseInt(lessonId));
+        setConnecting(true);
         
-        // Verify that the current user is either the student or tutor for this lesson
-        if (lessonData.student_id !== user.id && lessonData.tutor_id !== user.id) {
-          setError(t('pages.lesson_room.unauthorized'));
-          return;
-        }
+        // Create/join the room
+        await joinRoom(lessonId);
         
-        setLesson(lessonData);
+        // Set connected states
+        setVideoConnected(true);
+        setChatConnected(true);
         
-        // Connect to the room
-        await connectToRoom(lessonId);
       } catch (err) {
-        console.error('Error loading lesson:', err);
-        setError(t('pages.lesson_room.load_error'));
-        toast.error(t('pages.lesson_room.load_error'));
+        console.error('Error connecting to room:', err);
+        setError(t('pages.lesson_room.connection_error'));
+        toast.error(t('pages.lesson_room.connection_error'));
       } finally {
         setLoading(false);
+        setConnecting(false);
       }
     };
     
-    fetchLessonData();
-  }, [lessonId, user, t]);
-  
-  // Function to connect to the video room
-  const connectToRoom = async (roomId: string) => {
-    try {
-      setConnecting(true);
-      
-      // Create/join the room
-      await joinRoom(roomId);
-      
-      // Set connected states
-      setVideoConnected(true);
-      setChatConnected(true);
-      
-    } catch (err) {
-      console.error('Error connecting to room:', err);
-      setError(t('pages.lesson_room.connection_error'));
-      toast.error(t('pages.lesson_room.connection_error'));
-    } finally {
-      setConnecting(false);
-    }
-  };
+    connectToVideoRoom();
+  }, [lessonId, t]);
   
   // Toggle chat visibility
   const toggleChat = () => {
@@ -104,12 +75,12 @@ const LessonRoom: React.FC = () => {
   }
   
   // Render error state
-  if (error || !lesson) {
+  if (error) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         <div className="bg-red-50 p-6 rounded-lg border border-red-200 text-center">
           <h2 className="text-xl font-semibold text-red-600 mb-2">{t('pages.lesson_room.error_title')}</h2>
-          <p className="text-gray-700 mb-4">{error || t('pages.lesson_room.lesson_not_found')}</p>
+          <p className="text-gray-700 mb-4">{error}</p>
           <button
             onClick={handleBackToLessons}
             className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors"
@@ -120,16 +91,6 @@ const LessonRoom: React.FC = () => {
       </div>
     );
   }
-  
-  // Calculate who the other participant is
-  const isStudent = lesson.student_id === user?.id;
-  const otherParticipant = isStudent ? lesson.tutor : lesson.student;
-  const otherParticipantName = otherParticipant 
-    ? `${otherParticipant.first_name || ''} ${otherParticipant.last_name || ''}`.trim() || otherParticipant.username
-    : t('pages.lesson_room.unknown_participant');
-    
-  // Format end time
-  const formattedEndTime = lesson.end_time ? format(new Date(lesson.end_time), 'HH:mm') : '';
 
   // API URL base
   const videoApiUrl = process.env.REACT_APP_VIDEO_API_URL || 'https://192.168.0.100:8081';
@@ -138,7 +99,7 @@ const LessonRoom: React.FC = () => {
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between">
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-0">
-          {lesson.language?.name || t('common.unknown')} | {formattedEndTime} | {otherParticipantName}
+          {t('pages.lesson_room.title')}
         </h1>
         <div className="flex items-center space-x-3">
           <button
@@ -182,7 +143,18 @@ const LessonRoom: React.FC = () => {
                 <h3 className="text-lg font-medium text-gray-900 mb-2">{t('pages.lesson_room.placeholder.title')}</h3>
                 <p className="text-gray-600 mb-4">{t('pages.lesson_room.placeholder.description')}</p>
                 <button
-                  onClick={() => connectToRoom(lessonId!)}
+                  onClick={() => {
+                    setConnecting(true);
+                    joinRoom(lessonId!).then(() => {
+                      setVideoConnected(true);
+                      setChatConnected(true);
+                    }).catch(err => {
+                      console.error('Error reconnecting:', err);
+                      toast.error(t('pages.lesson_room.connection_error'));
+                    }).finally(() => {
+                      setConnecting(false);
+                    });
+                  }}
                   className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors"
                 >
                   {t('pages.lesson_room.reconnect')}
@@ -210,7 +182,18 @@ const LessonRoom: React.FC = () => {
                 <h3 className="text-lg font-medium text-gray-900 mb-2">{t('pages.lesson_room.chat_placeholder.title')}</h3>
                 <p className="text-gray-600 mb-4">{t('pages.lesson_room.chat_placeholder.description')}</p>
                 <button
-                  onClick={() => connectToRoom(lessonId!)}
+                  onClick={() => {
+                    setConnecting(true);
+                    joinRoom(lessonId!).then(() => {
+                      setVideoConnected(true);
+                      setChatConnected(true);
+                    }).catch(err => {
+                      console.error('Error reconnecting:', err);
+                      toast.error(t('pages.lesson_room.connection_error'));
+                    }).finally(() => {
+                      setConnecting(false);
+                    });
+                  }}
                   className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors"
                 >
                   {t('pages.lesson_room.reconnect')}
