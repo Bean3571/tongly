@@ -34,7 +34,7 @@ const parseBoolean = (value: string): boolean => {
 // Environment configuration reading from .env file
 export const envConfig = {
   // API Configuration
-  apiUrl: process.env.REACT_APP_API_URL || 'https://localhost:8080',
+  apiUrl: process.env.REACT_APP_API_URL || '/api',
   wsUrl: process.env.REACT_APP_WS_URL || 'wss://localhost:8080',
   environment: process.env.REACT_APP_ENVIRONMENT || 'development',
   frontendUrl: process.env.REACT_APP_FRONTEND_URL || 'http://localhost:3000',
