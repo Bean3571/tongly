@@ -1,6 +1,6 @@
 module video-service
 
-go 1.21
+go 1.23.5
 
 require (
 	github.com/fasthttp/websocket v1.5.0

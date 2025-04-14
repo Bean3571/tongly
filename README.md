@@ -1,147 +1,157 @@
-# Tongly Project
+# Tongly - Языковая платформа для обучения
 
-## Docker Deployment Instructions
+Tongly - это комплексная платформа для изучения языков, которая соединяет студентов и преподавателей через видеоуроки, чаты и интерактивные игры. Платформа построена на микросервисной архитектуре с использованием Docker-контейнеров.
 
-This project consists of three main components:
-- Frontend (React)
-- Backend (Go)
-- Video Backend (Go)
-- PostgreSQL Database
+## Архитектура проекта
 
-All components are containerized using Docker and orchestrated with Docker Compose.
+Проект состоит из четырех основных компонентов:
 
-### Prerequisites
+1. **Frontend** (React/TypeScript)
+2. **Backend API** (Golang/Gin)
+3. **Video-service** (Golang/WebRTC)
+4. **База данных** (PostgreSQL)
 
-1. Docker and Docker Compose installed on your host machine
-2. SSL certificates in the `certs/` directory:
-   - `cert.pem` - SSL certificate
-   - `key.pem` - SSL private key
+![Архитектура системы](https://i.imgur.com/placeholder.png)
 
-### Quick Start
+## Технологический стек
 
-1. Make sure Docker and Docker Compose are installed on your system.
+### Frontend
+- **Язык программирования**: TypeScript
+- **Фреймворк**: React
+- **Стилизация**: Tailwind CSS
+- **HTTP-клиент**: Axios
+- **Веб-сервер**: Nginx
 
-2. Place your SSL certificates in the `certs/` directory:
-   ```
-   certs/
-   ├── cert.pem
-   └── key.pem
-   ```
+### Backend
+- **Язык программирования**: Go 1.23
+- **Фреймворк**: Gin
+- **База данных**: PostgreSQL
+- **Аутентификация**: JWT
+- **Миграции**: golang-migrate
 
-3. Start all services:
-   ```
-   docker-compose up -d
-   ```
+### Video-service
+- **Язык программирования**: Go 1.23
+- **Фреймворк для веб-сервера**: Fiber
+- **Технология видеосвязи**: WebRTC (Pion)
+- **Протокол коммуникации**: WebSocket
 
-4. Check if all services are running properly:
-   ```
-   docker-compose ps
-   ```
+## Компоненты системы
 
-5. Access the application:
-   - Frontend: https://localhost
-   - Main API: https://localhost:8080
-   - Video API: https://localhost:8081
+### Frontend (frontend/)
 
-### Network Configuration
+Frontend реализован на React с TypeScript и обеспечивает пользовательский интерфейс для всей платформы. Основные функции:
 
-The Docker Compose setup creates a shared network (`tongly-network`) that allows all containers to communicate with each other. The services are referenced by their container names within the Docker network:
+- Регистрация и авторизация пользователей
+- Личный кабинет студента/преподавателя
+- Поиск преподавателей и бронирование уроков
+- Страница видеоурока с интеграцией Video-service
+- Интерактивные языковые игры
+- Настройки пользовательских предпочтений
 
-- `frontend` - Nginx serving the React app (port 443)
-- `backend` - Go API service (port 8080)
-- `video-service` - Go video communication service (port 8081)
-- `db` - PostgreSQL database (port 5432)
+Запросы к API выполняются через клиент Axios с настроенной авторизацией через JWT. Маршрутизация осуществляется через React Router с разделением на публичные и защищенные маршруты.
 
-### SSL Certificates
+Статические файлы раздаются через Nginx, который также выступает в роли прокси для API-запросов к backend и video-service.
 
-All services use the SSL certificates mounted from the host machine:
+### Backend API (backend/)
 
-- The certificates are mounted as read-only volumes in each container
-- The frontend serves HTTPS traffic on port 443
-- The backend services use HTTPS for API communication
+Backend реализован на Go с использованием фреймворка Gin и следует принципам чистой архитектуры:
 
-### Environment Variables
+- **cmd/server/**: точка входа приложения
+- **internal/**: внутренние пакеты приложения
+  - **config/**: конфигурация приложения
+  - **database/**: подключение к базе данных и миграции
+  - **entities/**: бизнес-модели
+  - **handlers/**: обработчики HTTP-запросов
+  - **middleware/**: промежуточное ПО для авторизации, логирования и т.д.
+  - **repositories/**: слой доступа к данным
+  - **router/**: настройка маршрутизации
+  - **usecases/**: бизнес-логика приложения
+- **pkg/**: общие утилиты (JWT, валидация и т.д.)
+- **migrations/**: SQL-миграции для создания схемы БД
 
-The Docker-specific configuration is managed through environment variables:
+API поддерживает следующую функциональность:
+- Авторизация и аутентификация пользователей
+- Управление профилями студентов и преподавателей
+- Планирование и управление уроками
+- Хранение пользовательских настроек
+- Предоставление данных для языковых игр
 
-- Frontend uses `.env.docker` during build which sets service URLs to container names
-- Backend and video-service container environment variables are set in docker-compose.yml
+### Video-service (video-service/)
 
-### Healthchecks
+Video-service - это специализированный микросервис для организации видеоконференций между студентами и преподавателями. Построен на технологии WebRTC с использованием библиотеки Pion:
 
-The docker-compose.yml includes healthchecks for each service:
+- **cmd/**: точка входа приложения
+- **internal/**: внутренняя логика
+  - **handlers/**: обработчики HTTP-запросов и WebSocket
+  - **server/**: конфигурация веб-сервера
+- **pkg/**: основные компоненты
+  - **chat/**: текстовый чат во время видеоконференций
+  - **webrtc/**: логика соединения WebRTC
+- **views/**: HTML-шаблоны
+- **assets/**: статические файлы (JavaScript, CSS)
 
-- **Database**: Uses `pg_isready` to ensure the database is accepting connections
-- **Backend**: Checks the `/api/health` endpoint
-- **Video Backend**: Checks the `/api/room/health` endpoint
+Функциональность:
+- Создание и управление виртуальными комнатами
+- Установка WebRTC-соединений для обмена аудио/видео потоками
+- Текстовый чат в реальном времени
+- Демонстрация экрана (опционально)
 
-These ensure that each service starts only when its dependencies are actually ready.
+### База данных (PostgreSQL)
 
-### Persistent Data
+PostgreSQL используется для хранения всех данных платформы:
+- Пользовательские аккаунты и профили
+- Запланированные уроки
+- Языки, интересы и цели обучения
+- Данные игр и статистика
 
-The following Docker volumes are created for persistent data:
+## Взаимодействие компонентов
 
-- `postgres-data`: Stores PostgreSQL database files
-- `backend-uploads`: Stores uploaded files for the backend service
+1. **Пользователь → Frontend → Backend** - Запросы к API для получения/изменения данных
+2. **Пользователь → Frontend → Video-service** - Установка WebRTC-соединения для видеозвонков
+3. **Backend ↔ База данных** - Сохранение и получение данных
+4. **Video-service ↔ WebRTC** - Обмен медиапотоками между участниками
 
-### Troubleshooting
+## Запуск проекта
 
-1. Check service status:
-   ```
-   docker-compose ps
-   ```
+Проект развертывается с помощью Docker Compose:
 
-2. View logs for a specific service:
-   ```
-   docker-compose logs -f [service-name]
-   ```
-
-3. If services can't communicate, check that:
-   - The container names are being used for inter-service communication
-   - The Docker network is properly created
-   - All services are on the same network
-
-4. For SSL certificate issues:
-   - Ensure the certificates are correctly mounted in each container
-   - Check the logs for certificate path errors:
-     ```
-     docker-compose logs backend | grep cert
-     docker-compose logs video-service | grep cert
-     ```
-   - Verify the certificates are valid and properly formatted
-
-5. Check CORS issues:
-   - If you see CORS errors in your browser console, check that the domains match the allowed origins in both backend services
-   - The CORS configurations allow various combinations of frontend URLs
-
-6. For WebSocket connection issues:
-   - Ensure the `Upgrade` and `Connection` headers are being properly passed
-   - Check the nginx.conf proxy settings for WebSocket support
-
-7. If frontend can't connect to backend services:
-   - Check that the Docker network is working properly
-   - Verify that the .env.docker file has the correct service URLs (using container names)
-   - Try connecting directly to the backends (https://localhost:8080, https://localhost:8081)
-
-### Restarting Services
-
-If you need to restart a service:
-
-```
-docker-compose restart [service-name]
+```bash
+docker-compose up -d
 ```
 
-To rebuild a service after code changes:
+После запуска будут доступны:
+- Frontend: https://localhost:443
+- Backend API: https://localhost:8080
+- Video-service: https://localhost:8081
 
+## Разработка
+
+Для разработки каждый компонент может быть запущен отдельно:
+
+### Frontend
+```bash
+cd frontend
+npm install
+npm run dev
 ```
-docker-compose up -d --build [service-name]
+
+### Backend
+```bash
+cd backend
+go run cmd/server/main.go
 ```
 
-### Security Notes
+### Video-service
+```bash
+cd video-service
+go run cmd/main.go
+```
 
-Production considerations:
-- Replace the default passwords and JWT secrets with strong, unique values
-- Consider using Docker secrets for sensitive information
-- Set up proper firewall rules on your host machine
-- Implement proper backup procedures for volumes
-- Consider using a reverse proxy (like Traefik or Nginx Proxy Manager) for managing SSL and routing 
+## Безопасность
+
+Проект использует следующие механизмы безопасности:
+- HTTPS для всех соединений
+- JWT для аутентификации
+- Безопасное хранение паролей (bcrypt)
+- Валидация и санитизация входных данных
+
