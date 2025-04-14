@@ -93,7 +93,7 @@ const LessonRoom: React.FC = () => {
   }
 
   // API URL base
-  const videoApiUrl = process.env.REACT_APP_VIDEO_API_URL || 'https://192.168.0.100:8081';
+  const videoApiUrl = process.env.REACT_APP_FRONTEND_URL || 'https://192.168.0.100';
   
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
