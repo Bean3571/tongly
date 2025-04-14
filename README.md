@@ -49,7 +49,7 @@ The Docker Compose setup creates a shared network (`tongly-network`) that allows
 
 - `frontend` - Nginx serving the React app (port 443)
 - `backend` - Go API service (port 8080)
-- `video-backend` - Go video communication service (port 8081)
+- `video-service` - Go video communication service (port 8081)
 - `db` - PostgreSQL database (port 5432)
 
 ### SSL Certificates
@@ -65,7 +65,7 @@ All services use the SSL certificates mounted from the host machine:
 The Docker-specific configuration is managed through environment variables:
 
 - Frontend uses `.env.docker` during build which sets service URLs to container names
-- Backend and video-backend container environment variables are set in docker-compose.yml
+- Backend and video-service container environment variables are set in docker-compose.yml
 
 ### Healthchecks
 
@@ -106,7 +106,7 @@ The following Docker volumes are created for persistent data:
    - Check the logs for certificate path errors:
      ```
      docker-compose logs backend | grep cert
-     docker-compose logs video-backend | grep cert
+     docker-compose logs video-service | grep cert
      ```
    - Verify the certificates are valid and properly formatted
 

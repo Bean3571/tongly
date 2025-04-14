@@ -1,6 +1,6 @@
 import { envConfig } from '../config/env';
 
-// Room API base URL - this is the video-backend URL where WebRTC services are hosted
+// Room API base URL - this is the video-service URL where WebRTC services are hosted
 const VIDEO_API_URL = process.env.REACT_APP_VIDEO_API_URL || 'https://192.168.0.100:8081';
 
 // Interface for room information
