@@ -127,7 +127,7 @@ const LessonRoom: React.FC = () => {
   // Create title with tutor info, language, and end time
   const lessonTitle = lesson ? (
     <>
-      {t('pages.lesson_room.title')} - {lesson.tutor?.first_name} {lesson.tutor?.last_name} 
+      {lesson.tutor?.first_name} {lesson.tutor?.last_name} 
       {lesson.language?.name && ` • ${lesson.language.name}`}
       {lesson.end_time && ` • ${t('pages.lesson_room.ends_at')} ${formatEndTime(lesson.end_time)}`}
     </>
