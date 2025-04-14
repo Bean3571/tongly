@@ -3,162 +3,202 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { NotificationProvider } from './contexts/NotificationContext';
 import { I18nProvider } from './contexts/I18nContext';
 import { TranslationLoader } from './components/TranslationLoader';
-import { Navbar } from './components/Layout/Navbar';
-import { Footer } from './components/Footer';
+import { Navbar } from './components/Navbar';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
-import { Profile } from './pages/Profile';
-import StudentDashboard from './pages/StudentDashboard';
-import TutorDashboard from './pages/TutorDashboard';
-import TutorProfile from './pages/TutorProfile';
-import TutorSearch from './pages/TutorSearch';
-import { Lessons } from './pages/Lessons';
-import LessonRoom from './pages/LessonRoom';
-import { Wallet } from './pages/Wallet';
-import { Challenges } from './pages/Challenges';
-import { Leaderboard } from './pages/Leaderboard';
 import { useAuth } from './contexts/AuthContext';
-import { BookLesson } from './pages/BookLesson';
-import { TeachingProfile } from './pages/TeachingProfile';
-import { Schedule } from './pages/Schedule';
-import { Messages } from './pages/Messages';
-import { Settings } from './pages/Settings';
-import { PlatformEarnings } from './pages/admin/PlatformEarnings';
+import { Home } from './pages/Home';
+import { UserSettings } from './pages/UserSettings';
+import { UserPreferences } from './pages/UserPreferences';
+import { TutorSettings } from './pages/TutorSettings';
+import { TutorSchedule } from './pages/TutorSchedule';
+import { SearchTutor } from './pages/SearchTutor';
+import { ScheduleLesson } from './pages/ScheduleLesson';
+import MyLessons from './pages/MyLessons';
+import LessonRoom from './pages/LessonRoom';
+import GamesHub from './pages/Games/GamesHub';
+import GamePlay from './pages/Games/GamePlay';
+import Leaderboard from './pages/Games/Leaderboard';
+import { UserRole } from './types/user';
+import { Toaster } from 'react-hot-toast';
 
 const queryClient = new QueryClient();
 
 const PrivateRoute = ({ children, role }: { children: React.ReactNode, role?: string }) => {
     const { user } = useAuth();
     if (!user) return <Navigate to="/login" />;
-    if (role && user.credentials.role !== role) {
-        return <Navigate to="/" />;
-    }
+    if (role && user.role !== role) return <Navigate to="/home" />;
+    return <>{children}</>;
+};
+
+const UnauthorizedRoute = ({ children }: { children: React.ReactNode }) => {
+    const { user } = useAuth();
+    if (user) return <Navigate to="/home" />;
     return <>{children}</>;
 };
 
 const AppRoutes = () => {
     const { user } = useAuth();
-    const defaultRoute = user?.credentials.role === 'tutor' ? '/tutor/dashboard' : '/student/dashboard';
+    const defaultRoute = '/home';
 
     return (
-        <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+        <div className="min-h-screen flex flex-col bg-surface text-text-primary">
             <Navbar />
             <main className="container mx-auto px-4 py-8 flex-grow">
                 <Routes>
-                    {/* Public Routes */}
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
+                    {/* Public Routes - Only for unauthorized users */}
+                    <Route 
+                        path="/login" 
+                        element={
+                            <UnauthorizedRoute>
+                                <Login />
+                            </UnauthorizedRoute>
+                        } 
+                    />
+                    <Route 
+                        path="/register" 
+                        element={
+                            <UnauthorizedRoute>
+                                <Register />
+                            </UnauthorizedRoute>
+                        } 
+                    />
+                    <Route path="/home" element={<Home />} />
 
-                    {/* Common Protected Routes */}
-                    <Route path="/profile" element={
-                        <PrivateRoute>
-                            <Profile />
-                        </PrivateRoute>
-                    } />
-                    <Route path="/wallet" element={
-                        <PrivateRoute>
-                            <Wallet />
-                        </PrivateRoute>
-                    } />
-
-                    {/* Student Routes */}
-                    <Route path="/student/dashboard" element={
-                        <PrivateRoute role="student">
-                            <StudentDashboard />
-                        </PrivateRoute>
-                    } />
-                    <Route path="/tutors" element={
-                        <PrivateRoute role="student">
-                            <TutorSearch />
-                        </PrivateRoute>
-                    } />
-                    <Route path="/tutors/:id" element={
-                        <PrivateRoute role="student">
-                            <TutorProfile />
-                        </PrivateRoute>
-                    } />
-                    <Route path="/tutors/:id/book" element={
-                        <PrivateRoute role="student">
-                            <BookLesson />
-                        </PrivateRoute>
-                    } />
-
-                    {/* Tutor Routes */}
-                    <Route path="/tutor/dashboard" element={
-                        <PrivateRoute role="tutor">
-                            <TutorDashboard />
-                        </PrivateRoute>
-                    } />
-                    <Route path="/tutor/profile" element={
-                        <PrivateRoute role="tutor">
-                            <TeachingProfile />
-                        </PrivateRoute>
-                    } />
-                    <Route path="/schedule" element={
-                        <PrivateRoute role="tutor">
-                            <Schedule />
-                        </PrivateRoute>
-                    } />
-                    <Route path="/messages" element={
-                        <PrivateRoute>
-                            <Messages />
-                        </PrivateRoute>
-                    } />
-                    <Route path="/settings" element={
-                        <PrivateRoute>
-                            <Settings />
-                        </PrivateRoute>
-                    } />
-
-                    {/* Lesson Routes */}
-                    <Route path="/lessons" element={
-                        <PrivateRoute>
-                            <Lessons />
-                        </PrivateRoute>
-                    } />
-                    <Route path="/lessons/:lessonId/room" element={
-                        <PrivateRoute>
-                            <LessonRoom />
-                        </PrivateRoute>
-                    } />
-
-                    {/* Admin Routes */}
-                    <Route path="/admin/earnings" element={
-                        <PrivateRoute role="admin">
-                            <PlatformEarnings />
-                        </PrivateRoute>
-                    } />
+                    {/* Private Routes */}
+                    <Route 
+                        path="/settings" 
+                        element={
+                            <PrivateRoute>
+                                <UserSettings />
+                            </PrivateRoute>
+                        } 
+                    />
+                    <Route 
+                        path="/preferences" 
+                        element={
+                            <PrivateRoute>
+                                <UserPreferences />
+                            </PrivateRoute>
+                        } 
+                    />
+                    <Route 
+                        path="/tutor-settings" 
+                        element={
+                            <PrivateRoute>
+                                <TutorSettings />
+                            </PrivateRoute>
+                        } 
+                    />
+                    
+                    {/* Shared Routes (for both tutors and students) */}
+                    <Route 
+                        path="/lessons" 
+                        element={
+                            <PrivateRoute>
+                                <MyLessons />
+                            </PrivateRoute>
+                        } 
+                    />
+                    <Route 
+                        path="/lessons/room/:lessonId" 
+                        element={
+                            <PrivateRoute>
+                                <LessonRoom />
+                            </PrivateRoute>
+                        } 
+                    />
+                    
+                    {/* Tutor-only Routes */}
+                    <Route 
+                        path="/tutor-schedule" 
+                        element={
+                            <PrivateRoute role={UserRole.TUTOR}>
+                                <TutorSchedule />
+                            </PrivateRoute>
+                        } 
+                    />
+                    
+                    {/* Student-only Routes */}
+                    <Route 
+                        path="/search-tutors" 
+                        element={
+                            <PrivateRoute role={UserRole.STUDENT}>
+                                <SearchTutor />
+                            </PrivateRoute>
+                        } 
+                    />
+                    <Route 
+                        path="/schedule-lesson/:tutorId" 
+                        element={
+                            <PrivateRoute role={UserRole.STUDENT}>
+                                <ScheduleLesson />
+                            </PrivateRoute>
+                        } 
+                    />
+                    
+                    {/* Game Routes (Student-only) */}
+                    <Route 
+                        path="/games" 
+                        element={
+                            <PrivateRoute role={UserRole.STUDENT}>
+                                <GamesHub />
+                            </PrivateRoute>
+                        } 
+                    />
+                    <Route 
+                        path="/games/play/:gameType/:language" 
+                        element={
+                            <PrivateRoute role={UserRole.STUDENT}>
+                                <GamePlay />
+                            </PrivateRoute>
+                        } 
+                    />
+                    <Route 
+                        path="/games/leaderboard" 
+                        element={
+                            <PrivateRoute role={UserRole.STUDENT}>
+                                <Leaderboard />
+                            </PrivateRoute>
+                        } 
+                    />
 
                     {/* Default Route */}
                     <Route path="/" element={<Navigate to={defaultRoute} replace />} />
                     <Route path="*" element={<Navigate to={defaultRoute} replace />} />
                 </Routes>
             </main>
-            <Footer />
         </div>
     );
 };
 
 const App = () => {
     return (
-        <QueryClientProvider client={queryClient}>
-            <Router>
-                <ThemeProvider>
-                    <NotificationProvider>
-                        <I18nProvider>
-                            <TranslationLoader>
-                                <AuthProvider>
-                                    <AppRoutes />
-                                </AuthProvider>
-                            </TranslationLoader>
-                        </I18nProvider>
-                    </NotificationProvider>
-                </ThemeProvider>
-            </Router>
-        </QueryClientProvider>
+        <ThemeProvider>
+            <QueryClientProvider client={queryClient}>
+                <Router>
+                    <I18nProvider>
+                        <TranslationLoader>
+                            <AuthProvider>
+                                <AppRoutes />
+                                <Toaster 
+                                    position="top-right"
+                                    toastOptions={{
+                                        duration: 5000,
+                                        style: {
+                                            background: 'var(--bg-surface)',
+                                            color: 'var(--text-primary)',
+                                        },
+                                    }}
+                                />
+                            </AuthProvider>
+                        </TranslationLoader>
+                    </I18nProvider>
+                </Router>
+            </QueryClientProvider>
+        </ThemeProvider>
     );
 };
 

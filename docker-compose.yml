@@ -1,12 +1,72 @@
 services:
+  frontend:
+    build: 
+      context: ./frontend
+    image: vlad030/tongly-frontend:latest
+    ports:
+      - "443:443"
+    volumes:
+      - ./certs:/etc/nginx/ssl:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+      video-service:
+        condition: service_healthy
+    networks:
+      - tongly-network
+    restart: unless-stopped
+
   backend:
     build: ./backend
+    image: vlad030/tongly-backend:latest
     ports:
       - "8080:8080"
+    volumes:
+      - ./certs:/app/certs:ro
+      - backend-uploads:/app/uploads
     environment:
-      DATABASE_URL: "postgres://user:password@db:5432/tongly"
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: user
+      DB_PASSWORD: password
+      DB_NAME: tongly
+      DB_SSLMODE: disable
+      JWT_SECRET: supersecretkey
+      SERVER_PORT: 8080
+      USE_SSL: "true"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    networks:
+      - tongly-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "--spider", "-q", "https://localhost:8080/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  video-service:
+    build: ./video-service
+    image: vlad030/tongly-video-service:latest
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./certs:/app/certs:ro
+    environment:
+      ADDR: 0.0.0.0:8081
+      CERT_FILE: /app/certs/cert.pem
+      KEY_FILE: /app/certs/key.pem
+    networks:
+      - tongly-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "--spider", "-q", "https://0.0.0.0:8081/api/room/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   db:
     image: postgres:17.3-bookworm
@@ -16,3 +76,22 @@ services:
       POSTGRES_DB: tongly
     ports:
       - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - tongly-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d tongly"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+networks:
+  tongly-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  backend-uploads:

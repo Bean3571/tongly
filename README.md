@@ -1,49 +1,147 @@
-# Tongly
+# Tongly Project
 
-Tongly is a web-based platform that connects students and tutors for real-time language learning through video calls. The platform offers features like user registration, scheduling lessons, tutor feedback and ratings, gamification (language challenges and leaderboards), localization (multi-language support), and monetization through a virtual wallet.
+## Docker Deployment Instructions
 
----
+This project consists of three main components:
+- Frontend (React)
+- Backend (Go)
+- Video Backend (Go)
+- PostgreSQL Database
 
-## Table of Contents
+All components are containerized using Docker and orchestrated with Docker Compose.
 
-1. [Features](#features)
-2. [Technologies](#technologies)
-3. [Installation](#installation)
-4. [Configuration](#configuration)
-5. [Running the Project](#running-the-project)
-6. [API Documentation](#api-documentation)
-7. [Contributing](#contributing)
-8. [License](#license)
+### Prerequisites
 
----
+1. Docker and Docker Compose installed on your host machine
+2. SSL certificates in the `certs/` directory:
+   - `cert.pem` - SSL certificate
+   - `key.pem` - SSL private key
 
-## Features
+### Quick Start
 
-- **User Registration & Authentication**: Students and tutors can register and log in securely using JWT.
-- **Tutor Management**: Tutors can manage their profiles, availability, and schedules.
-- **Lesson Scheduling**: Students can book lessons with tutors.
-- **Gamification**: Language challenges and leaderboards to engage students.
-- **Monetization**: Virtual wallet for payments and withdrawals.
-- **Localization**: Multi-language support for a global audience.
+1. Make sure Docker and Docker Compose are installed on your system.
 
----
+2. Place your SSL certificates in the `certs/` directory:
+   ```
+   certs/
+   ├── cert.pem
+   └── key.pem
+   ```
 
-## Technologies
+3. Start all services:
+   ```
+   docker-compose up -d
+   ```
 
-### Frontend
-- **React**: A JavaScript library for building user interfaces.
-- **TypeScript**: Adds static typing to JavaScript for better development experience.
-- **Tailwind CSS**: A utility-first CSS framework for styling.
-- **React Router**: For navigation between pages.
+4. Check if all services are running properly:
+   ```
+   docker-compose ps
+   ```
 
-### Backend
-- **Golang**: A fast and efficient programming language.
-- **Gin-Gonic**: A web framework for building APIs in Go.
-- **PostgreSQL**: A powerful, open-source relational database.
-- **JWT**: JSON Web Tokens for secure authentication.
-- **WebRTC**: For real-time video communication.
+5. Access the application:
+   - Frontend: https://localhost
+   - Main API: https://localhost:8080
+   - Video API: https://localhost:8081
 
-### Infrastructure
-- **Docker**: For containerization and easy deployment.
-- **Nginx**: As a reverse proxy for serving the application.
+### Network Configuration
 
+The Docker Compose setup creates a shared network (`tongly-network`) that allows all containers to communicate with each other. The services are referenced by their container names within the Docker network:
+
+- `frontend` - Nginx serving the React app (port 443)
+- `backend` - Go API service (port 8080)
+- `video-service` - Go video communication service (port 8081)
+- `db` - PostgreSQL database (port 5432)
+
+### SSL Certificates
+
+All services use the SSL certificates mounted from the host machine:
+
+- The certificates are mounted as read-only volumes in each container
+- The frontend serves HTTPS traffic on port 443
+- The backend services use HTTPS for API communication
+
+### Environment Variables
+
+The Docker-specific configuration is managed through environment variables:
+
+- Frontend uses `.env.docker` during build which sets service URLs to container names
+- Backend and video-service container environment variables are set in docker-compose.yml
+
+### Healthchecks
+
+The docker-compose.yml includes healthchecks for each service:
+
+- **Database**: Uses `pg_isready` to ensure the database is accepting connections
+- **Backend**: Checks the `/api/health` endpoint
+- **Video Backend**: Checks the `/api/room/health` endpoint
+
+These ensure that each service starts only when its dependencies are actually ready.
+
+### Persistent Data
+
+The following Docker volumes are created for persistent data:
+
+- `postgres-data`: Stores PostgreSQL database files
+- `backend-uploads`: Stores uploaded files for the backend service
+
+### Troubleshooting
+
+1. Check service status:
+   ```
+   docker-compose ps
+   ```
+
+2. View logs for a specific service:
+   ```
+   docker-compose logs -f [service-name]
+   ```
+
+3. If services can't communicate, check that:
+   - The container names are being used for inter-service communication
+   - The Docker network is properly created
+   - All services are on the same network
+
+4. For SSL certificate issues:
+   - Ensure the certificates are correctly mounted in each container
+   - Check the logs for certificate path errors:
+     ```
+     docker-compose logs backend | grep cert
+     docker-compose logs video-service | grep cert
+     ```
+   - Verify the certificates are valid and properly formatted
+
+5. Check CORS issues:
+   - If you see CORS errors in your browser console, check that the domains match the allowed origins in both backend services
+   - The CORS configurations allow various combinations of frontend URLs
+
+6. For WebSocket connection issues:
+   - Ensure the `Upgrade` and `Connection` headers are being properly passed
+   - Check the nginx.conf proxy settings for WebSocket support
+
+7. If frontend can't connect to backend services:
+   - Check that the Docker network is working properly
+   - Verify that the .env.docker file has the correct service URLs (using container names)
+   - Try connecting directly to the backends (https://localhost:8080, https://localhost:8081)
+
+### Restarting Services
+
+If you need to restart a service:
+
+```
+docker-compose restart [service-name]
+```
+
+To rebuild a service after code changes:
+
+```
+docker-compose up -d --build [service-name]
+```
+
+### Security Notes
+
+Production considerations:
+- Replace the default passwords and JWT secrets with strong, unique values
+- Consider using Docker secrets for sensitive information
+- Set up proper firewall rules on your host machine
+- Implement proper backup procedures for volumes
+- Consider using a reverse proxy (like Traefik or Nginx Proxy Manager) for managing SSL and routing 

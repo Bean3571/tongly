@@ -1,36 +1,79 @@
 :root {
-  /* Colors */
-  --primary: #4a90e2;
-  --primary-dark: #357abd;
-  --success: #4caf50;
-  --warning: #ff9800;
-  --error: #f44336;
-  
-  /* Background Colors */
-  --bg-dark: #1a1a1a;
-  --bg-darker: #2a2a2a;
-  
-  /* Text Colors */
-  --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.7);
-  
+  /* Brand Colors - Orange Theme */
+  --orange-50: #fff7ed;
+  --orange-100: #ffedd5;
+  --orange-200: #fed7aa;
+  --orange-300: #fdba74;
+  --orange-400: #fb923c;
+  --orange-500: #f97316;
+  --orange-600: #ea580c;
+  --orange-700: #c2410c;
+  --orange-800: #9a3412;
+  --orange-900: #7c2d12;
+
+  /* Neutral Colors */
+  --gray-50: #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-400: #94a3b8;
+  --gray-500: #64748b;
+  --gray-600: #475569;
+  --gray-700: #334155;
+  --gray-800: #1e293b;
+  --gray-900: #0f172a;
+
+  /* Theme Colors - Light Only */
+  --background: var(--gray-50);
+  --surface: #ffffff;
+  --surface-2: var(--gray-50);
+  --surface-3: var(--gray-100);
+  --text-primary: var(--gray-900);
+  --text-secondary: var(--gray-600);
+  --text-tertiary: var(--gray-500);
+  --border: var(--gray-200);
+  --divider: var(--gray-100);
+  --hover: var(--gray-100);
+  --hover-heavy: var(--gray-200);
+
+  /* Accent Colors */
+  --accent-primary: var(--orange-500);
+  --accent-primary-hover: var(--orange-600);
+  --accent-primary-pressed: var(--orange-700);
+  --accent-primary-light: var(--orange-100);
+  --accent-primary-lighter: var(--orange-50);
+
+  /* Status Colors */
+  --success: #22c55e;
+  --success-light: #dcfce7;
+  --success-dark: #15803d;
+  --warning: #eab308;
+  --warning-light: #fef9c3;
+  --warning-dark: #a16207;
+  --error: #ef4444;
+  --error-light: #fee2e2;
+  --error-dark: #b91c1c;
+  --info: #3b82f6;
+  --info-light: #dbeafe;
+  --info-dark: #1d4ed8;
+
   /* Overlays */
-  --overlay-light: rgba(255, 255, 255, 0.1);
-  --overlay-dark: rgba(0, 0, 0, 0.5);
-  
-  /* Transitions */
-  --transition-fast: 0.2s;
-  --transition-normal: 0.3s;
+  --overlay-light: rgba(0, 0, 0, 0.05);
+  --overlay-dark: rgba(0, 0, 0, 0.1);
+  --backdrop-blur: blur(8px);
   
   /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   
   /* Border Radius */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
   --radius-full: 9999px;
   
   /* Spacing */
@@ -38,8 +81,12 @@
   --space-2: 0.5rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
+  --space-5: 1.25rem;
   --space-6: 1.5rem;
   --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
   
   /* Z-index */
   --z-dropdown: 1000;
@@ -48,4 +95,12 @@
   --z-modal: 1040;
   --z-popover: 1050;
   --z-tooltip: 1060;
+
+  /* Transitions */
+  --transition-fast: 150ms;
+  --transition-normal: 250ms;
+  --transition-slow: 350ms;
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
 } 

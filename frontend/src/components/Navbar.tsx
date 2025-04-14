@@ -1,90 +1,184 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from '../contexts/I18nContext';
+import { LanguageSwitcher } from './LanguageSwitcher';
+import { envConfig } from '../config/env';
 
-const Navbar = () => {
+const DEFAULT_AVATAR = envConfig.defaultAvatar;
+
+export const Navbar = () => {
     const { user, logout } = useAuth();
-    const DEFAULT_AVATAR = 'https://via.placeholder.com/32';
+    const { t, formatCurrency } = useTranslation();
+    const location = useLocation();
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    const toggleMobileMenu = () => {
+        setMobileMenuOpen(!mobileMenuOpen);
+    };
+
+    const getNavLinks = () => {
+        if (!user) return [];
+
+        const navItems = [
+            { to: '/search-tutors', label: t('pages.search_tutor.title') || 'Find Tutors', visibleTo: 'student' },
+            { to: '/lessons', label: t('pages.my_lessons.title') || 'My Lessons', visibleTo: 'all' },
+            { to: '/tutor-schedule', label: t('pages.tutor_schedule.title') || 'Schedule', visibleTo: 'tutor' },
+            { to: '/games', label: t('navbar.games.title') || 'Language Games', visibleTo: 'student' },
+            { to: '/tutor-settings', label: t('navbar.tutor_settings') || 'Tutor Settings', visibleTo: 'tutor' },
+            { to: '/preferences', label: t('navbar.preferences') || 'Preferences', visibleTo: 'all' },
+        ];
+
+        return navItems.filter(item => 
+            item.visibleTo === 'all' || 
+            (user.role === item.visibleTo)
+        );
+    };
+
+    const isActive = (path: string) => {
+        return location.pathname.startsWith(path);
+    };
 
     return (
-        <nav className="bg-white dark:bg-gray-800 shadow-md">
-            <div className="container mx-auto px-4 py-3">
-                <div className="flex justify-between items-center">
-                    <Link to="/" className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                        Tongly
-                    </Link>
-                    
-                    <div className="flex items-center space-x-6">
+        <nav className="bg-surface border-b border-border sticky top-0 z-sticky">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex justify-between h-16">
+                    <div className="flex items-center">
+                        <Link to="/home" className="text-2xl font-bold text-accent-primary">
+                            Языкус
+                        </Link>
+                        
+                        <div className="hidden md:flex ml-10 space-x-8">
+                            {getNavLinks().map(link => (
+                                <Link
+                                    key={link.to}
+                                    to={link.to}
+                                    className={`text-text-secondary hover:text-text-primary transition-colors
+                                        ${isActive(link.to) ? 'text-accent-primary font-medium' : ''}`}
+                                >
+                                    {link.label}
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="flex items-center space-x-4">
+                        {/* Mobile menu button */}
+                        <button 
+                            className="md:hidden p-2 rounded-md hover:bg-overlay-light transition-colors focus:outline-none"
+                            onClick={toggleMobileMenu}
+                            aria-expanded={mobileMenuOpen}
+                        >
+                            <span className="sr-only">{mobileMenuOpen ? 'Close menu' : 'Open menu'}</span>
+                            {/* Hamburger icon */}
+                            {!mobileMenuOpen ? (
+                                <svg className="h-6 w-6 text-text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                </svg>
+                            ) : (
+                                <svg className="h-6 w-6 text-text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            )}
+                        </button>
+
+                        <LanguageSwitcher />
+
                         {user ? (
-                            <>
-                                <Link 
-                                    to="/dashboard" 
-                                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                                >
-                                    Dashboard
-                                </Link>
-                                <Link 
-                                    to="/tutors" 
-                                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                                >
-                                    Tutors
-                                </Link>
-                                <Link 
-                                    to="/leaderboard" 
-                                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                                >
-                                    Leaderboard
-                                </Link>
+                            <div className="flex items-center space-x-4">
                                 <div className="relative group">
-                                    <div className="flex items-center cursor-pointer">
+                                    <button className="flex items-center space-x-2 p-2 rounded-lg hover:bg-overlay-light transition-colors">
                                         <img
-                                            src={user.personal?.profile_picture || DEFAULT_AVATAR}
-                                            alt={user.credentials?.username}
-                                            className="w-8 h-8 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700"
+                                            src={user.profile_picture_url || DEFAULT_AVATAR}
+                                            alt={user.username}
+                                            className="h-8 w-8 rounded-full object-cover border-2 border-border"
                                             onError={(e) => {
                                                 const target = e.target as HTMLImageElement;
                                                 target.src = DEFAULT_AVATAR;
                                             }}
                                         />
-                                    </div>
-                                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 hidden group-hover:block">
-                                        <Link 
-                                            to="/profile" 
-                                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        <span className="text-text-primary font-medium hidden sm:inline">
+                                            {user.username}
+                                        </span>
+                                    </button>
+                                    <div className="absolute right-0 w-48 mt-2 py-2 bg-surface rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                                        <Link
+                                            to="/settings"
+                                            className="block px-4 py-2 text-sm text-text-secondary hover:bg-overlay-light hover:text-text-primary w-full text-left"
                                         >
-                                            Profile
+                                            {t('navbar.account_settings')}
                                         </Link>
                                         <button
                                             onClick={logout}
-                                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            className="block px-4 py-2 text-sm text-error hover:bg-overlay-light w-full text-left"
                                         >
-                                            Logout
+                                            {t('auth.logout')}
                                         </button>
                                     </div>
                                 </div>
-                            </>
+                            </div>
                         ) : (
-                            <>
-                                <Link 
-                                    to="/login" 
-                                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                            <div className="hidden sm:flex items-center space-x-4">
+                                <Link
+                                    to="/login"
+                                    className="px-4 py-2 text-accent-primary hover:text-accent-primary-hover font-medium transition-colors"
                                 >
-                                    Login
+                                    {t('auth.login')}
                                 </Link>
-                                <Link 
-                                    to="/register" 
-                                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 
-                                             transition duration-300 font-medium"
+                                <Link
+                                    to="/register"
+                                    className="px-4 py-2 bg-accent-primary hover:bg-accent-primary-hover text-white rounded-lg font-medium transition-colors"
                                 >
-                                    Register
+                                    {t('auth.register')}
                                 </Link>
-                            </>
+                            </div>
                         )}
                     </div>
                 </div>
+                
+                {/* Mobile menu, show/hide based on menu state */}
+                {mobileMenuOpen && (
+                    <div className="md:hidden py-2 border-t border-border">
+                        {getNavLinks().length > 0 && (
+                            <div className="px-2 pt-2 pb-4 space-y-1">
+                                {getNavLinks().map(link => (
+                                    <Link
+                                        key={link.to}
+                                        to={link.to}
+                                        className={`block px-3 py-2 rounded-md text-base font-medium transition-colors
+                                            ${isActive(link.to) 
+                                                ? 'bg-overlay-light text-accent-primary' 
+                                                : 'text-text-secondary hover:bg-overlay-light hover:text-text-primary'
+                                            }`}
+                                        onClick={() => setMobileMenuOpen(false)}
+                                    >
+                                        {link.label}
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
+                        
+                        {!user && (
+                            <div className="px-2 pt-2 pb-3 space-y-1 border-t border-border">
+                                <Link
+                                    to="/login"
+                                    className="block px-3 py-2 rounded-md text-base font-medium text-accent-primary hover:bg-overlay-light transition-colors"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    {t('auth.login')}
+                                </Link>
+                                <Link
+                                    to="/register"
+                                    className="block px-3 py-2 rounded-md text-base font-medium bg-accent-primary hover:bg-accent-primary-hover text-white transition-colors"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    {t('auth.register')}
+                                </Link>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         </nav>
     );
-};
-
-export default Navbar;
+}; 

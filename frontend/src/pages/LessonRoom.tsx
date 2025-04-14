@@ -1,283 +1,210 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
-import VideoRoom from '../components/VideoRoom';
-import LessonChat from '../components/LessonChat';
-
-interface Participant {
-  id: number;
-  name: string;
-  role: 'student' | 'tutor';
-}
-
-interface LessonDetails {
-  id: number;
-  student_id: number;
-  tutor_id: number;
-  start_time: string;
-  end_time: string;
-  status: string;
-  language: string;
-  student_name?: string;
-  tutor_name?: string;
-}
-
-interface TimerProps {
-  $warning: boolean;
-}
+import { useTranslation } from '../contexts/I18nContext';
+import { useAuth } from '../contexts/AuthContext';
+import { joinRoom } from '../services/videoRoom.service';
+import { toast } from 'react-hot-toast';
 
 const LessonRoom: React.FC = () => {
+  const { t } = useTranslation();
   const { lessonId } = useParams<{ lessonId: string }>();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const [lesson, setLesson] = useState<LessonDetails | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  
+  // State
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [timeRemaining, setTimeRemaining] = useState<number>(0);
-  const [showWarning, setShowWarning] = useState(false);
-
+  const [connecting, setConnecting] = useState<boolean>(false);
+  const [videoConnected, setVideoConnected] = useState<boolean>(false);
+  const [chatConnected, setChatConnected] = useState<boolean>(false);
+  const [chatVisible, setChatVisible] = useState<boolean>(true);
+  
+  // Refs for video and chat
+  const videoRef = useRef<HTMLIFrameElement>(null);
+  const chatRef = useRef<HTMLIFrameElement>(null);
+  
   useEffect(() => {
-    loadLessonDetails();
-  }, [lessonId]);
-
-  useEffect(() => {
-    if (lesson) {
-      const timer = setInterval(updateTimeRemaining, 1000);
-      return () => clearInterval(timer);
-    }
-  }, [lesson]);
-
-  const loadLessonDetails = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8080/api/lessons/${lessonId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to load lesson details');
+    const connectToVideoRoom = async () => {
+      if (!lessonId) return;
+      
+      try {
+        setConnecting(true);
+        
+        // Create/join the room
+        await joinRoom(lessonId);
+        
+        // Set connected states
+        setVideoConnected(true);
+        setChatConnected(true);
+        
+      } catch (err) {
+        console.error('Error connecting to room:', err);
+        setError(t('pages.lesson_room.connection_error'));
+        toast.error(t('pages.lesson_room.connection_error'));
+      } finally {
+        setLoading(false);
+        setConnecting(false);
       }
-
-      const data = await response.json();
-      setLesson({
-        ...data,
-        start_time: data.start_time,
-        end_time: data.end_time,
-      });
-      updateTimeRemaining();
-    } catch (error) {
-      setError('Failed to load lesson. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+    };
+    
+    connectToVideoRoom();
+  }, [lessonId, t]);
+  
+  // Toggle chat visibility
+  const toggleChat = () => {
+    setChatVisible(!chatVisible);
   };
-
-  const updateTimeRemaining = () => {
-    if (lesson) {
-      const endTime = new Date(lesson.end_time).getTime();
-      const now = new Date().getTime();
-      const remaining = Math.max(0, endTime - now);
-      setTimeRemaining(remaining);
-
-      // Show warning when 10 minutes remaining
-      if (remaining <= 10 * 60 * 1000 && remaining > 0 && !showWarning) {
-        setShowWarning(true);
-        showTimeWarning();
-      }
-
-      // Redirect when lesson ends
-      if (remaining <= 0) {
-        handleLessonEnd();
-      }
-    }
+  
+  // Handle navigation back to lessons
+  const handleBackToLessons = () => {
+    navigate('/my-lessons');
   };
-
-  const showTimeWarning = () => {
-    // Show browser notification if permitted
-    if (Notification.permission === 'granted') {
-      new Notification('10 minutes remaining', {
-        body: 'Your lesson will end in 10 minutes.',
-        icon: '/logo.png',
-      });
-    }
-  };
-
-  const handleLessonEnd = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      // End video session
-      await fetch(`http://localhost:8080/api/lessons/${lessonId}/video/end`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      // Redirect to rating page
-      navigate(`/lessons/${lessonId}/rate`);
-    } catch (error) {
-      console.error('Error ending lesson:', error);
-    }
-  };
-
-  const formatTimeRemaining = (ms: number) => {
-    const minutes = Math.floor(ms / 60000);
-    const seconds = Math.floor((ms % 60000) / 1000);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
-
-  if (isLoading) {
-    return <LoadingContainer>Loading lesson room...</LoadingContainer>;
+  
+  // Render loading state
+  if (loading || connecting) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
+        <div className="flex flex-col items-center justify-center h-96">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500 mb-4"></div>
+          <p className="text-gray-600">
+            {connecting ? t('pages.lesson_room.connecting') : t('pages.lesson_room.loading')}
+          </p>
+        </div>
+      </div>
+    );
+  }
+  
+  // Render error state
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
+        <div className="bg-red-50 p-6 rounded-lg border border-red-200 text-center">
+          <h2 className="text-xl font-semibold text-red-600 mb-2">{t('pages.lesson_room.error_title')}</h2>
+          <p className="text-gray-700 mb-4">{error}</p>
+          <button
+            onClick={handleBackToLessons}
+            className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors"
+          >
+            {t('pages.lesson_room.back_to_lessons')}
+          </button>
+        </div>
+      </div>
+    );
   }
 
-  if (error || !lesson) {
-    return <ErrorContainer>{error || 'Failed to load lesson'}</ErrorContainer>;
-  }
-
+  // API URL base
+  const videoApiUrl = process.env.REACT_APP_VIDEO_API_URL || 'https://192.168.0.100:8081';
+  
   return (
-    <Container>
-      <Header>
-        <LessonInfo>
-          <Title>{`${lesson.language} Lesson`}</Title>
-          <Subtitle>
-            {lesson.tutor_name ? `with ${lesson.tutor_name}` : ''}
-          </Subtitle>
-        </LessonInfo>
-        <Timer $warning={timeRemaining <= 10 * 60 * 1000}>
-          {formatTimeRemaining(timeRemaining)}
-        </Timer>
-      </Header>
-
-      <Content>
-        <VideoSection>
-          <VideoRoom
-            lessonId={parseInt(lessonId!, 10)}
-            userId={lesson.student_id}
-          />
-        </VideoSection>
-
-        <ChatSection>
-          <LessonChat
-            lessonId={parseInt(lessonId!, 10)}
-            userId={lesson.student_id}
-            participants={[
-              { id: lesson.student_id, name: lesson.student_name || 'Student' },
-              { id: lesson.tutor_id, name: lesson.tutor_name || 'Tutor' }
-            ]}
-          />
-        </ChatSection>
-      </Content>
-
-      {showWarning && (
-        <WarningBanner>
-          10 minutes remaining in your lesson
-        </WarningBanner>
-      )}
-    </Container>
+    <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-0">
+          {t('pages.lesson_room.title')}
+        </h1>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={toggleChat}
+            className={`px-4 py-2 rounded-md transition-colors ${chatVisible 
+              ? 'bg-orange-600 text-white hover:bg-orange-700' 
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+          >
+            {chatVisible ? t('pages.lesson_room.hide_chat') : t('pages.lesson_room.show_chat')}
+          </button>
+          <button
+            onClick={handleBackToLessons}
+            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors flex items-center"
+          >
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path>
+            </svg>
+            {t('pages.lesson_room.leave_room')}
+          </button>
+        </div>
+      </div>
+      
+      {/* Video and Chat Container */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+        {/* Video Section */}
+        <div className={`${chatVisible ? 'md:col-span-8' : 'md:col-span-12'} rounded-lg overflow-hidden border border-gray-200 bg-white shadow-sm ${chatVisible ? 'h-[50vh]' : 'h-[80vh]'} md:h-[calc(100vh-12rem)]`}>
+          {videoConnected ? (
+            <iframe
+              ref={videoRef}
+              src={`${videoApiUrl}/api/room/${lessonId}/video`}
+              className="w-full h-full border-0"
+              allow="camera; microphone"
+              title="Video Room"
+            ></iframe>
+          ) : (
+            <div className="flex items-center justify-center h-full bg-gray-50">
+              <div className="text-center p-6">
+                <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                </svg>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">{t('pages.lesson_room.placeholder.title')}</h3>
+                <p className="text-gray-600 mb-4">{t('pages.lesson_room.placeholder.description')}</p>
+                <button
+                  onClick={() => {
+                    setConnecting(true);
+                    joinRoom(lessonId!).then(() => {
+                      setVideoConnected(true);
+                      setChatConnected(true);
+                    }).catch(err => {
+                      console.error('Error reconnecting:', err);
+                      toast.error(t('pages.lesson_room.connection_error'));
+                    }).finally(() => {
+                      setConnecting(false);
+                    });
+                  }}
+                  className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors"
+                >
+                  {t('pages.lesson_room.reconnect')}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {/* Chat Section - always in DOM but conditionally visible */}
+        <div className={`md:col-span-4 rounded-lg overflow-hidden border border-gray-200 bg-white shadow-sm h-[35vh] md:h-[calc(100vh-12rem)] ${chatVisible ? 'block' : 'hidden md:hidden'}`}>
+          {chatConnected ? (
+            <iframe
+              ref={chatRef}
+              src={`${videoApiUrl}/api/room/${lessonId}/chat`}
+              className="w-full h-full border-0"
+              title="Chat Room"
+            ></iframe>
+          ) : (
+            <div className="flex items-center justify-center h-full bg-gray-50">
+              <div className="text-center p-6">
+                <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                </svg>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">{t('pages.lesson_room.chat_placeholder.title')}</h3>
+                <p className="text-gray-600 mb-4">{t('pages.lesson_room.chat_placeholder.description')}</p>
+                <button
+                  onClick={() => {
+                    setConnecting(true);
+                    joinRoom(lessonId!).then(() => {
+                      setVideoConnected(true);
+                      setChatConnected(true);
+                    }).catch(err => {
+                      console.error('Error reconnecting:', err);
+                      toast.error(t('pages.lesson_room.connection_error'));
+                    }).finally(() => {
+                      setConnecting(false);
+                    });
+                  }}
+                  className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors"
+                >
+                  {t('pages.lesson_room.reconnect')}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
-
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background: #f8f9fa;
-`;
-
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  background: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-`;
-
-const LessonInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-const Title = styled.h1`
-  margin: 0;
-  font-size: 1.5rem;
-  color: #2c3e50;
-`;
-
-const Subtitle = styled.div`
-  color: #666;
-  font-size: 1rem;
-`;
-
-const Timer = styled.div<{ $warning: boolean }>`
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: ${(props) => props.$warning ? '#e74c3c' : '#2c3e50'};
-  transition: color 0.3s;
-`;
-
-const Content = styled.div`
-  display: flex;
-  flex: 1;
-  gap: 1rem;
-  padding: 1rem;
-  height: calc(100vh - 80px);
-`;
-
-const VideoSection = styled.div`
-  flex: 1;
-  min-width: 0;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-`;
-
-const ChatSection = styled.div`
-  width: 350px;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-`;
-
-const WarningBanner = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: #e74c3c;
-  color: white;
-  text-align: center;
-  padding: 0.5rem;
-  animation: slideDown 0.5s ease-out;
-
-  @keyframes slideDown {
-    from {
-      transform: translateY(-100%);
-    }
-    to {
-      transform: translateY(0);
-    }
-  }
-`;
-
-const LoadingContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  font-size: 1.2rem;
-  color: #666;
-`;
-
-const ErrorContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  font-size: 1.2rem;
-  color: #e74c3c;
-`;
 
 export default LessonRoom; 

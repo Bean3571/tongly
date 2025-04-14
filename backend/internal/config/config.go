@@ -17,6 +17,7 @@ type Config struct {
 	DBSSLMode  string
 	JWTSecret  string
 	ServerPort string
+	UseSSL     bool
 }
 
 func LoadConfig() *Config {
@@ -26,6 +27,7 @@ func LoadConfig() *Config {
 	}
 
 	dbPort, _ := strconv.Atoi(getEnv("DB_PORT", "5432"))
+	useSSL := getEnv("USE_SSL", "false") == "true"
 
 	return &Config{
 		DBHost:     getEnv("DB_HOST", "localhost"),
@@ -36,6 +38,7 @@ func LoadConfig() *Config {
 		DBSSLMode:  getEnv("DB_SSLMODE", "disable"),
 		JWTSecret:  getEnv("JWT_SECRET", "supersecretkey"),
 		ServerPort: getEnv("SERVER_PORT", "8080"),
+		UseSSL:     useSSL,
 	}
 }
 

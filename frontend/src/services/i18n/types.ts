@@ -1,4 +1,4 @@
-export type Language = 'en' | 'ru';
+export type Language = 'en' | 'ru' | 'es';
 
 export interface LocaleConfig {
     code: Language;

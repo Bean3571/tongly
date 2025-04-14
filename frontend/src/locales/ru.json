@@ -1,456 +1,436 @@
 {
-    "common": {
-        "loading": "Загрузка...",
-        "error": "Ошибка",
-        "success": "Успешно",
-        "cancel": "Отмена",
-        "save": "Сохранить",
-        "edit": "Редактировать",
-        "delete": "Удалить",
-        "confirm": "Подтвердить",
-        "back": "Назад",
-        "try.again": "Попробовать снова",
-        "toggleTheme": "Переключить тему"
+  "common": {
+    "loading": "Загрузка...",
+    "saving": "Сохранение...",
+    "updating": "Обновление...",
+    "save": "Сохранить",
+    "add": "Добавить",
+    "update": "Обновить",
+    "cancel": "Отмена",
+    "delete": "Удалить",
+    "edit": "Редактировать",
+    "user": "Пользователь",
+    "retry": "Повторить",
+    "optional": "Опционально",
+    "remove": "Удалить",
+    "all": "Все",
+    "male": "Мужской",
+    "female": "Женский",
+    "not_specified": "Не указано",
+    "days": {
+      "monday": "Понедельник",
+      "tuesday": "Вторник",
+      "wednesday": "Среда",
+      "thursday": "Четверг",
+      "friday": "Пятница",
+      "saturday": "Суббота",
+      "sunday": "Воскресенье"
     },
-    "validation": {
-        "required": "Это поле обязательно для заполнения",
-        "email.invalid": "Неверный формат email",
-        "username.min.length": "Имя пользователя должно содержать минимум 3 символа",
-        "password.min.length": "Пароль должен содержать минимум 6 символов",
-        "password.match": "Пароли должны совпадать",
-        "role.invalid": "Выбрана неверная роль"
+    "error": {
+      "required": "Это поле обязательно"
     },
-    "auth": {
-        "login": "Войти",
-        "register": "Регистрация",
-        "logout": "Выйти",
-        "email": "Email",
-        "password": "Пароль",
-        "username": "Имя пользователя",
-        "forgotPassword": "Забыли пароль?",
-        "rememberMe": "Запомнить меня",
-        "errors": {
-            "invalidCredentials": "Неверный email или пароль",
-            "emailRequired": "Введите email",
-            "passwordRequired": "Введите пароль",
-            "usernameRequired": "Введите имя пользователя"
-        }
+    "update_success": "Успешно обновлено"
+  },
+  "validation": {
+    "required": "Это поле обязательно",
+    "email_invalid": "Неверный адрес электронной почты",
+    "password_min_length": "Пароль должен быть не менее 6 символов",
+    "password_match": "Пароли должны совпадать",
+    "username_min_length": "Имя пользователя должно содержать не менее 3 символов",
+    "role_invalid": "Неверная роль",
+    "first_name_max_length": "Имя должно быть короче 50 символов",
+    "last_name_max_length": "Фамилия должна быть короче 50 символов",
+    "url_invalid": "Неверный URL",
+    "age_min": "Возраст должен быть не менее 13 лет",
+    "age_max": "Возраст должен быть менее 120 лет",
+    "sex_invalid": "Неверный выбор пола",
+    "years_experience_min": "Опыт не может быть отрицательным",
+    "years_experience_max": "Опыт должен быть менее 100 лет"
+  },
+  "auth": {
+    "register": "Регистрация",
+    "login": "Вход",
+    "username": "Имя пользователя",
+    "email": "Эл. почта",
+    "password": "Пароль",
+    "current_password": "Текущий пароль",
+    "new_password": "Новый пароль",
+    "confirm_password": "Подтвердите пароль",
+    "logout": "Выход",
+    "errors": {
+      "invalidCredentials": "Неверное имя пользователя или пароль"
     },
-    "navbar": {
-        "home": "Главная",
-        "tutors": "Найти преподавателя",
-        "lessons": "Мои уроки",
-        "wallet": "Кошелек",
-        "profile": "Профиль",
-        "settings": "Настройки",
-        "earnings": "Заработок",
-        "balance": "Баланс"
-    },
-    "wallet": {
-        "title": "Кошелек",
-        "balance": "Баланс",
-        "deposit": "Пополнить",
-        "withdraw": "Вывести",
-        "transactions": {
-            "deposit": "Пополнение",
-            "withdrawal": "Вывод",
-            "lessonPayment": "Оплата урока"
-        },
-        "commission": {
-            "title": "Комиссия",
-            "description": "Комиссия платформы составляет {{rate}}% от стоимости урока",
-            "student": "Комиссия включена в стоимость урока",
-            "tutor": "Комиссия вычитается из стоимости урока",
-            "amount": "Комиссия: {{amount}}"
-        },
-        "errors": {
-            "insufficientFunds": "Недостаточно средств",
-            "invalidAmount": "Неверная сумма",
-            "minAmount": "Минимальная сумма {{amount}}",
-            "depositFailed": "Не удалось пополнить баланс",
-            "withdrawalFailed": "Не удалось вывести средства"
-        },
-        "depositModal": {
-            "title": "Пополнение баланса",
-            "amountPlaceholder": "Введите сумму пополнения",
-            "minAmount": "Минимальная сумма пополнения: {{amount}}"
-        },
-        "withdrawModal": {
-            "title": "Вывод средств",
-            "amountPlaceholder": "Введите сумму для вывода",
-            "availableBalance": "Доступный баланс: {{balance}}",
-            "processingTime": "Вывод средств обычно обрабатывается в течение 1-3 рабочих дней"
-        },
-        "transactionHistory": "История транзакций",
-        "availableBalance": "Доступный баланс",
-        "depositSuccess": "Средства успешно зачислены",
-        "withdrawalSuccess": "Заявка на вывод средств отправлена",
-        "earnings": "Заработок"
-    },
-    "lessons": {
-        "title": "Мои уроки",
-        "subtitle": {
-            "upcoming": "Управление предстоящими уроками",
-            "completed": "Просмотр истории уроков"
-        },
-        "empty": "Уроки не найдены",
-        "loading": "Загрузка уроков...",
-        "upcoming": "Предстоящие уроки",
-        "completed": "Завершенные уроки",
-        "status": {
-            "scheduled": "Запланирован",
-            "in_progress": "В процессе",
-            "completed": "Завершен",
-            "cancelled": "Отменен"
-        },
-        "actions": {
-            "join": "Присоединиться",
-            "join.ongoing": "Присоединиться к уроку",
-            "cancel": "Отменить урок",
-            "rate": "Оценить урок"
-        },
-        "count": {
-            "one": "{{count}} урок",
-            "few": "{{count}} урока",
-            "many": "{{count}} уроков",
-            "other": "{{count}} уроков"
-        },
-        "table": {
-            "tutor": "Преподаватель",
-            "student": "Ученик",
-            "language.duration": "Язык и длительность",
-            "date.time": "Дата и время",
-            "status": "Статус",
-            "price": "Стоимость",
-            "actions": "Действия"
-        },
-        "duration": "{{minutes}} минут",
-        "price": "{{price}} ₽",
-        "participant": {
-            "tutor": "Преподаватель",
-            "student": "Ученик"
-        },
-        "filter": {
-            "all": "Все статусы",
-            "scheduled": "Запланированные",
-            "completed": "Завершенные",
-            "cancelled": "Отмененные"
-        },
-        "tabs": {
-            "upcoming": "Предстоящие",
-            "completed": "Прошедшие"
-        },
-        "error": {
-            "auth": {
-                "title": "Ошибка аутентификации",
-                "description": "Пожалуйста, войдите в систему снова."
-            },
-            "verify.status": "Не удалось проверить статус урока",
-            "cannot.join": "Невозможно присоединиться к уроку в данный момент",
-            "ended": "Этот урок уже завершен",
-            "start.session": "Не удалось начать видеосессию",
-            "check.session": "Не удалось проверить статус видеосессии",
-            "join": {
-                "title": "Ошибка при присоединении к уроку",
-                "default": "Не удалось присоединиться к уроку"
-            }
-        },
-        "warning": {
-            "too.early": {
-                "title": "Слишком рано",
-                "description": "Вы можете присоединиться к уроку за 5 минут до его начала."
-            }
-        },
-        "cancel": {
-            "modal": {
-                "title": "Отмена урока",
-                "confirm": "Вы уверены, что хотите отменить этот урок?",
-                "warning": "Это действие нельзя отменить.",
-                "confirm.button": "Да, отменить урок",
-                "keep.button": "Нет, оставить урок"
-            },
-            "reason": "Отменено {{role}}"
-        }
-    },
-    "tutors": {
-        "search": {
-            "title": "Найдите своего идеального преподавателя",
-            "placeholder": "Поиск по имени, языку или описанию...",
-            "filters": {
-                "language": "Язык",
-                "price": "Ценовой диапазон",
-                "rating": "Минимальный рейтинг"
-            }
-        },
-        "profile": {
-            "title": "Профиль преподавателя",
-            "about": "Обо мне",
-            "about.placeholder": "Расскажите студентам о себе, своем опыте преподавания и что делает ваши уроки уникальными...",
-            "about.tip": "Совет: Включите информацию о вашем опыте преподавания, методологии и что студенты могут ожидать от ваших уроков.",
-            "education": {
-                "add": "Добавить образование",
-                "institution.placeholder": "Введите название учебного заведения",
-                "field.placeholder": "Введите специальность",
-                "start": "Год начала",
-                "end": "Год окончания"
-            },
-            "languages": "Языки, которые я преподаю",
-            "pricing": "Стоимость",
-            "reviews": "Отзывы",
-            "schedule": "Расписание"
-        }
-    },
-    "pages": {
-        "login": {
-            "title": "Вход в аккаунт",
-            "username": "Имя пользователя",
-            "username.placeholder": "Введите имя пользователя",
-            "password": "Пароль",
-            "password.placeholder": "Введите пароль",
-            "sign.in.button": "Войти",
-            "no.account": "Нет аккаунта?",
-            "sign.up": "Зарегистрироваться"
-        },
-        "dashboard": {
-            "student": {
-                "title": "Панель ученика",
-                "welcome": "С возвращением, {{name}}!",
-                "progress": {
-                    "title": "Ваш прогресс",
-                    "level": "Уровень {{level}}",
-                    "points": "{{points}} баллов",
-                    "next.level": "{{points}} баллов до следующего уровня"
-                },
-                "upcoming.lessons": "Предстоящие уроки",
-                "completed.lessons": "Завершенные уроки",
-                "no.lessons": "Нет запланированных уроков",
-                "quick.actions": {
-                    "title": "Быстрые действия",
-                    "find.tutor": "Найти преподавателя",
-                    "schedule.lesson": "Запланировать урок",
-                    "view.all.lessons": "Все уроки"
-                },
-                "stats": {
-                    "total.lessons": "Всего уроков",
-                    "hours.learned": "Часов обучения",
-                    "languages": "Языки",
-                    "streak": "Дней подряд"
-                }
-            },
-            "tutor": {
-                "title": "Панель преподавателя",
-                "welcome": "С возвращением, {{name}}!",
-                "earnings": {
-                    "title": "Заработок",
-                    "total": "Общий заработок",
-                    "this.month": "За этот месяц",
-                    "pending": "В обработке"
-                },
-                "schedule": {
-                    "title": "Расписание на сегодня",
-                    "no.lessons": "На сегодня уроков нет"
-                },
-                "stats": {
-                    "total.students": "Всего учеников",
-                    "total.lessons": "Всего уроков",
-                    "rating": "Средняя оценка",
-                    "completion.rate": "Процент завершения"
-                }
-            }
-        },
-        "profile": {
-            "title": "Настройки профиля",
-            "personal.info": "Личная информация",
-            "teaching.info": "Информация о преподавании",
-            "account.settings": "Настройки аккаунта",
-            "fields": {
-                "first.name": "Имя",
-                "last.name": "Фамилия",
-                "email": "Email",
-                "phone": "Телефон",
-                "bio": "О себе",
-                "languages": "Языки",
-                "education": "Образование",
-                "experience": "Опыт",
-                "hourly.rate": "Почасовая ставка",
-                "timezone": "Часовой пояс"
-            },
-            "buttons": {
-                "save": "Сохранить изменения",
-                "cancel": "Отмена",
-                "upload.photo": "Загрузить фото",
-                "remove.photo": "Удалить фото"
-            }
-        },
-        "settings": {
-            "title": "Настройки",
-            "sections": {
-                "notifications": {
-                    "title": "Уведомления",
-                    "email": "Email уведомления",
-                    "sms": "SMS уведомления",
-                    "marketing": "Маркетинговые обновления"
-                },
-                "security": {
-                    "title": "Безопасность",
-                    "current.password": "Текущий пароль",
-                    "new.password": "Новый пароль",
-                    "confirm.password": "Подтвердите новый пароль"
-                },
-                "preferences": {
-                    "title": "Предпочтения",
-                    "language": "Язык",
-                    "timezone": "Часовой пояс",
-                    "theme": "Тема"
-                }
-            }
-        },
-        "messages": {
-            "title": "Сообщения",
-            "no.messages": "Нет сообщений",
-            "search": "Поиск по диалогам",
-            "online": "В сети",
-            "offline": "Не в сети",
-            "type.message": "Введите сообщение",
-            "send": "Отправить"
-        },
-        "schedule": {
-            "title": "Управление расписанием",
-            "availability": {
-                "title": "Установить доступность",
-                "timezone": "Ваш часовой пояс",
-                "weekly.hours": "Недельные часы",
-                "breaks": "Перерывы"
-            },
-            "calendar": {
-                "title": "Календарь",
-                "available": "Доступно",
-                "booked": "Забронировано",
-                "unavailable": "Недоступно"
-            }
-        },
-        "survey": {
-            "title": "Предпочтения обучения",
-            "sections": {
-                "goals": "Цели обучения",
-                "interests": "Интересы",
-                "experience": "Опыт изучения языков",
-                "preferences": "Предпочтения в обучении"
-            },
-            "buttons": {
-                "next": "Далее",
-                "back": "Назад",
-                "submit": "Отправить"
-            }
-        },
-        "teaching.profile": {
-            "title": "Профиль преподавателя",
-            "subtitle": "Заполните профиль, чтобы начать преподавать",
-            "education": {
-                "title": "Образование",
-                "add": "Добавить образование",
-                "edit": "Редактировать образование",
-                "remove": "Удалить образование",
-                "fields": {
-                    "degree": "Степень",
-                    "field": "Направление обучения",
-                    "institution": "Учебное заведение",
-                    "country": "Страна",
-                    "start_year": "Год начала",
-                    "end_year": "Год окончания",
-                    "current": "Я учусь здесь в настоящее время",
-                    "description": "Описание"
-                },
-                "placeholders": {
-                    "degree": "например, Бакалавр, Магистр, Кандидат наук",
-                    "field": "например, Английская литература, Лингвистика",
-                    "institution": "например, МГУ",
-                    "description": "Опишите ваше обучение и достижения"
-                },
-                "validation": {
-                    "degree.required": "Укажите степень",
-                    "field.required": "Укажите направление обучения",
-                    "institution.required": "Укажите учебное заведение",
-                    "start_year.required": "Укажите год начала",
-                    "end_year.required": "Укажите год окончания",
-                    "end_year.invalid": "Год окончания должен быть позже года начала"
-                },
-                "buttons": {
-                    "save": "Сохранить образование",
-                    "cancel": "Отмена",
-                    "add.another": "Добавить еще образование"
-                }
-            }
-        },
-        "register": {
-            "title": "Создание аккаунта",
-            "username": "Имя пользователя",
-            "username.placeholder": "Выберите имя пользователя",
-            "email": "Email",
-            "email.placeholder": "Введите ваш email",
-            "password": "Пароль",
-            "password.placeholder": "Выберите пароль",
-            "confirm.password": "Подтверждение пароля",
-            "confirm.password.placeholder": "Подтвердите ваш пароль",
-            "i.want.to": "Я хочу",
-            "role.student": "Изучать языки",
-            "role.tutor": "Преподавать языки",
-            "register.button": "Создать аккаунт",
-            "have.account": "Уже есть аккаунт?",
-            "sign.in": "Войти"
-        }
-    },
-    "components": {
-        "footer": {
-            "about": "О нас",
-            "contact": "Контакты",
-            "terms": "Условия использования",
-            "privacy": "Политика конфиденциальности",
-            "copyright": "© {{year}} Tongly. Все права защищены."
-        },
-        "navbar": {
-            "search": "Поиск",
-            "notifications": "Уведомления",
-            "account": "Аккаунт",
-            "dashboard": "Панель управления"
-        },
-        "lessonChat": {
-            "title": "Чат урока",
-            "participants": "{{count}} участников",
-            "type.message": "Введите сообщение...",
-            "send": "Отправить"
-        },
-        "videoRoom": {
-            "controls": {
-                "mute": "Выключить звук",
-                "unmute": "Включить звук",
-                "camera.on": "Включить камеру",
-                "camera.off": "Выключить камеру",
-                "share.screen": "Демонстрация экрана",
-                "stop.sharing": "Остановить демонстрацию",
-                "leave": "Покинуть комнату"
-            },
-            "status": {
-                "connecting": "Подключение...",
-                "connected": "Подключено",
-                "disconnected": "Отключено"
-            }
-        },
-        "lessonRating": {
-            "title": "Оцените урок",
-            "with.tutor": "с {{name}}",
-            "rating.labels": {
-                "1": "Плохо",
-                "2": "Удовлетворительно",
-                "3": "Хорошо",
-                "4": "Очень хорошо",
-                "5": "Отлично"
-            },
-            "comment.placeholder": "Поделитесь своими впечатлениями (необязательно)",
-            "buttons": {
-                "submit": "Отправить оценку",
-                "skip": "Пропустить"
-            }
-        }
+    "roles": {
+      "student": "Ученик",
+      "tutor": "Преподаватель"
     }
+  },
+  "pages": {
+    "login": {
+      "title": "Вход в аккаунт",
+      "no_account": "Нет аккаунта?",
+      "username_placeholder": "Введите имя пользователя",
+      "password_placeholder": "Введите пароль",
+      "sign_in_button": "Войти"
+    },
+    "register": {
+      "title": "Создать новый аккаунт",
+      "have_account": "Уже есть аккаунт? Войти",
+      "username_placeholder": "Выберите имя пользователя",
+      "email_placeholder": "Введите адрес эл. почты",
+      "password_placeholder": "Создайте пароль",
+      "confirm_password_placeholder": "Подтвердите пароль",
+      "register_button": "Создать аккаунт",
+      "i_want_to": "Я хочу",
+      "role_student": "Изучать язык (Ученик)",
+      "role_tutor": "Преподавать язык (Преподаватель)",
+      "confirm_password": "Подтвердите пароль"
+    },
+    "tutor_schedule": {
+      "title": "Управление расписанием",
+      "description": "Установите свою доступность для занятий. Ученики смогут бронировать уроки в эти временные интервалы.",
+      "add_availability": "Добавить доступность",
+      "edit_availability": "Редактировать доступность",
+      "recurring": "Еженедельно повторяющийся",
+      "specific_date": "Конкретная дата",
+      "day_of_week": "День недели",
+      "start_time": "Время начала",
+      "end_time": "Время окончания",
+      "recurring_availabilities": "Еженедельное расписание",
+      "specific_date_availabilities": "Разовая доступность",
+      "no_recurring_availabilities": "Вы еще не установили еженедельную доступность.",
+      "no_specific_availabilities": "Вы еще не установили даты разовой доступности.",
+      "add_success": "Доступность успешно добавлена",
+      "update_success": "Доступность успешно обновлена",
+      "delete_success": "Доступность успешно удалена",
+      "confirm_delete": "Вы уверены, что хотите удалить этот временной интервал?",
+      "not_tutor_message": "Эта страница доступна только для преподавателей."
+    },
+    "user_settings": {
+      "title": "Настройки пользователя",
+      "personal_info": "Личная информация",
+      "account_settings": "Безопасность аккаунта",
+      "update_success": "Ваш профиль успешно обновлен",
+      "personal_tab": "Личная информация",
+      "security_tab": "Безопасность",
+      "security": "Безопасность аккаунта",
+      "profile_picture_placeholder": "Введите URL для вашего изображения профиля",
+      "not_set": "Не указано",
+      "change_password": "Изменить пароль",
+      "current_password": "Текущий пароль",
+      "new_password": "Новый пароль",
+      "confirm_password": "Подтвердите пароль",
+      "username_not_editable": "Имя пользователя нельзя изменить после создания аккаунта"
+    },
+    "tutor_settings": {
+      "title": "Настройки профиля преподавателя",
+      "update_success": "Ваш профиль преподавателя успешно обновлен",
+      "not_tutor_message": "Эта страница доступна только для преподавателей. Пожалуйста, зарегистрируйтесь как преподаватель для доступа.",
+      "bio_placeholder": "Напишите краткое введение о себе как о преподавателе...",
+      "video_url_placeholder": "Введите URL для вашего вводного видео",
+      "document_url_placeholder": "Введите URL для вашего документа об образовании (диплом, сертификат и т.д.)",
+      "add_education": "Добавить образование",
+      "confirm_remove_education": "Вы уверены, что хотите удалить эту запись об образовании?"
+    },
+    "search_tutor": {
+      "title": "Найти преподавателей",
+      "filters": "Фильтры",
+      "language": "Языки",
+      "min_proficiency": "Минимальный уровень владения",
+      "interests": "Интересы",
+      "goals": "Цели",
+      "min_experience": "Мин. лет опыта",
+      "min_age": "Мин. возраст",
+      "max_age": "Макс. возраст",
+      "gender": "Пол",
+      "apply_filters": "Искать",
+      "reset_filters": "Сбросить фильтры",
+      "results": "Результаты",
+      "no_results": "Преподаватели, соответствующие вашим критериям, не найдены.",
+      "advanced_filters": "Расширенные фильтры",
+      "any": "Любой",
+      "ten_plus_years": "10+ лет",
+      "twenty_plus_years": "20+ лет",
+      "years_experience_value": "{{count}}+ лет",
+      "any_experience": "Любой опыт",
+      "loading_languages": "Загрузка языков...",
+      "loading_interests": "Загрузка интересов...",
+      "loading_goals": "Загрузка целей...",
+      "age_range": "Возрастной диапазон",
+      "min": "Мин",
+      "max": "Макс",
+      "find_tutors": "Найти преподавателей",
+      "tutors_found": "Найдено: {{count}}",
+      "sort_by": "Сортировать по",
+      "experience": "Опыту",
+      "rating": "Рейтингу",
+      "finding_tutors": "Поиск преподавателей, соответствующих вашим критериям...",
+      "no_results_message": "Мы не смогли найти преподавателей, соответствующих вашим критериям. Попробуйте изменить фильтры или расширить поиск.",
+      "clear_all_filters": "Очистить все фильтры",
+      "adjust_filters": "Настроить фильтры",
+      "hide_filters": "Скрыть фильтры",
+      "filter_languages": "Языки: {{languages}}",
+      "filter_proficiency": "Мин. уровень: {{proficiency}}",
+      "filter_interests": "{{count}} {{count, plural, one {интерес} few {интереса} many {интересов} other {интересов}}}",
+      "filter_goals": "{{count}} {{count, plural, one {цель} few {цели} many {целей} other {целей}}}",
+      "filter_experience": "{{years}}+ лет опыта",
+      "filter_age": "Возраст: {{min}}-{{max}}",
+      "filter_gender": "Пол: {{gender}}",
+      "clear_all": "Очистить все"
+    },
+    "schedule_lesson": {
+      "title": "Запланировать урок",
+      "tutor_id": "ID преподавателя",
+      "coming_soon": "Планирование уроков скоро появится!",
+      "tutor_profile": "Профиль преподавателя",
+      "lesson_details": "Детали урока",
+      "first_name": "Имя",
+      "last_name": "Фамилия",
+      "email": "Email",
+      "rating": "Рейтинг",
+      "bio": "Биография",
+      "sex": "Пол",
+      "age": "Возраст",
+      "education": "Образование",
+      "interests": "Интересы",
+      "goals": "Цели",
+      "languages": "Языки",
+      "intro_video": "Видео-представление",
+      "view_video": "Смотреть видео",
+      "years_experience": "Опыт преподавания",
+      "select_language": "Выберите язык",
+      "select_date": "Выберите дату",
+      "select_time": "Выберите время",
+      "select_duration": "Выберите продолжительность",
+      "duration_30": "минут",
+      "duration_60": "минут",
+      "duration_90": "минут",
+      "duration_exceeds_availability": "Эта продолжительность превышает доступное время преподавателя",
+      "notes": "Заметки для преподавателя",
+      "notes_placeholder": "Добавьте темы или вопросы, которые вы хотели бы обсудить во время урока...",
+      "price": "Цена",
+      "schedule_button": "Запланировать урок",
+      "available_slots": "Доступное время",
+      "no_availability": "У этого преподавателя нет доступного времени на выбранную дату",
+      "select_different_date": "Пожалуйста, выберите другую дату или свяжитесь с преподавателем",
+      "booking_success": "Ваш урок успешно запланирован!",
+      "booking_error": "Произошла ошибка при планировании урока. Пожалуйста, попробуйте снова.",
+      "login_required": "Вам необходимо войти в систему, чтобы забронировать урок",
+      "login_to_book": "Пожалуйста, войдите в систему, чтобы забронировать урок с этим преподавателем",
+      "no_available_times": "Нет доступного времени",
+      "available_times": "Доступное время",
+      "no_language_selected": "Пожалуйста, выберите язык",
+      "no_date_selected": "Пожалуйста, выберите дату",
+      "no_time_selected": "Пожалуйста, выберите время",
+      "back_to_tutors": "Вернуться к преподавателям",
+      "view_your_lessons": "Посмотреть ваши уроки",
+      "proficiency": "Уровень владения"
+    },
+    "user_preferences": {
+      "title": "Предпочтения пользователя",
+      "update_success": "Ваши предпочтения были успешно обновлены",
+      "languages_tab": "Языки",
+      "interests_tab": "Интересы",
+      "goals_tab": "Цели",
+      "languages_title": "Языковые предпочтения",
+      "interests_title": "Предпочтения по интересам",
+      "goals_title": "Цели обучения",
+      "my_languages": "Мои языки",
+      "my_interests": "Мои интересы",
+      "my_goals": "Мои цели",
+      "no_languages": "Вы еще не добавили ни одного языка.",
+      "no_interests": "Вы еще не добавили ни одного интереса.",
+      "no_goals": "Вы еще не добавили ни одной цели обучения.",
+      "add_language": "Добавить язык",
+      "add_interest": "Добавить интерес",
+      "add_goal": "Добавить цель обучения",
+      "no_more_languages": "Вы добавили все доступные языки.",
+      "no_more_interests": "Вы добавили все доступные интересы.",
+      "no_more_goals": "Вы добавили все доступные цели обучения.",
+      "language": "Язык",
+      "proficiency": "Уровень владения",
+      "interest": "Интерес",
+      "goal": "Цель обучения"
+    },
+    "my_lessons": {
+      "title": "Мои Уроки",
+      "loading": "Загрузка ваших уроков...",
+      "filters": {
+        "all": "Все Уроки",
+        "scheduled": "Предстоящие",
+        "past": "Прошедшие",
+        "cancelled": "Отмененные"
+      },
+      "empty_state": {
+        "no_lessons": "Уроки не найдены",
+        "no_scheduled_student": "У вас нет запланированных уроков.",
+        "no_scheduled_tutor": "У вас нет запланированных уроков.",
+        "no_past": "У вас еще нет завершенных уроков.",
+        "no_cancelled": "У вас нет отмененных уроков.",
+        "find_tutor": "Найти Преподавателя"
+      }
+    },
+    "lesson_room": {
+      "title": "Комната Урока",
+      "loading": "Загрузка комнаты урока...",
+      "connecting": "Подключение к комнате урока...",
+      "connection_error": "Не удалось подключиться к комнате урока",
+      "error_title": "Ошибка Подключения",
+      "back_to_lessons": "Вернуться к Моим Урокам",
+      "hide_chat": "Скрыть Чат",
+      "show_chat": "Показать Чат",
+      "leave_room": "Покинуть Комнату",
+      "reconnect": "Попробовать Переподключиться",
+      "placeholder": {
+        "title": "Видео не подключено",
+        "description": "Произошла ошибка при подключении видео."
+      },
+      "chat_placeholder": {
+        "title": "Чат не подключен",
+        "description": "Произошла ошибка при подключении чата."
+      }
+    }
+  },
+  "notifications": {
+    "personal_info_updated": "Личная информация обновлена",
+    "personal_info_update_failed": "Не удалось обновить личную информацию",
+    "security_settings_updated": "Настройки безопасности обновлены",
+    "security_settings_update_failed": "Не удалось обновить настройки безопасности",
+    "profile_picture_uploaded": "Изображение профиля загружено",
+    "profile_picture_upload_failed": "Не удалось загрузить изображение профиля",
+    "user_data_fetch_failed": "Не удалось загрузить данные пользователя"
+  },
+  "home": {
+    "subtitle": "Изучайте Языки с Носителями",
+    "description": "Общайтесь с преподавателями, которые говорят на языке, который вы хотите изучать, и начните совершенствовать свои навыки сегодня.",
+    "find_tutors": "Найти преподавателей",
+    "my_lessons": "Мои уроки",
+    "features": {
+      "learn_title": "Учитесь в Своём Темпе",
+      "learn_description": "Занимайтесь, когда вам удобно, и фокусируйтесь на темах, которые интересуют вас больше всего.",
+      "connect_title": "Общайтесь с Носителями Языка",
+      "connect_description": "Практикуйтесь с преподавателями, которые говорят на языке естественно и понимают его культурный контекст.",
+      "grow_title": "Развивайте Свои Навыки",
+      "grow_description": "Отслеживайте свой прогресс, ставьте цели и постоянно улучшайте свои языковые способности."
+    }
+  },
+  "tutor": {
+    "bio": "Биография",
+    "years_experience": "Лет опыта: {{count}} ",
+    "intro_video_url": "Ссылка на вводное видео",
+    "education": "Образование",
+    "education_degree": "Степень",
+    "education_institution": "Учебное заведение",
+    "education_field": "Область обучения",
+    "education_start_year": "Год начала",
+    "education_end_year": "Год окончания",
+    "education_document": "Ссылка на документ",
+    "profile_picture_alt": "Фото профиля {{name}}",
+    "rating_placeholder": "4.5 (TODO: Реальные рейтинги)",
+    "languages_label": "Языки",
+    "education_label": "Образование",
+    "education_format": "{{degree}} по {{field}} в {{institution}}",
+    "language_format": "{{language}} ({{proficiency}})",
+    "age": "Возраст: {{age}}",
+    "no_reviews": "Нет отзывов",
+    "gender": {
+      "male": "Мужской",
+      "female": "Женский",
+      "not_set": "Не указано"
+    },
+    "schedule_lesson": "Запланировать урок"
+  },
+  "navbar": {
+    "home": "Главная",
+    "preferences": "Предпочтения",
+    "account_settings": "Настройки аккаунта",
+    "tutor_settings": "Профиль преподавателя",
+    "games": {
+      "title": "Языковые Игры"
+    }
+  },
+  "user": {
+    "first_name": "Имя",
+    "last_name": "Фамилия",
+    "email": "Эл. почта",
+    "username": "Имя пользователя",
+    "profile_picture": "Изображение профиля",
+    "change_password": "Изменить пароль",
+    "current_password": "Текущий пароль",
+    "new_password": "Новый пароль",
+    "confirm_password": "Подтвердите пароль"
+  },
+  "components": {
+    "lesson_card": {
+      "unknown_participant": "Неизвестный участник",
+      "unknown_language": "Неизвестный язык",
+      "notes": "Заметки",
+      "join_lesson": "Присоединиться к уроку",
+      "cancel_lesson": "Отменить урок",
+      "cancel_confirm": "Вы уверены, что хотите отменить этот урок?",
+      "cancel_success": "Урок успешно отменен",
+      "cancel_error": "Не удалось отменить урок",
+      "view_details": "Просмотреть детали",
+      "rate_lesson": "Оценить этот урок",
+      "submit_review": "Отправить оценку",
+      "submitting": "Отправка...",
+      "review_success": "Оценка успешно отправлена",
+      "review_error": "Не удалось отправить оценку",
+      "already_reviewed": "Вы уже оценили этот урок",
+      "status": {
+        "scheduled": "ЗАПЛАНИРОВАН",
+        "in_progress": "В ПРОЦЕССЕ",
+        "completed": "ЗАВЕРШЕН",
+        "cancelled": "ОТМЕНЕН"
+      }
+    }
+  },
+  "games": {
+    "hub": {
+      "title": "Языковые Игры",
+      "description": "Играйте, чтобы практиковать языковые навыки и зарабатывать очки!"
+    },
+    "emoji_quiz": {
+      "title": "Викторина Эмодзи",
+      "description": "Выберите правильное название эмодзи из нескольких вариантов.",
+      "instruction": "Как называется этот эмодзи?"
+    },
+    "emoji_typing": {
+      "title": "Набор Эмодзи",
+      "description": "Введите правильное название эмодзи.",
+      "instruction": "Введите название этого эмодзи",
+      "placeholder": "Введите ваш ответ..."
+    },
+    "leaderboard_title": "Таблица Лидеров",
+    "leaderboard_description": "Узнайте, кто лидирует в языковых играх!",
+    "back_to_games": "Вернуться к Играм",
+    "leaderboard": "Посмотреть Таблицу Лидеров",
+    "points": "{{count}} очков за ответ",
+    "select_language": "Выберите Язык:",
+    "completed": "Игра Завершена!",
+    "final_score": "Ваш итоговый счет",
+    "score": "Счет",
+    "question": "Вопрос",
+    "correct_answer": "Правильно!",
+    "incorrect_answer": "Неправильно.",
+    "correct_is": "Правильный ответ",
+    "submit_answer": "Отправить Ответ",
+    "view_leaderboard": "Посмотреть Таблицу Лидеров",
+    "top_players": "Лучшие Игроки",
+    "rank": "Ранг",
+    "player": "Игрок",
+    "streak": "Серия",
+    "longest": "Самая длинная",
+    "no_players": "В таблице лидеров пока нет игроков.",
+    "your_stats": "Ваша Статистика",
+    "your_rank": "Ваш Ранг",
+    "total_score": "Общий Счет",
+    "streaks": "Серии",
+    "current": "Текущая"
+  },
+  "languages": {
+    "english": "Английский",
+    "spanish": "Испанский",
+    "russian": "Русский"
+  }
 }

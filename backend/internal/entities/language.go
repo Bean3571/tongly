@@ -1,18 +1,27 @@
 package entities
 
-// LanguageLevel represents a language and its proficiency level
-type LanguageLevel struct {
-	Language string `json:"language"`
-	Level    string `json:"level"`
+import "time"
+
+// Language represents a language in the system
+type Language struct {
+	ID        int       `json:"id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
-// Language options
-var Languages = []string{
-	"English", "Spanish", "French", "German", "Chinese", "Japanese",
-	"Korean", "Russian", "Arabic", "Portuguese", "Italian",
+// LanguageProficiency represents a language proficiency level
+type LanguageProficiency struct {
+	ID        int       `json:"id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
-// Language levels (CEFR)
-var LanguageLevels = []string{
-	"A1", "A2", "B1", "B2", "C1", "C2",
+// UserLanguage represents a user's language proficiency
+type UserLanguage struct {
+	UserID        int                  `json:"user_id"`
+	LanguageID    int                  `json:"language_id"`
+	ProficiencyID int                  `json:"proficiency_id"`
+	Language      *Language            `json:"language,omitempty"`
+	Proficiency   *LanguageProficiency `json:"proficiency,omitempty"`
+	CreatedAt     time.Time            `json:"created_at"`
 }

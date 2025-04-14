@@ -1,46 +1,43 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-
-type Theme = 'light' | 'dark';
+import React, { createContext, useContext, useEffect } from 'react';
 
 interface ThemeContextType {
-    theme: Theme;
-    isDarkMode: boolean;
-    toggleTheme: () => void;
+    theme: 'light';
+    isDarkMode: false;
+    accentColor: 'orange';
 }
 
-const ThemeContext = createContext<ThemeContextType>({
-    theme: 'light',
-    isDarkMode: false,
-    toggleTheme: () => {},
-});
-
-export const useTheme = () => useContext(ThemeContext);
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [theme, setTheme] = useState<Theme>(() => {
-        const savedTheme = localStorage.getItem('theme');
-        return (savedTheme as Theme) || 
-            (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    });
-
-    const isDarkMode = theme === 'dark';
-
+    // Apply light theme with orange accent
     useEffect(() => {
-        if (isDarkMode) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-        localStorage.setItem('theme', theme);
-    }, [theme, isDarkMode]);
-
-    const toggleTheme = () => {
-        setTheme(prev => prev === 'light' ? 'dark' : 'light');
-    };
+        // Set light theme
+        document.documentElement.setAttribute('data-theme', 'light');
+        document.documentElement.classList.remove('dark');
+        
+        // Set orange accent color
+        document.documentElement.style.setProperty('--accent-primary', 'var(--orange-500)');
+        document.documentElement.style.setProperty('--accent-primary-hover', 'var(--orange-600)');
+        document.documentElement.style.setProperty('--accent-primary-pressed', 'var(--orange-700)');
+        document.documentElement.style.setProperty('--accent-primary-light', 'var(--orange-100)');
+        document.documentElement.style.setProperty('--accent-primary-lighter', 'var(--orange-50)');
+        
+        // Save light theme preference
+        localStorage.setItem('theme', 'light');
+        localStorage.setItem('accentColor', 'orange');
+    }, []);
 
     return (
-        <ThemeContext.Provider value={{ theme, isDarkMode, toggleTheme }}>
+        <ThemeContext.Provider value={{ theme: 'light', isDarkMode: false, accentColor: 'orange' }}>
             {children}
         </ThemeContext.Provider>
     );
+};
+
+export const useTheme = () => {
+    const context = useContext(ThemeContext);
+    if (context === undefined) {
+        throw new Error('useTheme must be used within a ThemeProvider');
+    }
+    return context;
 };

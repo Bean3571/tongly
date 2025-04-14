@@ -2,83 +2,69 @@ package entities
 
 import "time"
 
-// TutorDetails represents tutor-specific data
-type TutorDetails struct {
-	ID                int         `json:"id"`
-	UserID            int         `json:"user_id"`
-	Bio               string      `json:"bio"`
-	TeachingLanguages []Language  `json:"teaching_languages"`
-	Education         []Education `json:"education"`
-	Interests         []string    `json:"interests"`
-	HourlyRate        float64     `json:"hourly_rate"`
-	IntroductionVideo string      `json:"introduction_video,omitempty"`
-	Approved          bool        `json:"approved"`
-	CreatedAt         time.Time   `json:"created_at"`
-	UpdatedAt         time.Time   `json:"updated_at"`
-}
-
-// TutorProfile represents public tutor information
+// TutorProfile represents a tutor's profile information
 type TutorProfile struct {
-	ID                int         `json:"id"`
-	TutorID           int         `json:"tutor_id"`
-	TeachingLanguages []Language  `json:"teaching_languages"`
-	Bio               string      `json:"bio"`
-	Interests         []string    `json:"interests"`
-	ProfilePicture    string      `json:"profile_picture"`
-	HourlyRate        float64     `json:"hourly_rate"`
-	IntroductionVideo string      `json:"introduction_video,omitempty"`
-	Education         []Education `json:"education"`
-	CreatedAt         time.Time   `json:"created_at"`
-	UpdatedAt         time.Time   `json:"updated_at"`
+	UserID          int         `json:"user_id"`
+	Bio             string      `json:"bio"`
+	Education       interface{} `json:"education"` // Stored as JSONB in the database
+	IntroVideoURL   string      `json:"intro_video_url,omitempty"`
+	YearsExperience int         `json:"years_experience"`
+	CreatedAt       time.Time   `json:"created_at"`
+	UpdatedAt       time.Time   `json:"updated_at"`
+
+	// Related entities (not in the database)
+	User         *User          `json:"user,omitempty"`
+	Languages    []UserLanguage `json:"languages,omitempty"`
+	Rating       float64        `json:"rating,omitempty"`
+	ReviewsCount int            `json:"reviews_count,omitempty"`
 }
 
 // TutorAvailability represents a tutor's available time slot
 type TutorAvailability struct {
-	ID        int       `json:"id"`
-	TutorID   int       `json:"tutor_id"`
-	DayOfWeek int       `json:"day_of_week"`
-	StartTime string    `json:"start_time"`
-	EndTime   string    `json:"end_time"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-}
-
-// TutorReview represents a review for a tutor
-type TutorReview struct {
-	ID         int       `json:"id"`
-	TutorID    int       `json:"tutor_id"`
-	ReviewerID int       `json:"reviewer_id"`
-	Rating     int       `json:"rating"`
-	Comment    string    `json:"comment"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
-	Reviewer   *User     `json:"reviewer,omitempty"`
+	ID           int       `json:"id"`
+	TutorID      int       `json:"tutor_id"`
+	DayOfWeek    int       `json:"day_of_week"`
+	StartTime    string    `json:"start_time"`
+	EndTime      string    `json:"end_time"`
+	IsRecurring  bool      `json:"is_recurring"`
+	SpecificDate *string   `json:"specific_date,omitempty"` // Format: "YYYY-MM-DD"
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
 }
 
 // TutorRegistrationRequest represents the data needed to register as a tutor
 type TutorRegistrationRequest struct {
-	Bio               string      `json:"bio"`
-	TeachingLanguages []Language  `json:"teaching_languages"`
-	Education         []Education `json:"education"`
-	HourlyRate        float64     `json:"hourly_rate"`
-	IntroductionVideo string      `json:"introduction_video"`
+	// Basic user registration data
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
+	Email    string `json:"email" validate:"required,email"`
+
+	// Tutor-specific data
+	Bio             string               `json:"bio"`
+	Education       interface{}          `json:"education"`
+	IntroVideoURL   string               `json:"intro_video_url,omitempty"`
+	YearsExperience int                  `json:"years_experience"`
+	Languages       []UserLanguageUpdate `json:"languages"`
+}
+
+// TutorAvailabilityRequest represents the request to add a tutor's availability
+type TutorAvailabilityRequest struct {
+	DayOfWeek    int     `json:"day_of_week"`
+	StartTime    string  `json:"start_time"`
+	EndTime      string  `json:"end_time"`
+	IsRecurring  bool    `json:"is_recurring"`
+	SpecificDate *string `json:"specific_date,omitempty"` // Format: "YYYY-MM-DD"
 }
 
 // TutorUpdateRequest represents the data needed to update a tutor's profile
 type TutorUpdateRequest struct {
-	Bio               string      `json:"bio"`
-	TeachingLanguages []Language  `json:"teaching_languages"`
-	Education         []Education `json:"education"`
-	Interests         []string    `json:"interests"`
-	HourlyRate        float64     `json:"hourly_rate"`
-	IntroductionVideo string      `json:"introduction_video,omitempty"`
+	Bio             string      `json:"bio,omitempty"`
+	Education       interface{} `json:"education,omitempty"`
+	IntroVideoURL   string      `json:"intro_video_url,omitempty"`
+	YearsExperience *int        `json:"years_experience,omitempty"`
 }
 
-type Language struct {
-	Language string `json:"language"`
-	Level    string `json:"level"`
-}
-
+// Education represents an educational entry
 type Education struct {
 	Degree       string `json:"degree"`
 	Institution  string `json:"institution"`
@@ -88,9 +74,14 @@ type Education struct {
 	DocumentURL  string `json:"documentUrl,omitempty"`
 }
 
+// TutorSearchFilters represents filters for searching tutors
 type TutorSearchFilters struct {
-	Languages []string `json:"languages"`
-	MinPrice  float64  `json:"min_price"`
-	MaxPrice  float64  `json:"max_price"`
-	MinRating float64  `json:"min_rating"`
+	Languages       []string `json:"languages"`
+	ProficiencyID   int      `json:"proficiency_id"`    // Filter by minimum proficiency level
+	Interests       []int    `json:"interests"`         // Filter by interests IDs
+	Goals           []int    `json:"goals"`             // Filter by goals IDs
+	YearsExperience int      `json:"years_experience"`  // Filter by minimum years of experience
+	MinAge          int      `json:"min_age,omitempty"` // Filter by minimum age
+	MaxAge          int      `json:"max_age,omitempty"` // Filter by maximum age
+	Sex             string   `json:"sex,omitempty"`     // Filter by sex (male, female)
 }
