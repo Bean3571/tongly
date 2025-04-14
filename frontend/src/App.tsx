@@ -33,6 +33,12 @@ const PrivateRoute = ({ children, role }: { children: React.ReactNode, role?: st
     return <>{children}</>;
 };
 
+const UnauthorizedRoute = ({ children }: { children: React.ReactNode }) => {
+    const { user } = useAuth();
+    if (user) return <Navigate to="/home" />;
+    return <>{children}</>;
+};
+
 const AppRoutes = () => {
     const { user } = useAuth();
     const defaultRoute = '/home';
@@ -42,9 +48,23 @@ const AppRoutes = () => {
             <Navbar />
             <main className="container mx-auto px-4 py-8 flex-grow">
                 <Routes>
-                    {/* Public Routes */}
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
+                    {/* Public Routes - Only for unauthorized users */}
+                    <Route 
+                        path="/login" 
+                        element={
+                            <UnauthorizedRoute>
+                                <Login />
+                            </UnauthorizedRoute>
+                        } 
+                    />
+                    <Route 
+                        path="/register" 
+                        element={
+                            <UnauthorizedRoute>
+                                <Register />
+                            </UnauthorizedRoute>
+                        } 
+                    />
                     <Route path="/home" element={<Home />} />
 
                     {/* Private Routes */}
