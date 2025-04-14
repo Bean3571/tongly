@@ -279,12 +279,14 @@
       "loading": "Cargando sala de lección...",
       "connecting": "Conectando a la sala de lección...",
       "connection_error": "No se pudo conectar a la sala de lección",
+      "lesson_fetch_error": "No se pudieron cargar los detalles de la lección",
       "error_title": "Error de Conexión",
       "back_to_lessons": "Volver a Mis Lecciones",
       "hide_chat": "Ocultar Chat",
       "show_chat": "Mostrar Chat",
       "leave_room": "Salir de la Sala",
       "reconnect": "Intentar Reconectar",
+      "ends_at": "Termina a las",
       "placeholder": {
         "title": "Video no conectado",
         "description": "Hubo un error al conectar el video. Haz clic abajo para intentarlo de nuevo."

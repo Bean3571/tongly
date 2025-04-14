@@ -3,7 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from '../contexts/I18nContext';
 import { useAuth } from '../contexts/AuthContext';
 import { joinRoom } from '../services/videoRoom.service';
+import { getLessonById } from '../services/lesson.service';
+import { Lesson } from '../types/lesson';
 import { toast } from 'react-hot-toast';
+import { format } from 'date-fns';
 
 const LessonRoom: React.FC = () => {
   const { t } = useTranslation();
@@ -18,12 +21,25 @@ const LessonRoom: React.FC = () => {
   const [videoConnected, setVideoConnected] = useState<boolean>(false);
   const [chatConnected, setChatConnected] = useState<boolean>(false);
   const [chatVisible, setChatVisible] = useState<boolean>(true);
+  const [lesson, setLesson] = useState<Lesson | null>(null);
   
   // Refs for video and chat
   const videoRef = useRef<HTMLIFrameElement>(null);
   const chatRef = useRef<HTMLIFrameElement>(null);
   
   useEffect(() => {
+    const fetchLessonDetails = async () => {
+      if (!lessonId) return;
+      
+      try {
+        const lessonData = await getLessonById(Number(lessonId));
+        setLesson(lessonData);
+      } catch (err) {
+        console.error('Error fetching lesson details:', err);
+        setError(t('pages.lesson_room.lesson_fetch_error'));
+      }
+    };
+
     const connectToVideoRoom = async () => {
       if (!lessonId) return;
       
@@ -47,6 +63,7 @@ const LessonRoom: React.FC = () => {
       }
     };
     
+    fetchLessonDetails();
     connectToVideoRoom();
   }, [lessonId, t]);
   
@@ -58,6 +75,18 @@ const LessonRoom: React.FC = () => {
   // Handle navigation back to lessons
   const handleBackToLessons = () => {
     navigate('/my-lessons');
+  };
+
+  // Format end time
+  const formatEndTime = (endTimeStr: string | undefined): string => {
+    if (!endTimeStr) return '';
+    try {
+      const endTime = new Date(endTimeStr);
+      return format(endTime, 'HH:mm');
+    } catch (err) {
+      console.error('Error formatting end time:', err);
+      return '';
+    }
   };
   
   // Render loading state
@@ -95,11 +124,22 @@ const LessonRoom: React.FC = () => {
   // API URL base
   const videoApiUrl = process.env.REACT_APP_FRONTEND_URL || 'https://192.168.0.100';
   
+  // Create title with tutor info, language, and end time
+  const lessonTitle = lesson ? (
+    <>
+      {t('pages.lesson_room.title')} - {lesson.tutor?.first_name} {lesson.tutor?.last_name} 
+      {lesson.language?.name && ` • ${lesson.language.name}`}
+      {lesson.end_time && ` • ${t('pages.lesson_room.ends_at')} ${formatEndTime(lesson.end_time)}`}
+    </>
+  ) : (
+    t('pages.lesson_room.title')
+  );
+  
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between">
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-0">
-          {t('pages.lesson_room.title')}
+          {lessonTitle}
         </h1>
         <div className="flex items-center space-x-3">
           <button

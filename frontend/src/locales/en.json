@@ -280,12 +280,14 @@
       "loading": "Loading lesson room...",
       "connecting": "Connecting to lesson room...",
       "connection_error": "Could not connect to the lesson room",
+      "lesson_fetch_error": "Could not load lesson details",
       "error_title": "Connection Error",
       "back_to_lessons": "Back to My Lessons",
       "hide_chat": "Hide Chat",
       "show_chat": "Show Chat",
       "leave_room": "Leave Room",
       "reconnect": "Try to Reconnect",
+      "ends_at": "Ends at",
       "placeholder": {
         "title": "Video not connected",
         "description": "There was an error connecting to the video. Click below to try again."

@@ -841,61 +841,7 @@ export const ScheduleLesson: React.FC = () => {
                     <div>
                       <div className="text-gray-500 mb-4">
                         {t('pages.schedule_lesson.no_available_times')}
-                      </div>
-                      
-                      {/* Diagnostic information */}
-                      <details className="mt-2 text-xs text-gray-500 border p-2 rounded">
-                        <summary className="cursor-pointer">Debug information</summary>
-                        <div className="mt-2 whitespace-pre-wrap">
-                          <p>Date: {selectedDate?.toISOString()}</p>
-                          <p>Day of week (0-6, Sunday is 0): {selectedDate?.getDay()}</p>
-                          <p>Day of week (1-7, Monday is 1): {selectedDate ? ((selectedDate.getDay() + 6) % 7) + 1 : 'none'}</p>
-                          <p>Formatted date: {selectedDate ? formatDateToString(selectedDate) : 'none'}</p>
-                          <p>Duration: {duration} minutes</p>
-                          <p>Available slots total: {availabilities.length}</p>
-                          <p>Time options generated: {availableTimeOptions.length}</p>
-                          <div className="mt-2">
-                            <p>Recurring slots for this day (0-based):</p>
-                            <pre>
-                              {JSON.stringify(
-                                availabilities.filter(a => a.is_recurring && a.day_of_week === selectedDate?.getDay()),
-                                null,
-                                2
-                              )}
-                            </pre>
-                          </div>
-                          <div className="mt-2">
-                            <p>Recurring slots for this day (1-based):</p>
-                            <pre>
-                              {JSON.stringify(
-                                availabilities.filter(a => a.is_recurring && a.day_of_week === (selectedDate ? ((selectedDate.getDay() + 6) % 7) + 1 : -1)),
-                                null,
-                                2
-                              )}
-                            </pre>
-                          </div>
-                          <div className="mt-2">
-                            <p>Specific date slots:</p>
-                            <pre>
-                              {JSON.stringify(
-                                availabilities.filter(a => !a.is_recurring && a.specific_date === formatDateToString(selectedDate || new Date())),
-                                null,
-                                2
-                              )}
-                            </pre>
-                          </div>
-                          <div className="mt-2">
-                            <p>Sample time parsing:</p>
-                            {availabilities.filter(a => a.is_recurring && a.day_of_week === selectedDate?.getDay()).map((a, i) => (
-                              <div key={i} className="text-left">
-                                <p>Original: {a.start_time} - {a.end_time}</p>
-                                <p>Parsed hours: {a.start_time.includes('T') ? new Date(a.start_time).getUTCHours() : a.start_time.split(':')[0]} - 
-                                   {a.end_time.includes('T') ? new Date(a.end_time).getUTCHours() : a.end_time.split(':')[0]}</p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </details>
+                      </div>                    
                     </div>
                   )}
                 </div>
