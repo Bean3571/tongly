@@ -250,7 +250,8 @@
       "language": "Язык",
       "proficiency": "Уровень владения",
       "interest": "Интерес",
-      "goal": "Цель обучения"
+      "goal": "Цель обучения",
+      "language_already_exists": "Этот язык уже добавлен в ваши предпочтения."
     },
     "my_lessons": {
       "title": "Мои Уроки",
@@ -293,6 +294,25 @@
       }
     }
   },
+  "userSettings": {
+    "fields": {
+      "first_name": "Имя",
+      "last_name": "Фамилия",
+      "user_picture_url": "URL изображения профиля",
+      "age": "Возраст",
+      "gender": "Пол"
+    },
+    "gender": {
+      "not_set": "Не указан",
+      "male": "Мужской",
+      "female": "Женский"
+    },
+    "buttons": {
+      "change_photo": "Изменить фото"
+    },
+    "no_user_data": "Не удалось загрузить данные пользователя. Пожалуйста, попробуйте снова.",
+    "username_note": "Имя пользователя нельзя изменить после создания учетной записи."
+  },
   "notifications": {
     "personal_info_updated": "Личная информация обновлена",
     "personal_info_update_failed": "Не удалось обновить личную информацию",
@@ -318,7 +338,7 @@
   },
   "tutor": {
     "bio": "Биография",
-    "years_experience": "Лет опыта: {{count}} ",
+    "years_experience": "Лет опыта:",
     "intro_video_url": "Ссылка на вводное видео",
     "education": "Образование",
     "education_degree": "Степень",

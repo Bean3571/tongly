@@ -84,7 +84,7 @@ export const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span>
-                  {t('tutor.years_experience', { count: tutor.years_experience })}
+                  {t('tutor.years_experience')} {tutor.years_experience}
                 </span>
               </span>
             </div>
@@ -123,7 +123,7 @@ export const TutorCard: React.FC<TutorCardProps> = ({ tutor }) => {
                   )}
                 </svg>
                 <span className="text-gray-700">
-                  {t(`common.${tutor.user.sex}`)}
+                  {t(`${tutor.user.sex}`)}
                 </span>
               </div>
             )}

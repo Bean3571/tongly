@@ -4,6 +4,7 @@ import { useTranslation } from '../contexts/I18nContext';
 import { getErrorMessage, languageService, interestService, goalService } from '../services/api';
 import { Language, LanguageProficiency, UserLanguage, UserLanguageUpdate } from '../types/language';
 import { Interest, UserInterest, Goal, UserGoal } from '../types/interest-goal';
+import { toast } from 'react-hot-toast';
 
 export const UserPreferences = () => {
   const { user } = useAuth();
@@ -114,6 +115,13 @@ export const UserPreferences = () => {
   // Languages handlers
   const handleAddLanguage = async () => {
     if (!selectedLanguage || !selectedProficiency) return;
+    
+    // Check if the language is already added by the user
+    const languageExists = userLanguages.some(ul => ul.language_id === selectedLanguage);
+    if (languageExists) {
+      toast.error(t('pages.user_preferences.language_already_exists'));
+      return;
+    }
     
     setIsLoading(true);
     setError(null);

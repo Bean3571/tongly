@@ -184,7 +184,7 @@ const App = () => {
                             <AuthProvider>
                                 <AppRoutes />
                                 <Toaster 
-                                    position="top-right"
+                                    position="bottom-right"
                                     toastOptions={{
                                         duration: 5000,
                                         style: {

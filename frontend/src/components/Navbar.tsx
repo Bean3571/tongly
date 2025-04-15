@@ -9,7 +9,7 @@ const DEFAULT_AVATAR = envConfig.defaultAvatar;
 
 export const Navbar = () => {
     const { user, logout } = useAuth();
-    const { t, formatCurrency } = useTranslation();
+    const { t } = useTranslation();
     const location = useLocation();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 

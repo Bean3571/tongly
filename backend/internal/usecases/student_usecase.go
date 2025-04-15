@@ -117,12 +117,6 @@ func (uc *StudentUseCase) UpdateStudentProfile(ctx context.Context, studentID in
 			// Remove from existing map to track what's been updated
 			delete(existingLangs, langUpdate.LanguageID)
 		}
-
-		// Remove languages that were not in the update
-		// This is optional - if you want to replace all languages
-		// for _, langID := range existingLangs {
-		//    uc.studentRepo.RemoveLanguage(ctx, studentID, langID)
-		// }
 	}
 
 	// Update interests if provided
@@ -149,12 +143,6 @@ func (uc *StudentUseCase) UpdateStudentProfile(ctx context.Context, studentID in
 			// Remove from existing map
 			delete(existingInterests, interestID)
 		}
-
-		// Remove interests that were not in the update
-		// This is optional
-		// for interestID := range existingInterests {
-		//    uc.studentRepo.RemoveInterest(ctx, studentID, interestID)
-		// }
 	}
 
 	// Update goals if provided
@@ -181,12 +169,6 @@ func (uc *StudentUseCase) UpdateStudentProfile(ctx context.Context, studentID in
 			// Remove from existing map
 			delete(existingGoals, goalID)
 		}
-
-		// Remove goals that were not in the update
-		// This is optional
-		// for goalID := range existingGoals {
-		//    uc.studentRepo.RemoveGoal(ctx, studentID, goalID)
-		// }
 	}
 
 	return nil

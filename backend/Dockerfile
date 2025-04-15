@@ -25,7 +25,6 @@ COPY --from=builder /app/tongly-server .
 COPY --from=builder /app/migrations ./migrations
 
 # Create directories
-RUN mkdir -p /app/uploads && chmod 755 /app/uploads
 RUN mkdir -p /app/certs
 
 # Set environment variables

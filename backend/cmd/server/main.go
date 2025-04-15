@@ -107,9 +107,6 @@ func main() {
 		gameHandler,
 	)
 
-	// Ensure uploads directories exist
-	os.MkdirAll("uploads/avatars", 0755)
-
 	// Start server with graceful shutdown
 	srv := &http.Server{
 		Addr:    ":" + cfg.ServerPort,

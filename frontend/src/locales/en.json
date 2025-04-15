@@ -255,7 +255,8 @@
       "language": "Language",
       "proficiency": "Proficiency",
       "interest": "Interest",
-      "goal": "Learning Goal"
+      "goal": "Learning Goal",
+      "language_already_exists": "This language is already in your preferences."
     },
     "my_lessons": {
       "title": "My Lessons",

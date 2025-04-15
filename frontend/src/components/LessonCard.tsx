@@ -45,7 +45,8 @@ const LessonCard: React.FC<LessonCardProps> = ({ lesson, currentUserId, onCancel
 
   // Check if the lesson can be reviewed (only completed lessons and not already reviewed by the current user)
   const hasUserReviewed = lesson.reviews?.some(review => review.reviewer_id === currentUserId);
-  const canReview = 
+  const canReview =
+    isStudent &&
     lesson.status === LessonStatus.COMPLETED && 
     !hasUserReviewed && 
     lesson.cancelled_by === undefined;

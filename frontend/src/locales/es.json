@@ -254,7 +254,8 @@
       "language": "Idioma",
       "proficiency": "Competencia",
       "interest": "Interés",
-      "goal": "Objetivo de Aprendizaje"
+      "goal": "Objetivo de Aprendizaje",
+      "language_already_exists": "Este idioma ya está en tus preferencias."
     },
     "my_lessons": {
       "title": "Mis Lecciones",
@@ -296,6 +297,25 @@
         "description": "Hubo un error al conectar el chat. Haz clic abajo para intentarlo de nuevo."
       }
     }
+  },
+  "userSettings": {
+    "fields": {
+      "first_name": "Nombre",
+      "last_name": "Apellido",
+      "user_picture_url": "URL de imagen de perfil",
+      "age": "Edad",
+      "gender": "Género"
+    },
+    "gender": {
+      "not_set": "No especificado",
+      "male": "Masculino",
+      "female": "Femenino"
+    },
+    "buttons": {
+      "change_photo": "Cambiar foto"
+    },
+    "no_user_data": "No se pudieron cargar los datos del usuario. Por favor, inténtelo de nuevo.",
+    "username_note": "El nombre de usuario no se puede cambiar después de crear la cuenta."
   },
   "notifications": {
     "personal_info_updated": "La información personal ha sido actualizada",

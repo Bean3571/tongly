@@ -69,8 +69,6 @@ func (uc *LessonUseCase) BookLesson(ctx context.Context, studentID int, req *ent
 	}
 
 	// Check tutor availability
-	// This would be a more complex check in a real system
-	// For now, we'll just check if the requested time is in the future
 	if req.StartTime.Before(time.Now()) {
 		return nil, errors.New("lesson start time must be in the future")
 	}
