@@ -109,39 +109,6 @@ func (h *LessonHandler) CancelLesson(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Lesson cancelled successfully"})
 }
 
-// UpdateLessonNotes handles the request to update notes for a lesson
-func (h *LessonHandler) UpdateLessonNotes(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-
-	lessonIDStr := c.Param("lessonId")
-	lessonID, err := strconv.Atoi(lessonIDStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid lesson ID"})
-		return
-	}
-
-	type UpdateNotesRequest struct {
-		Notes string `json:"notes" binding:"required"`
-	}
-
-	var req UpdateNotesRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
-		return
-	}
-
-	if err := h.lessonUseCase.UpdateLessonNotes(c.Request.Context(), lessonID, userID.(int), req.Notes); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Lesson notes updated successfully"})
-}
-
 // AddReview handles the request to add a review for a lesson
 func (h *LessonHandler) AddReview(c *gin.Context) {
 	userID, exists := c.Get("user_id")
@@ -284,7 +251,6 @@ func (h *LessonHandler) RegisterRoutes(router *gin.Engine) {
 		lessons.GET("/user/cancelled", h.GetUserCancelledLessons)
 		lessons.GET("/:lessonId", h.GetLesson)
 		lessons.POST("/:lessonId/cancel", h.CancelLesson)
-		lessons.PUT("/:lessonId/notes", h.UpdateLessonNotes)
 		lessons.POST("/:lessonId/reviews", h.AddReview)
 	}
 }

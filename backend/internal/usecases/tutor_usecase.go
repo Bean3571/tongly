@@ -216,13 +216,3 @@ func (uc *TutorUseCase) SearchTutors(ctx context.Context, filters *entities.Tuto
 
 	return tutors, nil
 }
-
-// GetUpcomingLessons retrieves upcoming lessons for a tutor
-func (uc *TutorUseCase) GetUpcomingLessons(ctx context.Context, tutorID int) ([]entities.Lesson, error) {
-	return uc.lessonRepo.GetUpcomingLessons(ctx, tutorID, false)
-}
-
-// GetPastLessons retrieves past lessons for a tutor
-func (uc *TutorUseCase) GetPastLessons(ctx context.Context, tutorID int) ([]entities.Lesson, error) {
-	return uc.lessonRepo.GetPastLessons(ctx, tutorID, false)
-}

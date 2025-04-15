@@ -63,9 +63,3 @@ func (uc *UserUseCase) UpdatePassword(ctx context.Context, userID int, currentPa
 	// Update the password
 	return uc.userRepo.UpdatePassword(ctx, userID, newUser.PasswordHash)
 }
-
-// DeleteUser deletes a user and all associated data
-func (uc *UserUseCase) DeleteUser(ctx context.Context, userID int) error {
-
-	return uc.userRepo.Delete(ctx, userID)
-}

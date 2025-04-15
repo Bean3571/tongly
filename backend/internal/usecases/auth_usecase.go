@@ -75,9 +75,8 @@ func (uc *AuthUseCase) Register(ctx context.Context, username, email, password, 
 			LongestStreak: 0,
 		}
 		if err := uc.studentRepo.Create(ctx, studentProfile); err != nil {
-			// If profile creation fails, delete the user
-			uc.userRepo.Delete(ctx, user.ID)
-			return nil, err
+			// If profile creation fails, log error
+			return nil, errors.New("failed to create student profile: " + err.Error())
 		}
 	} else if role == "tutor" {
 		tutorProfile := &entities.TutorProfile{
@@ -87,9 +86,8 @@ func (uc *AuthUseCase) Register(ctx context.Context, username, email, password, 
 			YearsExperience: 0,
 		}
 		if err := uc.tutorRepo.Create(ctx, tutorProfile); err != nil {
-			// If profile creation fails, delete the user
-			uc.userRepo.Delete(ctx, user.ID)
-			return nil, err
+			// If profile creation fails, log error
+			return nil, errors.New("failed to create tutor profile: " + err.Error())
 		}
 	}
 

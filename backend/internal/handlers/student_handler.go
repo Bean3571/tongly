@@ -89,42 +89,6 @@ func (h *StudentHandler) UpdateStreak(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Streak updated successfully"})
 }
 
-// GetUpcomingLessons handles the request to retrieve upcoming lessons for a student
-func (h *StudentHandler) GetUpcomingLessons(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-
-	studentID := userID.(int)
-	lessons, err := h.studentUseCase.GetUpcomingLessons(c.Request.Context(), studentID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve lessons"})
-		return
-	}
-
-	c.JSON(http.StatusOK, lessons)
-}
-
-// GetPastLessons handles the request to retrieve past lessons for a student
-func (h *StudentHandler) GetPastLessons(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-
-	studentID := userID.(int)
-	lessons, err := h.studentUseCase.GetPastLessons(c.Request.Context(), studentID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve lessons"})
-		return
-	}
-
-	c.JSON(http.StatusOK, lessons)
-}
-
 // RegisterRoutes registers the student routes
 func (h *StudentHandler) RegisterRoutes(router *gin.Engine) {
 	student := router.Group("/api/student")
@@ -133,7 +97,5 @@ func (h *StudentHandler) RegisterRoutes(router *gin.Engine) {
 		student.GET("/profile", h.GetProfile)
 		student.PUT("/profile", h.UpdateProfile)
 		student.POST("/streak", h.UpdateStreak)
-		student.GET("/lessons/upcoming", h.GetUpcomingLessons)
-		student.GET("/lessons/past", h.GetPastLessons)
 	}
 }

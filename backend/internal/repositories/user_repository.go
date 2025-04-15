@@ -190,10 +190,3 @@ func (r *UserRepository) UpdatePassword(ctx context.Context, userID int, passwor
 	_, err := r.db.ExecContext(ctx, query, passwordHash, userID)
 	return err
 }
-
-// Delete deletes a user from the database
-func (r *UserRepository) Delete(ctx context.Context, id int) error {
-	query := `DELETE FROM users WHERE id = $1`
-	_, err := r.db.ExecContext(ctx, query, id)
-	return err
-}

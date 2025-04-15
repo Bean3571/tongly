@@ -123,47 +123,6 @@ func (h *UserHandler) UpdatePassword(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Password updated successfully"})
 }
 
-// DeleteAccount handles the request to delete a user's account
-func (h *UserHandler) DeleteAccount(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-
-	var req struct {
-		Password string `json:"password" binding:"required"`
-	}
-
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
-		return
-	}
-
-	// Verify password first
-	user, err := h.userUseCase.GetUserByID(c.Request.Context(), userID.(int))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user"})
-		return
-	}
-	if user == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		return
-	}
-
-	if !user.ValidatePassword(req.Password) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid password"})
-		return
-	}
-
-	if err := h.userUseCase.DeleteUser(c.Request.Context(), userID.(int)); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete account"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Account deleted successfully"})
-}
-
 // RegisterRoutes registers the user routes
 func (h *UserHandler) RegisterRoutes(router *gin.Engine) {
 	user := router.Group("/api/user")
@@ -172,6 +131,5 @@ func (h *UserHandler) RegisterRoutes(router *gin.Engine) {
 		user.GET("/profile", h.GetProfile)
 		user.PUT("/profile", h.UpdateProfile)
 		user.PUT("/password", h.UpdatePassword)
-		user.DELETE("/account", h.DeleteAccount)
 	}
 }

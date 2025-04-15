@@ -173,42 +173,6 @@ func (h *TutorHandler) GetAvailabilities(c *gin.Context) {
 	c.JSON(http.StatusOK, availabilities)
 }
 
-// GetUpcomingLessons handles the request to retrieve upcoming lessons for a tutor
-func (h *TutorHandler) GetUpcomingLessons(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-
-	tutorID := userID.(int)
-	lessons, err := h.tutorUseCase.GetUpcomingLessons(c.Request.Context(), tutorID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve lessons"})
-		return
-	}
-
-	c.JSON(http.StatusOK, lessons)
-}
-
-// GetPastLessons handles the request to retrieve past lessons for a tutor
-func (h *TutorHandler) GetPastLessons(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-
-	tutorID := userID.(int)
-	lessons, err := h.tutorUseCase.GetPastLessons(c.Request.Context(), tutorID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve lessons"})
-		return
-	}
-
-	c.JSON(http.StatusOK, lessons)
-}
-
 // SearchTutors handles the request to search for tutors
 func (h *TutorHandler) SearchTutors(c *gin.Context) {
 	var filters entities.TutorSearchFilters
@@ -365,8 +329,6 @@ func (h *TutorHandler) RegisterRoutes(router *gin.Engine) {
 		tutor.POST("/availabilities", h.AddAvailability)
 		tutor.PUT("/availabilities/:availabilityId", h.UpdateAvailability)
 		tutor.DELETE("/availabilities/:availabilityId", h.DeleteAvailability)
-		tutor.GET("/lessons/upcoming", h.GetUpcomingLessons)
-		tutor.GET("/lessons/past", h.GetPastLessons)
 	}
 
 	// Additional routes to match the frontend API calls

@@ -270,19 +270,6 @@ func (r *LessonRepository) CancelLesson(ctx context.Context, lessonID, userID in
 	return r.db.QueryRowContext(ctx, query, userID, lessonID).Scan(&updatedAt)
 }
 
-// UpdateLessonNotes updates the notes for a lesson
-func (r *LessonRepository) UpdateLessonNotes(ctx context.Context, lessonID int, notes string) error {
-	query := `
-		UPDATE lessons
-		SET notes = $1
-		WHERE id = $2
-		RETURNING updated_at
-	`
-
-	var updatedAt time.Time
-	return r.db.QueryRowContext(ctx, query, notes, lessonID).Scan(&updatedAt)
-}
-
 // AddReview adds a review for a lesson
 func (r *LessonRepository) AddReview(ctx context.Context, review *entities.Review) error {
 	query := `

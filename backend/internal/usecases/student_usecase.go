@@ -174,7 +174,7 @@ func (uc *StudentUseCase) UpdateStudentProfile(ctx context.Context, studentID in
 	return nil
 }
 
-// UpdateStreak updates a student's streak information
+// UpdateStreak updates a student's streak
 func (uc *StudentUseCase) UpdateStreak(ctx context.Context, studentID int, increment bool) error {
 	// Get existing profile
 	studentProfile, err := uc.studentRepo.GetByUserID(ctx, studentID)
@@ -200,16 +200,6 @@ func (uc *StudentUseCase) UpdateStreak(ctx context.Context, studentID int, incre
 
 	// Save updated profile
 	return uc.studentRepo.Update(ctx, studentProfile)
-}
-
-// GetUpcomingLessons retrieves upcoming lessons for a student
-func (uc *StudentUseCase) GetUpcomingLessons(ctx context.Context, studentID int) ([]entities.Lesson, error) {
-	return uc.lessonRepo.GetUpcomingLessons(ctx, studentID, true)
-}
-
-// GetPastLessons retrieves past lessons for a student
-func (uc *StudentUseCase) GetPastLessons(ctx context.Context, studentID int) ([]entities.Lesson, error) {
-	return uc.lessonRepo.GetPastLessons(ctx, studentID, true)
 }
 
 // AddLanguage adds a language to a student's profile

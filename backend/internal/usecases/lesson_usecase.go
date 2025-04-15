@@ -142,26 +142,6 @@ func (uc *LessonUseCase) CancelLesson(ctx context.Context, lessonID int, userID 
 	return uc.lessonRepo.CancelLesson(ctx, lessonID, userID)
 }
 
-// UpdateLessonNotes updates notes for a lesson
-func (uc *LessonUseCase) UpdateLessonNotes(ctx context.Context, lessonID int, userID int, notes string) error {
-	// Get lesson
-	lesson, err := uc.lessonRepo.GetByID(ctx, lessonID)
-	if err != nil {
-		return err
-	}
-	if lesson == nil {
-		return errors.New("lesson not found")
-	}
-
-	// Check if user is associated with this lesson
-	if lesson.StudentID != userID && lesson.TutorID != userID {
-		return errors.New("user not authorized to update this lesson")
-	}
-
-	// Update notes
-	return uc.lessonRepo.UpdateLessonNotes(ctx, lessonID, notes)
-}
-
 // AddReview adds a review for a lesson
 func (uc *LessonUseCase) AddReview(ctx context.Context, lessonID int, userID int, rating int) (*entities.Review, error) {
 	// Get lesson
