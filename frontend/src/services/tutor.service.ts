@@ -13,7 +13,6 @@ export const getTutorAvailabilities = async (tutorId: string): Promise<TutorAvai
 };
 
 export const bookLesson = async (bookingData: LessonBookingRequest): Promise<any> => {
-  // apiClient automatically adds the auth token from localStorage
   const response = await apiClient.post('/api/lessons', bookingData);
   return response.data;
 }; 

@@ -483,10 +483,6 @@ export const TutorSchedule: React.FC = () => {
                       <p className="text-sm text-gray-600">
                         {formatTime(availability.start_time)} - {formatTime(availability.end_time)}
                       </p>
-                      {/* 
-                      <p className="text-xs text-gray-400">
-                        Raw: {availability.start_time} - {availability.end_time}
-                      </p>*/}
                     </div>
                     <div className="flex space-x-2">
                       <button

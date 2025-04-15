@@ -4,7 +4,7 @@ import { useTranslation } from '../contexts/I18nContext';
 import { getTutorProfile, getTutorAvailabilities, bookLesson } from '../services/tutor.service';
 import { TutorProfile, TutorAvailability, AvailableTimeSlot } from '../types/tutor';
 import { LessonBookingRequest } from '../types/lesson';
-import { getAvailableTimeSlots, getAvailableDates, formatDateToString } from '../utils/availability';
+import { formatDateToString } from '../utils/availability';
 import { envConfig } from '../config/env';
 
 // Constants for lesson durations in minutes
@@ -37,11 +37,6 @@ export const ScheduleLesson: React.FC = () => {
   const [notes, setNotes] = useState<string>('');
   const [bookingStatus, setBookingStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   
-  // Derived state
-  const availableDates = getAvailableDates(availabilities);
-  const availableTimeSlots = selectedDate 
-    ? getAvailableTimeSlots(availabilities, selectedDate)
-    : [];
 
   useEffect(() => {
     const fetchTutorData = async () => {
@@ -660,7 +655,6 @@ export const ScheduleLesson: React.FC = () => {
                       src={getYoutubeEmbedUrl(tutor.intro_video_url) || ''}
                       width="100%"
                       height="100%"
-                      frameBorder="0"
                       allowFullScreen
                       title="Tutor introduction video"
                     />
@@ -691,9 +685,6 @@ export const ScheduleLesson: React.FC = () => {
             {bookingStatus === 'success' && (
               <div className="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
                 <p>{t('pages.schedule_lesson.booking_success')}</p>
-                <Link to="/student/lessons" className="mt-2 inline-block text-green-700 font-semibold hover:underline">
-                  {t('pages.schedule_lesson.view_your_lessons')}
-                </Link>
               </div>
             )}
             
