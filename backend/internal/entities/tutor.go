@@ -71,7 +71,6 @@ type Education struct {
 	FieldOfStudy string `json:"field_of_study"`
 	StartYear    string `json:"start_year"`
 	EndYear      string `json:"end_year"`
-	DocumentURL  string `json:"documentUrl,omitempty"`
 }
 
 // TutorSearchFilters represents filters for searching tutors

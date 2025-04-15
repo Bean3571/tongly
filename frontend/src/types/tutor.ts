@@ -13,7 +13,6 @@ export interface Education {
   field_of_study: string;
   start_year: string;
   end_year: string;
-  documentUrl?: string;
 }
 
 // Tutor profile

@@ -79,7 +79,6 @@ export const TutorSettings = () => {
           field_of_study: Yup.string().required(t('validation.required')),
           start_year: Yup.string().required(t('validation.required')),
           end_year: Yup.string().required(t('validation.required')),
-          documentUrl: Yup.string().url(t('validation.url_invalid')).nullable(),
         })
       ),
       intro_video_url: Yup.string().url(t('validation.url_invalid')).nullable(),
@@ -351,28 +350,6 @@ export const TutorSettings = () => {
                              (formik.errors.education[index] as FormikErrors<Education>).end_year && (
                               <p className="mt-1 text-sm text-red-600">
                                 {getFieldError(formik.errors, `education.${index}.end_year`)}
-                              </p>
-                            )}
-                          </div>
-
-                          {/* Document URL */}
-                          <div className="md:col-span-2">
-                            <label htmlFor={`education.${index}.documentUrl`} className="block text-sm font-medium text-gray-700 mb-1">
-                              {t('tutor.education_document')} ({t('common.optional')})
-                            </label>
-                            <input
-                              id={`education.${index}.documentUrl`}
-                              type="url"
-                              {...formik.getFieldProps(`education.${index}.documentUrl`)}
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
-                              placeholder={t('pages.tutor_settings.document_url_placeholder')}
-                            />
-                            {formik.touched.education?.[index]?.documentUrl && 
-                             formik.errors.education?.[index] && 
-                             isEducationError(formik.errors.education[index]) && 
-                             (formik.errors.education[index] as FormikErrors<Education>).documentUrl && (
-                              <p className="mt-1 text-sm text-red-600">
-                                {getFieldError(formik.errors, `education.${index}.documentUrl`)}
                               </p>
                             )}
                           </div>

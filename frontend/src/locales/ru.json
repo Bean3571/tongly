@@ -128,7 +128,6 @@
       "not_tutor_message": "Эта страница доступна только для преподавателей. Пожалуйста, зарегистрируйтесь как преподаватель для доступа.",
       "bio_placeholder": "Напишите краткое введение о себе как о преподавателе...",
       "video_url_placeholder": "Введите URL для вашего вводного видео",
-      "document_url_placeholder": "Введите URL для вашего документа об образовании (диплом, сертификат и т.д.)",
       "add_education": "Добавить образование",
       "confirm_remove_education": "Вы уверены, что хотите удалить эту запись об образовании?"
     },
@@ -346,7 +345,6 @@
     "education_field": "Область обучения",
     "education_start_year": "Год начала",
     "education_end_year": "Год окончания",
-    "education_document": "Ссылка на документ",
     "profile_picture_alt": "Фото профиля {{name}}",
     "rating_placeholder": "4.5 (TODO: Реальные рейтинги)",
     "languages_label": "Языки",

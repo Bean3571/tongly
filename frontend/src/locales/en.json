@@ -129,7 +129,6 @@
       "not_tutor_message": "This page is only available for tutors. Please register as a tutor to access it.",
       "bio_placeholder": "Write a brief introduction about yourself as a tutor...",
       "video_url_placeholder": "Enter URL for your introduction video",
-      "document_url_placeholder": "Enter URL for your education document (diploma, certificate, etc.)",
       "add_education": "Add Education",
       "confirm_remove_education": "Are you sure you want to remove this education entry?"
     },
@@ -351,7 +350,6 @@
     "education_field": "Field of Study",
     "education_start_year": "Start Year",
     "education_end_year": "End Year",
-    "education_document": "Document URL",
     "profile_picture_alt": "{{name}}'s profile picture",
     "rating_placeholder": "4.5 (TODO: Real ratings)",
     "languages_label": "Languages",
