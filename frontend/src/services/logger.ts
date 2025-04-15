@@ -94,18 +94,6 @@ class Logger {
     public clearLogs() {
         this.logBuffer = [];
     }
-
-    public async sendLogsToServer() {
-        if (this.logBuffer.length === 0) return;
-
-        try {
-            // Implement sending logs to your backend server
-            // await api.post('/logs', { logs: this.logBuffer });
-            this.clearLogs();
-        } catch (error) {
-            console.error('Failed to send logs to server:', error);
-        }
-    }
 }
 
 export const logger = Logger.getInstance(); 
