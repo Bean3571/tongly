@@ -25,7 +25,6 @@ COPY --from=builder /app/video-service .
 
 # Copy necessary directories and files
 COPY --from=builder /app/views ./views
-COPY --from=builder /app/assets ./assets
 
 # Create certs directory
 RUN mkdir -p /app/certs
