@@ -98,4 +98,204 @@ FE -> Ученик : Отображение формы отзыва
 
 - **Масштабируемость**: Комнаты создаются динамически, идентификатором служит ID урока.
 - **Безопасность**: Доступ к комнате возможен только для участников урока.
-- **Гибкость**: Видеосервис и API разделены, что позволяет масштабировать их независимо. 
+- **Гибкость**: Видеосервис и API разделены, что позволяет масштабировать их независимо.
+
+---
+
+### 3.2.1 Реализация WebRTC-соединения
+
+WebRTC-соединение между учеником и преподавателем устанавливается через несколько последовательных этапов, обеспечивающих надежную P2P-связь с минимальной задержкой. Процесс полностью соответствует архитектуре проекта, где frontend отвечает за пользовательский интерфейс и медиа-потоки, а video-service выполняет роль сигнального сервера.
+
+#### Основные технические термины
+
+- **WebRTC (Web Real-Time Communication)** — технология, позволяющая браузерам обмениваться аудио, видео и данными напрямую, без необходимости в плагинах или дополнительном ПО.
+- **SDP (Session Description Protocol)** — протокол описания сессии, содержащий информацию о медиа-потоках, кодеках, битрейте и других параметрах соединения.
+- **ICE (Interactive Connectivity Establishment)** — протокол для обнаружения и установления сетевых путей между участниками, преодолевающий NAT и брандмауэры.
+- **STUN (Session Traversal Utilities for NAT)** — протокол, позволяющий узнать внешний IP-адрес устройства за NAT.
+- **TURN (Traversal Using Relays around NAT)** — протокол для ретрансляции трафика, когда прямое соединение невозможно.
+
+#### Инициализация медиа и PeerConnection
+
+```plantuml
+@startuml
+!theme plain
+actor "Ученик" as student
+actor "Преподаватель" as tutor
+
+== Инициализация соединения ==
+
+student -> student: navigator.mediaDevices.getUserMedia()
+activate student
+student -> student: Создание RTCPeerConnection
+student -> student: Добавление локальных медиа-треков
+deactivate student
+
+tutor -> tutor: navigator.mediaDevices.getUserMedia()
+activate tutor
+tutor -> tutor: Создание RTCPeerConnection
+tutor -> tutor: Добавление локальных медиа-треков
+deactivate tutor
+@enduml
+```
+
+На первом этапе каждый участник (ученик и преподаватель) запрашивает доступ к камере и микрофону через API `getUserMedia`. После получения медиа-потоков создаётся объект `RTCPeerConnection`, в который добавляются локальные аудио- и видеотреки. Это подготовительный этап для установления WebRTC-соединения.
+
+#### Сигнальный обмен через WebSocket
+
+```plantuml
+@startuml
+!theme plain
+actor "Ученик" as student
+actor "Преподаватель" as tutor
+participant "Видео-сервис\n(сигнальный сервер)" as signaling
+
+== Сигнальный обмен через WebSockets ==
+
+student -> signaling: Подключение к WebSocket
+activate signaling
+signaling --> student: Соединение установлено
+deactivate signaling
+
+tutor -> signaling: Подключение к WebSocket
+activate signaling
+signaling --> tutor: Соединение установлено
+signaling -> tutor: Новый участник (ученик) в комнате
+deactivate signaling
+@enduml
+```
+
+Оба участника подключаются к сигнальному серверу (video-service) по WebSocket-протоколу, используя уникальный идентификатор комнаты (lesson_id). Сервер уведомляет участников о появлении друг друга, что инициирует дальнейший обмен SDP и ICE-кандидатами.
+
+#### Обмен SDP (Session Description Protocol)
+
+```plantuml
+@startuml
+!theme plain
+actor "Ученик" as student
+actor "Преподаватель" as tutor
+participant "Видео-сервис\n(сигнальный сервер)" as signaling
+
+== Создание WebRTC-соединения ==
+
+tutor -> tutor: pc.createOffer()
+activate tutor
+tutor -> tutor: pc.setLocalDescription(offer)
+tutor -> signaling: Отправка SDP-предложения
+deactivate tutor
+
+signaling -> student: Передача SDP-предложения
+activate student
+student -> student: pc.setRemoteDescription(offer)
+student -> student: pc.createAnswer()
+student -> student: pc.setLocalDescription(answer)
+student -> signaling: Отправка SDP-ответа
+deactivate student
+
+signaling -> tutor: Передача SDP-ответа
+activate tutor
+tutor -> tutor: pc.setRemoteDescription(answer)
+deactivate tutor
+@enduml
+```
+
+Преподаватель создаёт SDP-предложение (`offer`), устанавливает его как локальное описание и отправляет через сигнальный сервер ученику. Ученик принимает предложение, создаёт SDP-ответ (`answer`), устанавливает его как локальное описание и отправляет обратно. Это позволяет согласовать параметры медиа-соединения, включая кодеки, битрейт и другие характеристики.
+
+#### Обмен ICE-кандидатами
+
+```plantuml
+@startuml
+!theme plain
+actor "Ученик" as student
+actor "Преподаватель" as tutor
+participant "Видео-сервис\n(сигнальный сервер)" as signaling
+
+== Обмен ICE-кандидатами ==
+
+tutor -> tutor: pc.onicecandidate = event => {...}
+activate tutor
+tutor -> signaling: Отправка ICE-кандидатов
+deactivate tutor
+
+signaling -> student: Передача ICE-кандидатов
+activate student
+student -> student: pc.addIceCandidate(candidate)
+deactivate student
+
+student -> student: pc.onicecandidate = event => {...}
+activate student
+student -> signaling: Отправка ICE-кандидатов
+deactivate student
+
+signaling -> tutor: Передача ICE-кандидатов
+activate tutor
+tutor -> tutor: pc.addIceCandidate(candidate)
+deactivate tutor
+@enduml
+```
+
+После обмена SDP участники начинают обмениваться ICE-кандидатами — информацией о возможных сетевых путях для установления P2P-соединения. Кандидаты пересылаются через сигнальный сервер до тех пор, пока не будет найден оптимальный маршрут. Это позволяет преодолеть сетевые барьеры, такие как NAT и брандмауэры.
+
+#### Установка и поддержка соединения
+
+```plantuml
+@startuml
+!theme plain
+actor "Ученик" as student
+actor "Преподаватель" as tutor
+
+== Установка соединения ==
+
+student -> student: pc.ontrack = event => {...}
+tutor -> tutor: pc.ontrack = event => {...}
+
+note over student, tutor: Установка P2P-соединения завершена
+
+student <-> tutor: Двунаправленная передача аудио/видео
+@enduml
+```
+
+После успешного обмена SDP и ICE-кандидатами устанавливается P2P WebRTC-соединение. Участники получают медиа-треки друг друга через обработчик события `ontrack` и начинается двусторонняя передача аудио и видео. На этом этапе трафик идет напрямую между браузерами участников, минуя сервер, что обеспечивает минимальную задержку.
+
+#### Мониторинг и завершение соединения
+
+```plantuml
+@startuml
+!theme plain
+actor "Ученик" as student
+actor "Преподаватель" as tutor
+participant "Видео-сервис\n(сигнальный сервер)" as signaling
+
+== Проверка статуса соединения ==
+
+tutor -> tutor: pc.getStats()
+student -> student: pc.getStats()
+
+note over student, tutor: Периодическое обновление статистики соединения
+
+== Обработка ошибок соединения ==
+
+student -> student: pc.onconnectionstatechange = event => {...}
+tutor -> tutor: pc.onconnectionstatechange = event => {...}
+
+note over student, tutor: Мониторинг статуса соединения
+
+== Завершение соединения ==
+
+tutor -> tutor: pc.close()
+tutor -> signaling: Закрытие WebSocket-соединения
+
+signaling -> student: Сообщение о закрытии сессии
+student -> student: pc.close()
+student -> signaling: Закрытие WebSocket-соединения
+@enduml
+```
+
+В процессе работы участники могут мониторить состояние соединения и получать статистику (битрейт, задержки и т.д.) через метод `getStats()`. При возникновении ошибок или по завершении урока соединение закрывается методом `close()`, WebSocket-сессии разрываются, участники уведомляются о завершении.
+
+#### Особенности реализации WebRTC в проекте
+
+- **Прямое P2P-соединение**: Аудио и видео передаются напрямую между браузерами участников, что обеспечивает минимальную задержку.
+- **Резервный TURN-сервер**: При невозможности установить прямое соединение используется TURN-сервер для ретрансляции трафика.
+- **Адаптивное качество**: WebRTC автоматически адаптирует качество видео и аудио под доступную пропускную способность сети.
+- **Шифрование**: Весь медиа-трафик шифруется по протоколу DTLS, обеспечивая безопасность передачи данных.
+- **Обработка сбоев**: Система мониторит состояние соединения и автоматически пытается восстановить его при разрывах. 
