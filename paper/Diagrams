@@ -1,0 +1,146 @@
+#####################BACKEND
+
+@startuml
+!theme spacelab
+skinparam packageBorderColor #90a4ae
+skinparam packageBackgroundColor #fafafa
+skinparam ArrowThickness 2
+
+package "Входная точка" {
+  [server]
+}
+
+package "Инфраструктура" {
+  [Config]
+  [Logger]
+  [Database]
+}
+package "Маршрутизация" {
+  [Router]
+}
+package "Обработчики" {
+  [Handlers]
+}
+
+package "Бизнес-логика" {
+  [Usecases]
+}
+
+package "Доступ к данным" {
+  [Repositories]
+}
+
+package "Сущности"  {
+  [Entities]
+}
+
+package "Прослойка"  {
+  [Middleware]
+}
+
+[server] --> [Config]
+[server] --> [Logger]
+[server] --> [Database]
+[server] --> [Router]
+[server] --> [Handlers]
+[server] --> [Usecases]
+[server] --> [Repositories]
+
+[Router] --> [Middleware]
+[Middleware] --> [Handlers]
+[Handlers] --> [Usecases]
+[Usecases] --> [Repositories]
+[Repositories] --> [Entities]
+
+@enduml
+
+
+#####################FRONTEND
+@startuml
+!theme spacelab
+skinparam packageBorderColor #90a4ae
+skinparam packageBackgroundColor #fafafa
+skinparam ArrowThickness 2
+
+package "Входная точка" {
+  [App]
+}
+
+package "Инфраструктура" {
+  [ThemeProvider]
+  [TranslationLoader]
+  [AuthProvider]
+}
+
+package "Маршрутизация" {
+  [AppRoutes]
+}
+
+package "Страницы" {
+  [Pages]
+}
+
+package "Компоненты" {
+  [Components]
+}
+
+package "Контексты" {
+  [Contexts]
+}
+
+package "Сервисы" {
+  [Services]
+}
+
+package "API" {
+  [apiClient]
+}
+
+[App] --> [ThemeProvider]
+[App] --> [TranslationLoader]
+[App] --> [AuthProvider]
+[App] --> [AppRoutes]
+
+[AppRoutes] --> [Pages]
+[Pages] --> [Components]
+[Pages] --> [Contexts]
+[Pages] --> [Services]
+[Components] --> [Contexts]
+[Services] --> [apiClient]
+[Contexts] --> [Services]
+
+@enduml
+
+####################VIDEO SERVICE
+
+@startuml
+!theme spacelab
+skinparam packageBorderColor #90a4ae
+skinparam packageBackgroundColor #fafafa
+skinparam ArrowThickness 2
+
+package "Входная точка" {
+  [server]
+}
+
+package "Инфраструктура" {
+  [Config]
+  [Logger]
+}
+
+package "Обработчики" {
+  [Handlers]
+}
+
+package "Бизнес-логика" {
+  [WebRTC]
+  [Chat]
+}
+
+[server] --> [Config]
+[server] --> [Logger]
+[server] --> [Handlers]
+[Handlers] --> [WebRTC]
+[Handlers] --> [Chat]
+
+@enduml
