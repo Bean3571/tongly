@@ -206,3 +206,130 @@ FE -> Пользователь : Отображает результат
 @enduml
 
 
+#############################Wrtc
+
+@startuml
+!theme plain
+actor "Ученик" as student
+participant "Видео-сервис\n(сигнальный сервер)" as signaling
+
+actor "Преподаватель" as tutor
+
+== Инициализация соединения ==
+
+student -> student: navigator.mediaDevices.getUserMedia()
+activate student
+student -> student: Создание RTCPeerConnection
+student -> student: Добавление локальных медиа-треков
+deactivate student
+
+tutor -> tutor: navigator.mediaDevices.getUserMedia()
+activate tutor
+tutor -> tutor: Создание RTCPeerConnection
+tutor -> tutor: Добавление локальных медиа-треков
+deactivate tutor
+
+== Сигнальный обмен через WebSockets ==
+
+student -> signaling: Подключение к WebSocket
+activate signaling
+signaling --> student: Соединение установлено
+deactivate signaling
+
+tutor -> signaling: Подключение к WebSocket
+activate signaling
+signaling --> tutor: Соединение установлено
+signaling -> tutor: Новый участник (ученик) в комнате
+deactivate signaling
+
+@enduml
+
+
+@startuml
+!theme plain
+actor "Ученик" as student
+participant "Видео-сервис\n(сигнальный сервер)" as signaling
+actor "Преподаватель" as tutor
+
+== Создание WebRTC-соединения ==
+
+tutor -> tutor: pc.createOffer()
+activate tutor
+tutor -> tutor: pc.setLocalDescription(offer)
+tutor -> signaling: Отправка SDP-предложения
+deactivate tutor
+
+signaling -> student: Передача SDP-предложения
+activate student
+student -> student: pc.setRemoteDescription(offer)
+student -> student: pc.createAnswer()
+student -> student: pc.setLocalDescription(answer)
+student -> signaling: Отправка SDP-ответа
+deactivate student
+
+signaling -> tutor: Передача SDP-ответа
+activate tutor
+tutor -> tutor: pc.setRemoteDescription(answer)
+deactivate tutor
+
+== Обмен ICE-кандидатами ==
+
+tutor -> tutor: pc.onicecandidate = event => {...}
+activate tutor
+tutor -> signaling: Отправка ICE-кандидатов
+deactivate tutor
+
+signaling -> student: Передача ICE-кандидатов
+activate student
+student -> student: pc.addIceCandidate(candidate)
+deactivate student
+
+student -> student: pc.onicecandidate = event => {...}
+activate student
+student -> signaling: Отправка ICE-кандидатов
+deactivate student
+
+signaling -> tutor: Передача ICE-кандидатов
+activate tutor
+tutor -> tutor: pc.addIceCandidate(candidate)
+deactivate tutor
+
+@enduml
+
+@startuml
+!theme plain
+actor "Ученик" as student
+participant "Видео-сервис\n(сигнальный сервер)" as signaling
+actor "Преподаватель" as tutor
+
+== Установка соединения ==
+
+student -> student: pc.ontrack = event => {...}
+tutor -> tutor: pc.ontrack = event => {...}
+
+note over student, tutor: Установка P2P-соединения завершена
+
+student <-> tutor: Двунаправленная передача аудио/видео
+== Проверка статуса соединения ==
+
+tutor -> tutor: pc.getStats()
+student -> student: pc.getStats()
+
+note over student, tutor: Периодическое обновление статистики соединения
+
+== Обработка ошибок соединения ==
+
+student -> student: pc.onconnectionstatechange = event => {...}
+tutor -> tutor: pc.onconnectionstatechange = event => {...}
+
+note over student, tutor: Мониторинг статуса соединения
+
+== Завершение соединения ==
+
+tutor -> tutor: pc.close()
+tutor -> signaling: Закрытие WebSocket-соединения
+
+signaling -> student: Сообщение о закрытии сессии
+student -> student: pc.close()
+student -> signaling: Закрытие WebSocket-соединения
+@enduml
