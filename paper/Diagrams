@@ -144,3 +144,65 @@ package "Бизнес-логика" {
 [Handlers] --> [Chat]
 
 @enduml
+
+################JWT
+@startuml
+!theme plain
+actor Пользователь
+participant "Клиент" as FE
+participant "Сервер" as BE
+database "База данных"
+
+== Аутентификация и получение JWT ==
+Пользователь -> FE : Вводит логин и пароль
+FE -> BE : POST /api/auth/login {логин, пароль}
+BE -> "База данных" : Проверка пользователя
+"База данных" --> BE : Данные пользователя
+BE -> BE : Генерация JWT (id, роль, срок)
+BE --> FE : {jwt}
+
+== Хранение токена ==
+FE -> FE : Сохраняет jwt в localStorage
+
+== Использование токена при запросах ==
+Пользователь -> FE : Выполняет защищённое действие \n(бронирование урока)
+FE -> BE : Запрос к API (Authorization: Bearer jwt)
+BE -> BE : Middleware проверяет токен, извлекает id и роль
+BE -> "База данных" : Выполнение бизнес-логики (создание урока)
+"База данных" --> BE : Результат
+BE --> FE : Ответ с данными
+FE -> Пользователь : Отображает результат
+@enduml
+
+######################STUDENT REG
+@startuml
+!theme plain
+actor Пользователь
+participant "Клиент" as FE
+participant "Сервер (API)" as BE
+participant "UseCase регистрации" as UC
+participant "UserRepository"
+participant "StudentRepository"
+database "База данных"
+
+Пользователь -> FE : Вводит данные для регистрации
+FE -> BE : POST /api/auth/register \n{username, email, \npassword, role=student}
+BE -> UC : Вызов RegisterStudent
+UC -> UserRepository : Проверка username/email
+UserRepository -> "База данных" : SELECT ... \nFROM users
+"База данных" --> UserRepository : Результат
+UserRepository --> UC : Результат проверки
+UC -> UserRepository : Создание пользователя
+UserRepository -> "База данных" : INSERT \nINTO users ...
+"База данных" --> UserRepository : id пользователя
+UserRepository --> UC : Новый пользователь
+UC -> StudentRepository : Создание профиля ученика
+StudentRepository -> "База данных" : INSERT \nINTO student_profiles ...
+"База данных" --> StudentRepository : created_at,\nupdated_at
+StudentRepository --> UC : Новый профиль ученика
+UC --> BE : Новый пользователь\nсоздан
+BE --> FE : Ответ с данными\nпользователя
+FE -> Пользователь : Отображает результат
+@enduml
+
+
