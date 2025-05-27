@@ -185,24 +185,24 @@ participant "UserRepository"
 participant "StudentRepository"
 database "База данных"
 
-Пользователь -> FE : Вводит данные для регистрации
+Пользователь -> FE : Вводит данные\nдля регистрации
 FE -> BE : POST /api/auth/register \n{username, email, \npassword, role=student}
 BE -> UC : Вызов RegisterStudent
-UC -> UserRepository : Проверка username/email
+UC -> UserRepository : Проверка \nusername/email
 UserRepository -> "База данных" : SELECT ... \nFROM users
 "База данных" --> UserRepository : Результат
-UserRepository --> UC : Результат проверки
-UC -> UserRepository : Создание пользователя
+UserRepository --> UC : Результат\nпроверки
+UC -> UserRepository : Создание\nпользователя
 UserRepository -> "База данных" : INSERT \nINTO users ...
 "База данных" --> UserRepository : id пользователя
-UserRepository --> UC : Новый пользователь
-UC -> StudentRepository : Создание профиля ученика
+UserRepository --> UC : Новый\nпользователь
+UC -> StudentRepository : Создание\nпрофиля ученика
 StudentRepository -> "База данных" : INSERT \nINTO student_profiles ...
 "База данных" --> StudentRepository : created_at,\nupdated_at
-StudentRepository --> UC : Новый профиль ученика
+StudentRepository --> UC : Новый\nпрофиль ученика
 UC --> BE : Новый пользователь\nсоздан
 BE --> FE : Ответ с данными\nпользователя
-FE -> Пользователь : Отображает результат
+FE -> Пользователь : Отображает\nрезультат
 @enduml
 
 

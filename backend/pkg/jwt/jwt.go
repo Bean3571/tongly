@@ -25,7 +25,7 @@ func GenerateToken(userID int, role string) (string, error) {
 	claims := token.Claims.(jwt.MapClaims)
 	claims["user_id"] = userID
 	claims["role"] = role
-	claims["exp"] = time.Now().Add(time.Hour * 24).Unix() // Token expires in 24 hours
+	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
 
 	tokenString, err := token.SignedString(jwtSecret)
 	if err != nil {
