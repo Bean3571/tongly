@@ -1,0 +1,55 @@
+@startuml
+!theme spacelab
+
+left to right direction
+
+skinparam ArrowThickness 2
+skinparam ArrowFontSize 14
+skinparam ArrowFontColor #263238
+skinparam ArrowColor #1976d2
+skinparam rectangle {
+  BackgroundColor #e3f2fd
+  BorderColor #1976d2
+  FontSize 18
+  FontColor #0d47a1
+  RoundCorner 25
+  Shadowing true
+}
+skinparam database {
+  BackgroundColor #ede7f6
+  BorderColor #7c4dff
+  FontSize 18
+  FontColor #6a1b9a
+  RoundCorner 25
+  Shadowing true
+}
+
+actor Teacher as "Преподаватель"
+note bottom of Teacher : Преподаватель
+actor Student as "Ученик"
+note bottom of Student : Ученик
+
+rectangle "Клиентская часть\n(TypeScript, React)" as Frontend1
+rectangle "Клиентская часть\n(TypeScript, React)" as Frontend2
+
+rectangle "Серверная часть\n(Go, Gin)" as Backend
+rectangle "Видео-сервис\n(Go, Fiber)" as VideoService
+
+database "База данных\n(PostgreSQL)" as DB
+
+Teacher --> Frontend1
+Student --> Frontend2
+
+Frontend1 -right-> Backend : ""
+Backend -left-> Frontend1 : "HTTP REST API" #000000
+Frontend2 -right-> Backend : ""
+Backend -left-> Frontend2 : "HTTP REST API" #000000
+Frontend1 -down-> VideoService : "HTTP/WebSocket"
+Frontend2 -down-> VideoService : "HTTP/WebSocket"
+Backend <-down-> DB : "SQL-запросы"
+
+' WebRTC соединение между двумя клиентскими частями
+Frontend1 -right-> Frontend2 : ""
+Frontend2 -left-> Frontend1 : "WebRTC" #000000
+
+@enduml
