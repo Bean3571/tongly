@@ -1,6 +1,38 @@
-# Tongly - Языковая платформа для обучения
+<img width="1482" height="772" alt="image" src="https://github.com/user-attachments/assets/3db94643-449a-4641-a0e9-46f8a3b43b33" /># Tongly - Языковая платформа для обучения
 
 Tongly - это комплексная платформа для изучения языков, которая соединяет студентов и преподавателей через видеоуроки, чаты и интерактивные игры. Платформа построена на микросервисной архитектуре с использованием Docker-контейнеров.
+
+Взаимодействие компонентов
+<img width="1553" height="634" alt="image" src="https://github.com/user-attachments/assets/cd61d448-35de-437d-85eb-dfa5a899d593" />
+
+База данных
+<img width="1180" height="944" alt="image" src="https://github.com/user-attachments/assets/ce2d6e47-e9c4-48b6-aa52-fdf8bd0ca2d2" />
+
+Фильтры для поиска преподавателей
+<img width="340" height="870" alt="image" src="https://github.com/user-attachments/assets/aa36e371-fbda-4ff7-aa8d-93a060cca22b" />
+
+Поиск преподавателей
+<img width="1482" height="772" alt="image" src="https://github.com/user-attachments/assets/385a0c1a-5dc6-4121-a754-81db455a4972" />
+
+Проведение урока для пользователя с ПК
+<img width="1014" height="844" alt="image" src="https://github.com/user-attachments/assets/c068a8d5-80a2-4821-aba4-b4f302099d18" />
+
+Проведение урока для пользователя со смартфона
+<img width="411" height="841" alt="image" src="https://github.com/user-attachments/assets/bf40d6b1-2c9b-4e22-b2bb-f250278ccc8f" />
+
+Выбор языковых игр
+<img width="1489" height="841" alt="image" src="https://github.com/user-attachments/assets/9888d7af-38f3-4c21-9b59-d31f828fd9f3" />
+
+Игровой процесс
+<img width="999" height="639" alt="image" src="https://github.com/user-attachments/assets/e9e3cf75-7c4f-4fb8-b24b-280d4067a70d" />
+<img width="1083" height="544" alt="image" src="https://github.com/user-attachments/assets/3de04dbb-70ba-4258-8d77-e2a44ee770b6" />
+
+Таблица лидеров
+<img width="1077" height="844" alt="image" src="https://github.com/user-attachments/assets/6505ff76-8651-453b-86fa-b26298e34e00" />
+
+Главная страница
+<img width="991" height="596" alt="image" src="https://github.com/user-attachments/assets/d6f27e65-a337-4e83-9c9a-b66f74c01116" />
+
 
 ## Архитектура проекта
 
