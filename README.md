@@ -3,7 +3,7 @@
 Tongly - это комплексная платформа для изучения языков, которая соединяет студентов и преподавателей через видеоуроки, чаты и интерактивные игры. Платформа построена на микросервисной архитектуре с использованием Docker-контейнеров.
 
 Взаимодействие компонентов
-<img width="1553" height="634" alt="image" src="https://github.com/user-attachments/assets/cd61d448-35de-437d-85eb-dfa5a899d593" />
+<img width="1658" height="661" alt="image" src="https://github.com/user-attachments/assets/eaeedfda-83ee-49e8-a9c2-625d4b0401ff" />
 
 База данных
 <img width="1180" height="944" alt="image" src="https://github.com/user-attachments/assets/ce2d6e47-e9c4-48b6-aa52-fdf8bd0ca2d2" />
